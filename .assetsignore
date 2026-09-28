@@ -1,0 +1,11 @@
+# 这些是开发文件，不随 Workers 静态资源上传
+.git
+.gitignore
+.wrangler
+node_modules
+tools
+package.json
+package-lock.json
+README.md
+wrangler.jsonc
+.assetsignore
