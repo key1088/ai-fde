@@ -99,7 +99,7 @@ npm run serve          # python3 -m http.server 8080
 | **Deploy command** | `npx wrangler deploy` |
 | **Preview command** | `npx wrangler versions upload` |
 
-- `wrangler.jsonc` 把整个仓库作为静态资源目录，并设了 `html_handling: auto-trailing-slash`（`/zh` → `/zh/`）与 `not_found_handling: 404-page`。
+- `wrangler.jsonc` 把整个仓库作为静态资源目录，并设了 `html_handling: auto-trailing-slash`（`/zh` → `/zh/`）与 `not_found_handling: 404-page`；`routes` 里声明了自定义域名 `ai-fde.dev`，与面板设置保持一致（避免 Cloudflare 反复开 PR 同步配置）。
 - `.assetsignore` 排除 `node_modules / .git / tools / package*.json / README` 等开发文件，**不会**把依赖一起传上去。
 - 部署后是 `ai-fde.<account>.workers.dev`，再到 Worker → Settings → Domains & Routes 绑定 `ai-fde.dev`。
 

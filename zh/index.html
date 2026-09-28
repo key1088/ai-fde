@@ -494,6 +494,7 @@ let LANG = detectLang();
 (function(){
   try{
     if(LANG!=='en') return;
+    if(!/^https?:$/.test(location.protocol)) return;   // 只在真实站点生效，file:// 下不跳
     if(location.hash && /(^#|&)p=/.test(location.hash)) return;
     if(new URLSearchParams(location.search).has('nolang')) return;
     if(!/^zh\b|^zh-/i.test(navigator.language||'')) return;
@@ -1480,16 +1481,18 @@ wrap.addEventListener('wheel',e=>{ e.preventDefault(); const r=wrap.getBoundingC
   zoomAt(e.clientX-r.left,e.clientY-r.top,e.deltaY<0?1.12:1/1.12); },{passive:false});
 /* ===== 平移 / 缩放：统一走 Pointer Events，鼠标、触屏、触控笔通用 =====
    原来是 mousedown/mousemove/mouseup，手机上完全拖不动；移动端也没有滚轮，所以补了双指缩放 */
-let drag=false,sx=0,sy=0,ox=0,oy=0,moved=0;
+let drag=false,sx=0,sy=0,ox=0,oy=0,moved=0,captured=false;
 const pts=new Map();          // 活动指针表：单指=平移，双指=缩放
 let pinchD=0, pinchS=1;
 function localXY(e){ const r=wrap.getBoundingClientRect(); return {x:e.clientX-r.left,y:e.clientY-r.top}; }
 function pinchDist(){ const a=[...pts.values()]; return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y); }
+function grab(pid){ try{ wrap.setPointerCapture(pid); captured=true; }catch(_){} }
 wrap.addEventListener('pointerdown',e=>{
   pts.set(e.pointerId, localXY(e));
   if(pts.size===1){ drag=true; moved=0; sx=e.clientX; sy=e.clientY; ox=tx; oy=ty; wrap.classList.add('dragging'); }
-  else if(pts.size===2){ drag=false; pinchD=pinchDist(); pinchS=sc; }
-  try{ wrap.setPointerCapture(e.pointerId); }catch(_){}
+  else if(pts.size===2){ drag=false; pinchD=pinchDist(); pinchS=sc; for(const pid of pts.keys()) grab(pid); }
+  /* 单指/鼠标按下时不要 setPointerCapture：否则后面的 click 会被重定向到 wrap，节点就点不开了。
+     只有真正拖动（moved>6）或双指缩放时才捕获指针。 */
 });
 wrap.addEventListener('pointermove',e=>{
   if(!pts.has(e.pointerId)) return;
@@ -1503,13 +1506,14 @@ wrap.addEventListener('pointermove',e=>{
   }
   if(!drag) return;
   moved=Math.max(moved, Math.abs(e.clientX-sx)+Math.abs(e.clientY-sy));
+  if(moved>6 && !captured) grab(e.pointerId);
   tx=ox+(e.clientX-sx); ty=oy+(e.clientY-sy); applyT();
 });
 function endPtr(e){
   pts.delete(e.pointerId);
   if(pts.size<2) pinchD=0;
   if(!pts.size){
-    drag=false; wrap.classList.remove('dragging');
+    drag=false; captured=false; wrap.classList.remove('dragging');
     /* 拖动后浏览器不一定发 click（触屏常直接吞掉），所以留一个短窗口让紧随的 click 被吃掉；
        超时自动释放，避免残留的 moved 误伤之后点的按钮 */
     if(moved>6) setTimeout(()=>{ moved=0; },350);
