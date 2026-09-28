@@ -11,5 +11,9 @@
     "directory": "./",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page"
-  }
+  },
+  // 自定义域名（与面板保持一致，避免 Cloudflare 再开 PR 同步设置）
+  "routes": [
+    { "pattern": "ai-fde.dev", "custom_domain": true }
+  ]
 }
