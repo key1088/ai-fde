@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>国内新能源汽车使用现状 — 市场研究初稿</title>
+<meta name="description" content="国内新能源汽车使用现状市场研究初稿，含事实台账、对比表、初步判断与资料缺口，全部外部事实标注来源。">
+<style>
+:root{
+  --ink:#1a1a1a; --ink-soft:#404040; --line:#d8dde3; --line-soft:#ebeff3;
+  --navy:#1c3a5e; --panel:#f6f8fa; --warn:#fff6e5; --warn-line:#d79a2b;
+  --excl:#f2f2f2; --excl-line:#9aa0a6;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:#fff; color:var(--ink);
+  font-family:"Segoe UI","PingFang SC","Microsoft YaHei","Hiragino Sans GB",Arial,sans-serif;
+  font-size:15px; line-height:1.75; -webkit-text-size-adjust:100%;
+}
+a{color:var(--navy)}
+a:hover{text-decoration:none}
+
+/* 顶栏 */
+header.top{
+  background:var(--navy); color:#fff; padding:26px 32px 22px;
+  border-bottom:4px solid #0f2540;
+}
+header.top h1{margin:0; font-size:25px; font-weight:700; letter-spacing:.3px}
+header.top .meta{margin-top:10px; font-size:13px; color:#cfdce8; line-height:1.9}
+header.top .meta b{color:#fff; font-weight:600}
+
+/* 布局 */
+.wrap{display:flex; align-items:flex-start; max-width:1500px; margin:0 auto; gap:0}
+nav.toc{
+  position:sticky; top:0; align-self:flex-start;
+  width:270px; flex:0 0 270px; max-height:100vh; overflow-y:auto;
+  padding:22px 14px 40px 22px; border-right:1px solid var(--line-soft);
+  background:#fbfcfd;
+}
+nav.toc .toc-h{font-size:12px; letter-spacing:1.5px; color:var(--ink-soft);
+  text-transform:uppercase; margin:0 0 12px; font-weight:700}
+nav.toc a{display:block; text-decoration:none; color:var(--ink-soft);
+  padding:5px 8px; border-left:3px solid transparent; font-size:13.5px; line-height:1.5}
+nav.toc a:hover{background:var(--panel); color:var(--navy)}
+nav.toc a.on{background:#eaf0f6; border-left-color:var(--navy); color:var(--navy); font-weight:600}
+nav.toc a.toc-2{margin-top:8px; font-weight:600; color:var(--ink)}
+nav.toc a.toc-3{padding-left:20px; font-size:12.5px}
+
+main{flex:1 1 auto; min-width:0; padding:28px 34px 80px}
+
+/* 正文排版 */
+.doc-title{font-size:23px; margin:0 0 6px; padding-bottom:12px; border-bottom:2px solid var(--navy)}
+main h2{
+  font-size:20px; margin:44px 0 14px; padding:9px 0 9px 13px;
+  border-left:5px solid var(--navy); background:#f4f7fa; color:var(--navy);
+}
+main h3{font-size:16.5px; margin:28px 0 10px; color:var(--ink); border-bottom:1px solid var(--line); padding-bottom:6px}
+main h4{font-size:15px; margin:20px 0 8px; color:var(--ink)}
+main p{margin:10px 0}
+main ul,main ol{margin:10px 0 10px; padding-left:26px}
+main li{margin:5px 0}
+main strong{font-weight:700}
+main code{background:var(--panel); padding:1px 5px; border-radius:3px; font-size:13px;
+  font-family:Consolas,Monaco,monospace}
+
+blockquote{
+  margin:16px 0; padding:12px 16px; background:var(--panel);
+  border-left:4px solid var(--navy); color:var(--ink); font-size:14px;
+}
+blockquote strong{color:var(--ink)}
+
+/* 表格 */
+.tw{overflow-x:auto; margin:16px 0; border:1px solid var(--line); background:#fff}
+table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:720px}
+th,td{border:1px solid var(--line); padding:9px 11px; text-align:left; vertical-align:top; line-height:1.65}
+thead th{background:#eef2f6; font-weight:700; color:var(--ink); white-space:nowrap; position:sticky; top:0}
+tbody tr:nth-child(even){background:#fafbfc}
+tbody tr:hover{background:#f2f6fa}
+td.cell-warn{background:var(--warn); box-shadow:inset 3px 0 0 var(--warn-line)}
+td.cell-excl{background:var(--excl); box-shadow:inset 3px 0 0 var(--excl-line); text-decoration:line-through}
+td a{word-break:break-all; font-size:12.5px}
+
+/* 提示条 */
+.note{
+  margin:14px 0; padding:11px 14px; border:1px solid var(--line);
+  background:var(--panel); font-size:13.5px; color:var(--ink);
+}
+.legend{display:flex; flex-wrap:wrap; gap:14px; font-size:13px; color:var(--ink-soft); margin:10px 0 4px}
+.legend span.s{display:inline-block; width:11px; height:11px; vertical-align:-1px; margin-right:5px; border:1px solid #bbb}
+.legend span.sw{background:var(--warn); border-left:3px solid var(--warn-line)}
+.legend span.se{background:var(--excl); border-left:3px solid var(--excl-line)}
+
+footer{border-top:1px solid var(--line); margin-top:50px; padding-top:16px;
+  font-size:12.5px; color:var(--ink-soft)}
+
+/* 回到顶部 */
+#top{position:fixed; right:22px; bottom:26px; width:42px; height:42px; border-radius:50%;
+  background:var(--navy); color:#fff; border:none; cursor:pointer; font-size:18px;
+  display:none; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.22)}
+#top.show{display:flex}
+
+/* 移动端 */
+#navbtn{display:none}
+@media (max-width:960px){
+  header.top{padding:20px 18px 16px}
+  header.top h1{font-size:20px}
+  .wrap{flex-direction:column}
+  nav.toc{position:static; width:100%; flex:none; max-height:none; border-right:none;
+    border-bottom:1px solid var(--line); padding:14px 16px; background:#fbfcfd}
+  nav.toc .toc-body{display:none}
+  nav.toc.open .toc-body{display:block}
+  nav.toc .toc-h{cursor:pointer; display:flex; justify-content:space-between; align-items:center}
+  nav.toc .toc-h::after{content:"☰ 目录"; font-size:12px; letter-spacing:0; color:var(--navy)}
+  nav.toc.open .toc-h::after{content:"✕ 收起"}
+  main{padding:18px 16px 70px}
+  .doc-title{font-size:19px}
+  main h2{font-size:17px; margin:32px 0 12px}
+  table{font-size:12.5px; min-width:640px}
+}
+@media print{
+  nav.toc,#top{display:none}
+  header.top{background:#fff; color:#000; border-bottom:2px solid #000}
+  header.top .meta{color:#333}
+  main{padding:0}
+  .tw{overflow:visible}
+  table{min-width:0; font-size:11px}
+  tbody tr:nth-child(even){background:#fff}
+  main h2{background:none}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>国内新能源汽车使用现状 — 市场研究初稿</h1>
+  <div class="meta">
+    编制日期 <b>2026年9月30日</b> ｜ 外部事实检索日期 <b>2026-09-30</b> ｜ 时间范围 2023—2026年8月 ｜ 口径：新能源<b>乘用车</b>（排除重卡、轻卡等商用车）<br>
+    资料状态：用户未提供自有资料，全文来自公开检索 ｜ 可信度分级 A=官方/监管机构原始发布，B=官方数据经主流媒体转述，C=行业协会原始发布，D=第三方机构整理，E=媒体或个人观点
+  </div>
+</header>
+<div class="wrap">
+  <nav class="toc">
+    <div class="toc-h">目录</div>
+    <div class="toc-body">
+<a class="toc-2" href="#一-市场范围和研究问题">一、市场范围和研究问题</a>
+<a class="toc-3" href="#1-1-范围界定-本稿统一口径">1.1 范围界定（本稿统一口径）</a>
+<a class="toc-3" href="#1-2-研究问题-拆解为可回答的子问题">1.2 研究问题（拆解为可回答的子问题）</a>
+<a class="toc-3" href="#1-3-必须先提示的三个口径冲突-重要">1.3 必须先提示的三个口径冲突（重要）</a>
+<a class="toc-2" href="#二-事实台账">二、事实台账</a>
+<a class="toc-3" href="#a-总量与渗透率-近三年">A. 总量与渗透率（近三年）</a>
+<a class="toc-3" href="#b-保有量-使用现状-的核心存量指标">B. 保有量（"使用现状"的核心存量指标）</a>
+<a class="toc-3" href="#c-价格结构-官方可得部分">C. 价格结构（官方可得部分）</a>
+<a class="toc-3" href="#d-分省份区域结构">D. 分省份区域结构</a>
+<a class="toc-3" href="#e-分年龄段结构">E. 分年龄段结构</a>
+<a class="toc-3" href="#f-口碑-满意度-好评率-的替代指标">F. 口碑 / 满意度（"好评率"的替代指标）</a>
+<a class="toc-3" href="#g-政策目标与未来5年趋势依据">G. 政策目标与未来5年趋势依据</a>
+<a class="toc-2" href="#四-共同点和差异点">四、共同点和差异点</a>
+<a class="toc-3" href="#4-1-共同点-多来源交叉验证一致的结论">4.1 共同点（多来源交叉验证一致的结论）</a>
+<a class="toc-3" href="#4-2-差异点-来源之间或维度之间的不一致">4.2 差异点（来源之间或维度之间的不一致）</a>
+<a class="toc-2" href="#五-初步判断-每条附依据">五、初步判断（每条附依据）</a>
+<a class="toc-2" href="#六-待验证假设和还缺什么资料">六、待验证假设和还缺什么资料</a>
+<a class="toc-3" href="#6-1-待验证假设-尚未证实-需进一步验证">6.1 待验证假设（尚未证实，需进一步验证）</a>
+<a class="toc-3" href="#6-2-还缺什么资料-按缺口严重度排序">6.2 还缺什么资料（按缺口严重度排序）</a>
+<a class="toc-3" href="#6-3-明确标为-未确认-的条目汇总">6.3 明确标为"未确认"的条目汇总</a>
+<a class="toc-2" href="#附录-来源清单-标题-发布者-链接-发布日期-检索日期">附录：来源清单（标题 / 发布者 / 链接 / 发布日期 / 检索日期）</a>
+    </div>
+  </nav>
+  <main>
+    <div class="note">
+      阅读提示：表格中 <b>黄色底</b> 单元格表示该项数据<b>未确认</b>（来源冲突或未能核实原始出处），<b>灰色删除线</b> 表示已排除的来源。事实、判断、推测在文中严格分开，第六章列明全部资料缺口。
+    </div>
+    <div class="legend">
+      <span><span class="s sw"></span>未确认 / 无数据</span>
+      <span><span class="s se"></span>已排除的来源</span>
+      <span>正文默认为黑色字体，未使用彩色强调</span>
+    </div>
+<ul><li>编制日期：2026年9月30日</li><li>检索日期：本次全部外部事实检索日期均为 <strong>2026-09-30</strong></li><li>资料状态：用户未提供自有资料（"资料"栏为空），本稿全部内容来自公开检索</li><li>可信度分级说明：<strong>A=官方/监管机构/统计机构原始发布</strong>；<strong>B=官方机构数据经主流媒体转述</strong>；<strong>C=行业协会原始发布</strong>；<strong>D=第三方研究机构/垂直平台整理</strong>；<strong>E=媒体或个人观点（仅作补充）</strong>；<strong>未确认=未能打开原始出处或未找到权威口径</strong></li></ul>
+<h2 id="一-市场范围和研究问题">一、市场范围和研究问题</h2>
+<h3 id="1-1-范围界定-本稿统一口径">1.1 范围界定（本稿统一口径）</h3>
+<div class="tw"><table><thead><tr><th>维度</th><th>本稿口径</th><th>说明</th></tr></thead><tbody><tr><td>地域</td><td>中国内地（不含港澳台，除非来源另有说明）</td><td>公安部、中汽协口径均为内地</td></tr><tr><td>时间</td><td>近三年 = 2023年、2024年、2025年完整年度 + 2026年1—8月最新可得月度/累计数据</td><td>部分来源只有单月数据，已在台账中标注适用期</td></tr><tr><td>产品</td><td><strong>新能源汽车乘用车</strong>（BEV纯电 / PHEV插电混动 / EREV增程 / FCV燃料电池）</td><td>按用户要求，<strong>排除新能源重卡、轻卡等商用车</strong></td></tr><tr><td>比较对象</td><td>新能源 vs 燃油车（含普通混合动力HEV，HEV在现行统计中归入燃油车口径）</td><td>见下方口径冲突提示</td></tr><tr><td>目标客户</td><td>全部客户（不分年龄、地域、用途）</td><td>第3章按价格档做细分对比</td></tr></tbody></table></div>
+<h3 id="1-2-研究问题-拆解为可回答的子问题">1.2 研究问题（拆解为可回答的子问题）</h3>
+<ol><li>近三年国内新能源汽车的总体规模、渗透率、保有量处于什么水平，趋势如何？</li><li>按销售价格分档（5-10万 / 10-15万 / 15-20万 / 及以上），各档位的销量TOP5车型是哪些，口碑表现如何？</li><li>各省份新能源汽车与燃油车的使用结构差异如何？</li><li>各年龄段人群在新能源与燃油车之间的选择差异如何？</li><li>未来5年（2026—2030）新能源汽车的趋势是什么？有哪些可依据的官方目标？</li></ol>
+<h3 id="1-3-必须先提示的三个口径冲突-重要">1.3 必须先提示的三个口径冲突（重要）</h3>
+<div class="tw"><table><thead><tr><th>冲突点</th><th>说明</th><th>影响</th></tr></thead><tbody><tr><td><strong>中汽协 vs 乘联分会口径不同</strong></td><td>中汽协"新能源汽车"<strong>包含商用车</strong>（客车、货车等）；乘联分会统计的是<strong>乘用车</strong>。用户要求排除重卡/轻卡，因此<strong>本稿优先采用乘联分会乘用车口径</strong>，中汽协数据仅作总量参照</td><td>两组数字不可直接混用、不可相减</td></tr><tr><td><strong>渗透率有三种分母</strong></td><td>① 新能源新车销量 / 汽车新车总销量（中汽协，含商用车）；② 新能源乘用车零售 / 乘用车零售（乘联分会零售渗透率）；③ 新能源乘用车批发 / 乘用车批发（批发渗透率）。同一时点三者数值差异可达10个百分点以上</td><td>引用时必须写明是哪一种</td></tr><tr><td><strong>"价格档"无统计口径标准</strong></td><td>官方（乘联分会）公开发布的是<strong>车型级别</strong>（A00/A0/A/B/C级）和部分价格带汇总，<strong>没有按 5-10万 / 10-15万 / 15-20万 逐档发布的官方车型榜单</strong>。市面流传的分档榜单来自垂直平台按"厂家指导价"二次整理，且指导价 ≠ 成交价</td><td class="cell-warn">第3章价格档TOP5均为<strong>D/E级来源，未能核实原始榜单</strong></td></tr></tbody></table></div>
+<h2 id="二-事实台账">二、事实台账</h2>
+<blockquote>格式：事实 → 来源（标题/发布者/链接/发布日期）→ 可信度 → 适用范围与已知限制</blockquote>
+<h3 id="a-总量与渗透率-近三年">A. 总量与渗透率（近三年）</h3>
+<div class="tw"><table><thead><tr><th>#</th><th>事实</th><th>来源</th><th>可信度</th><th>适用范围/限制</th></tr></thead><tbody><tr><td>A1</td><td>2023年新能源汽车销量 <strong>949万辆</strong>，新能源新车销量占汽车新车总销量<strong>突破30%</strong></td><td>《中国新能源汽车产销总量连续10年全球第一》，中国外文局亚太传播中心，2025-01月发布，<a href="http://www.apcreports.org.cn/index/news/46954.html" target="_blank" rel="noopener noreferrer">http://www.apcreports.org.cn/index/news/46954.html</a></td><td>B</td><td>转述中汽协。原文未给出2023年精确渗透率</td></tr><tr><td>A2</td><td>2023年新能源渗透率 <strong>31.6%</strong></td><td>由A3"2024年40.9%，较2023年提高9.3个百分点"<strong>反推</strong></td><td>—</td><td><strong>推算值，非原文直引</strong>，需核对中汽协2023年原始公告</td></tr><tr><td>A3</td><td>2024年新能源产销 <strong>1288.8万辆 / 1286.6万辆</strong>，同比 +34.4% / +35.5%；占新车总销量 <strong>40.9%</strong>，较2023年提高9.3个百分点；纯电占新能源60%（同比降10.4pct），插混占40%（同比升10.4pct）</td><td>《2024年我国新能源汽车产销量均超1200万辆》，新华社，2025-01-13，<a href="https://big5.www.gov.cn/gate/big5/www.gov.cn/yaowen/liebiao/202501/content_6998270.htm" target="_blank" rel="noopener noreferrer">https://big5.www.gov.cn/gate/big5/www.gov.cn/yaowe…nt_6998270.htm</a></td><td>B</td><td>中汽协口径，<strong>含商用车</strong></td></tr><tr><td>A4</td><td>2025年新能源产销 <strong>1662.6万辆 / 1649万辆</strong>，同比 +29% / +28.2%；占新车总销量 <strong>47.9%</strong>（同比+7pct）；<strong>国内销量1387.5万辆，占国内汽车总销量50.8%（首次突破50%）</strong>；新能源乘用车国内销量1300.5万辆，占比54%；出口261.5万辆（同比翻倍）</td><td>《我国汽车产销量连续17年全球第一》，央广网转中汽协，2026-01-15，<a href="https://www.cnr.cn/2013qcpd/yc/20260115/t20260115_527493945.shtml" target="_blank" rel="noopener noreferrer">https://www.cnr.cn/2013qcpd/yc/20260115/t20260115_527493945.shtml</a> ；《2025年我国汽车产销双超3400万辆》，人民日报，2026-01-15；央视网汽车频道，2026-01-16</td><td>B</td><td>中汽协口径，<strong>含商用车</strong>；47.9%为含出口的总销量口径，50.8%为国内口径</td></tr><tr><td>A5</td><td>2025年新能源乘用车<strong>批发1531.9万辆（+25.2%）、零售1280.9万辆（+17.6%），零售渗透率54%</strong>；12月零售133.7万辆，渗透率59.1%</td><td>《12月"零批"同比双增，2025年新能源车翘尾收官》，新浪财经转乘联分会，2026-01-09，<a href="https://finance.sina.com.cn/stock/t/2026-01-09/doc-inhftpvi5658134.shtml" target="_blank" rel="noopener noreferrer">https://finance.sina.com.cn/stock/t/2026-01-09/doc…i5658134.shtml</a></td><td>B</td><td><strong>乘用车口径，最贴合本稿需求</strong></td></tr><tr><td>A6</td><td>2026年1—8月新能源产销 <strong>1066.8万辆 / 1065万辆</strong>，同比 +10.8% / +10.7%，占新车销量 <strong>52.4%</strong>；8月单月产销165.3万/164.3万，同比+18.9%/+17.8%，<strong>月度占比60.6%（历史新高）</strong>；1—8月新能源出口343.5万辆，同比+1.2倍</td><td>《新能源汽车月度新车销量占比再创新高》，新华社，2026-09-10，人民网财经转载，<a href="https://finance.people.com.cn/BIG5/n1/2026/0910/c1004-40796274.html" target="_blank" rel="noopener noreferrer">https://finance.people.com.cn/BIG5/n1/2026/0910/c1004-40796274.html</a> ；《2026年8月新能源汽车产销情况简析》，中国汽车工业协会统计信息网，2026-09-24，<a href="http://auto-stats.org.cn/ReadArticle.asp?NewsID=11426" target="_blank" rel="noopener noreferrer">http://auto-stats.org.cn/ReadArticle.asp?NewsID=11426</a></td><td>A/B</td><td>中汽协口径，<strong>含商用车</strong></td></tr><tr><td>A7</td><td>2026年7月新能源乘用车<strong>零售95.1万辆（同比-3.9%），零售渗透率65.1%</strong>（同比+11.6pct）；1—7月累计零售566.8万辆（同比-12.5%）；批发渗透率64.2%；自主品牌新能源渗透率83.8%、豪华30.9%、主流合资13.7%</td><td>《2026年7月份全国乘用车市场分析》，中国汽车流通协会乘用车市场信息联席分会（乘联分会），2026-08-11，<a href="https://www.cada.cn/Trends/info_91_10550.html" target="_blank" rel="noopener noreferrer">https://www.cada.cn/Trends/info_91_10550.html</a></td><td><strong>A（协会官网原文，已抓取全文核对）</strong></td><td>乘用车口径。<strong>关键反差：渗透率创新高，但零售绝对量同比下滑</strong></td></tr><tr><td>A8</td><td>2026年8月新能源乘用车零售 <strong>100.5万辆（同比-10.1%），渗透率65.2%（历史新高）</strong>；自主品牌新能源渗透率83.9%，豪华38.9%；8月新能源乘用车出口51.8万辆（同比+154.7%）</td><td>《新能源乘用车渗透率再创新高》，中国经济网转乘联分会，2026-09-09，<a href="https://www.ce.cn/macro/more/202609/t20260909_3202871.shtml" target="_blank" rel="noopener noreferrer">https://www.ce.cn/macro/more/202609/t20260909_3202871.shtml</a> ；《油电分化加剧、出口持续托底》，中国青年网，2026-09-09</td><td>B</td><td>乘用车口径</td></tr><tr><td>A9</td><td>2026年7月燃油乘用车零售同比 <strong>-41%</strong>（纯燃油 -44%，普通混合动力 -4%）；2026年8月燃油车零售同比下降超40%，纯燃油-45%</td><td>同A7（原文）；中国青年网2026-09-09</td><td>A/B</td><td>分母塌陷式下滑</td></tr><tr><td>A10</td><td>2026年1—6月汽车行业<strong>销售利润率3.8%</strong>（上下游工业企业平均6.5%）；上半年汽车行业收入51,893亿元(+1.8%)、利润1,954亿元(-20%)</td><td>同A7（乘联分会7月报告第3节）</td><td>A</td><td>行业盈利侧事实</td></tr><tr><td>A11</td><td>2026年1—6月中国占<strong>世界新能源车份额62%</strong>；2025年中国新能源乘用车世界份额68.3%；世界新能源渗透率 2022年13.1% → 2023年15.9% → 2024年19.5% → 2025年23.6% → 2026年累计23.4%</td><td>同A7（乘联分会7月报告第7节）</td><td>A</td><td>国际对比</td></tr></tbody></table></div>
+<h3 id="b-保有量-使用现状-的核心存量指标">B. 保有量（"使用现状"的核心存量指标）</h3>
+<div class="tw"><table><thead><tr><th>#</th><th>事实</th><th>来源</th><th>可信度</th><th>适用范围/限制</th></tr></thead><tbody><tr><td>B1</td><td>截至2025年底，全国机动车保有量 <strong>4.69亿辆</strong>（汽车3.66亿辆）；<strong>新能源汽车保有量4397万辆，占汽车总量12.01%</strong>；其中纯电动3022万辆，占新能源68.74%</td><td>《2025年全国机动车达4.69亿辆 驾驶人达5.59亿人》，新华社转公安部，2026-01-26，<a href="https://news.cn/20260126/62f6b9393e264b9ebef0019a3efc4557/c.html" target="_blank" rel="noopener noreferrer">https://news.cn/20260126/62f6b9393e264b9ebef0019a3efc4557/c.html</a> ；人民日报2026-01-27</td><td>B（A级机构数据，经权威媒体转述）</td><td><strong>官方登记口径，含新能源商用车</strong>；这是"使用现状"最硬的存量数据</td></tr><tr><td>B2</td><td>2025年新注册登记新能源汽车 <strong>1293万辆，占新注册登记汽车数量的49.38%</strong>，同比增加168万辆、增长14.93%</td><td>同B1</td><td>B</td><td>上牌口径，与A4/A5销量口径不同（含进口、含商用车）</td></tr><tr><td>B3</td><td>截至2026年上半年，全国新能源汽车保有量 <strong>4897万辆</strong>，在3.71亿辆汽车中占比 <strong>13.19%</strong></td><td>《新华深读丨中国新能源汽车25年产业风云》，新华社，2026-08-20，<a href="https://www.news.cn/fortune/20260820/07c8abd063ab4a02bdfe980710c2c003/c.html" target="_blank" rel="noopener noreferrer">https://www.news.cn/fortune/20260820/07c8abd063ab4…0c2c003/c.html</a></td><td>B</td><td>新华社综述，未标注具体发布机构；与B1口径连续性待核</td></tr></tbody></table></div>
+<h3 id="c-价格结构-官方可得部分">C. 价格结构（官方可得部分）</h3>
+<div class="tw"><table><thead><tr><th>#</th><th>事实</th><th>来源</th><th>可信度</th><th>适用范围/限制</th></tr></thead><tbody><tr><td>C1</td><td>2025年乘用车<strong>零售均价17.0万元</strong>（2024年18.4万元、2023年18.4万元）；价格带占比：<strong>10万以下约24.8%，10-20万约43.3%，20-30万约18.3%，30万以上约13.6%</strong></td><td>媒体转述乘联分会秘书长崔东树公布数据，有驾网，<a href="http://youjia-pc.bdstatic.com/article/9598415586209100326.html" target="_blank" rel="noopener noreferrer">http://youjia-pc.bdstatic.com/article/9598415586209100326.html</a></td><td>E（转述二手）</td><td class="cell-warn"><strong>未能核实原始出处</strong>；为乘用车全品类（含燃油），非新能源单列</td></tr><tr><td>C2</td><td>2025年3月单月各价格带<strong>新能源</strong>：10万以下约28.6万辆(+42%)、<strong>10-20万约42.4万辆(+35%，占42.8%)</strong>、20-30万约15.5万辆(+32%)、30-40万约5.2万辆(+56.4%)、40万以上约1.8万辆(-10%)</td><td>《乘联会：2025年3月份全国新能源乘用车市场深度分析报告》，三个皮匠报告（转载），<a href="https://www.sgpjbg.com/labels/2025xinnengyuanchengyongcheshichang/1/6776389.html" target="_blank" rel="noopener noreferrer">https://www.sgpjbg.com/labels/2025xinnengyuancheng…1/6776389.html</a></td><td>D</td><td><strong>仅2025年3月单月</strong>；且为10万/20万粗分档，无5-10万、10-15万细分</td></tr><tr><td>C3</td><td>2025年全年乘用车（含燃油）价格带累计零售：&lt;10万 <strong>6,781,938辆(+6.3%)</strong>、10-20万 <strong>10,308,825辆(+2.3%)</strong>、20-30万 <strong>3,944,983辆(+39.6%)</strong>、30-40万 1,899,298辆(-4.1%)、≥40万 809,696辆(-4.4%)</td><td>《乘联会：2025年乘用车销量报告》，三个皮匠报告（转载），<a href="https://www.sgpjbg.com.cn/labels/chenglianhuixiaoliangbaogao/1/6776140.html" target="_blank" rel="noopener noreferrer">https://www.sgpjbg.com.cn/labels/chenglianhuixiaol…1/6776140.html</a></td><td>D</td><td class="cell-warn">未能核实乘联会原始报告</td></tr><tr><td>C4</td><td>2026年7月新能源批发结构：纯电动66.2%、狭义插混26.8%、增程式6.9%；<strong>纯电内部级别结构：A00级6.5万辆(同比-50%，占纯电7%，份额同比-10.7pct)、A0级31.1万辆(占32%)、A级23.1万辆(占24%)、B级29.9万辆(占31%)</strong></td><td>同A7（乘联分会官网原文）</td><td>A</td><td><strong>官方不按价格分档，按车型级别分档</strong>；A00/A0大幅萎缩是关键结构变化</td></tr><tr><td>C5</td><td>2026年1—7月新能源新车中，<strong>5米以上新车49款，占新能源新车总数量的56%</strong>（2024年38%、2025年36%）；<strong>4米以下车型仅1款，占1%</strong>（去年同期5款占6%）</td><td>同A7</td><td>A</td><td>供给端大型化，经济型车供给剧烈减少</td></tr><tr><td>C6</td><td>2026年7月乘用车批发销量超两万辆的车型18个，前5：比亚迪元UP 63,258辆、比亚迪宋 61,012辆、Model Y 59,836辆、吉利星愿 55,105辆、瑞虎7 34,936辆</td><td>同A7</td><td>A</td><td><strong>官方车型销量清单，可作锚点</strong>；但官方未配价格档</td></tr></tbody></table></div>
+<h3 id="d-分省份区域结构">D. 分省份区域结构</h3>
+<div class="tw"><table><thead><tr><th>#</th><th>事实</th><th>来源</th><th>适用范围/限制</th></tr></thead><tbody><tr><td>D1</td><td>2025年（乘联分会统计30个地区）：<strong>海南68.3%、广西63.2%为新能源占比最高的两个地区</strong>；山东、江苏、湖北、宁夏占比超50%；北京、上海、浙江、河南、天津接近60%；四川、河北接近50%</td><td>《汽车"新宠"来了》（中国新闻周刊），新浪转载，2026-03-16，<a href="https://news.sina.cn/gn/2026-03-16/detail-inhrawmm9291235.d.html" target="_blank" rel="noopener noreferrer">https://news.sina.cn/gn/2026-03-16/detail-inhrawmm9291235.d.html</a></td><td class="cell-warn">转述二手；"占比"未注明是零售渗透率还是保有占比，<strong>口径未确认</strong></td></tr><tr><td>D2</td><td>2025年新能源上险量（不含港澳台）<strong>1244.56万台</strong>；341个城市中仅80个（23.5%）在均值以上，却占74.5%销量；<strong>TOP10城市</strong>：广州365,964、北京362,038、成都359,175、上海357,974、深圳342,293、杭州327,887、郑州318,251、重庆283,892、武汉278,292、西安237,988，合计323.38万台占全国26%；<strong>后100位城市合计仅4.67万台</strong>（甘肃12席、黑龙江9席、新疆9席、云南8席、四川8席…）</td><td>《2025中国新能源汽车死角报告》，腾讯新闻/电动星球，2026-02-24，<a href="https://view.inews.qq.com/a/20260224A05HFW00" target="_blank" rel="noopener noreferrer">https://view.inews.qq.com/a/20260224A05HFW00</a></td><td>城市级，非省级；上险量口径。<strong>极端分化是最有价值的结论</strong></td></tr><tr><td>D3</td><td>2025年各省销量（媒体整理）：广东122.4万辆第一、浙江110.4万第二、山东101.3万第三、江苏93.9万；7省超50万辆（广东、浙江、山东、江苏、河南、河北、四川）</td><td>《中国新能源汽车，都被哪些省买走了》，今日头条，<a href="https://m.toutiao.com/article/7625977156320920091" target="_blank" rel="noopener noreferrer">https://m.toutiao.com/article/7625977156320920091</a></td><td><strong>与D4冲突</strong></td></tr><tr><td>D4</td><td>2025年广东乘用车248.3万辆、<strong>新能源144.3万辆(+17.5%)</strong>；山东183.6万辆/新能源101.3万辆；浙江182.5万辆/新能源110.4万辆；江苏172.2万辆/新能源93.9万辆</td><td>《安徽"车谷"登顶 广东守擂"销量王"》，今日头条，<a href="https://m.toutiao.com/article/7599481181473669658" target="_blank" rel="noopener noreferrer">https://m.toutiao.com/article/7599481181473669658</a></td><td class="cell-warn"><strong>广东新能源销量两个数（122.4万 vs 144.3万）互相冲突</strong>；且该文中"广东新能源车渗透率为6.3%"与D5的"56.3%"明显矛盾，疑为原文笔误或口径不同</td></tr><tr><td>D5</td><td>2025年1—10月广东新能源销量122.4万辆，渗透率<strong>56.3%</strong>；浙江57.4%、江苏52.0%、山东50.0%</td><td>有驾网，<a href="https://www.yoojia.com/article/8638279413664037450.html" target="_blank" rel="noopener noreferrer">https://www.yoojia.com/article/8638279413664037450.html</a></td><td>时间范围为1—10月，非全年</td></tr><tr><td>D6</td><td>区域动力结构：2025年吉林、黑龙江、辽宁、北京及宁夏、新疆、青海、甘肃插混占比一度快速增长后放缓；纯电动方面2025年全年占比同比增长超9%的地区有7个（1—7月仅4个）；30个地区中<strong>纯电动结构占比同比下滑的仅吉林1个，插混同比下滑的多达10个</strong></td><td>同D1</td><td>引乘联分会，二手转述</td></tr></tbody></table></div>
+<blockquote><strong>省级数据结论：存在明确冲突与笔误，本稿不采信任何单一来源的省级数字，全部标注为"未确认"，建议以乘联分会《乘用车区域市场流向分析》原始报告或公安部上险数据为准。</strong></blockquote>
+<h3 id="e-分年龄段结构">E. 分年龄段结构</h3>
+<div class="tw"><table><thead><tr><th>#</th><th>事实</th><th>来源</th><th>可信度</th><th>适用范围/限制</th></tr></thead><tbody><tr><td>E1</td><td>截至2025年6月，新能源汽车消费群体中 <strong>90后34.5%、00后12.7%</strong>，同比分别增长3.8%、1.9%；70后12.6%、80后29.6%</td><td>引QuestAuto数据，《合资车企，这样"抓住"年轻人》，腾讯搜一搜，<a href="https://so.html5.qq.com/page/real/search_news?docid=70000021_7296a91641279652" target="_blank" rel="noopener noreferrer">https://so.html5.qq.com/page/real/search_news?doci…96a91641279652</a> ；北京广播网2026-04-07转述</td><td>D/E（二手转述第三方机构QuestAuto）</td><td class="cell-warn"><strong>未找到QuestAuto原始报告</strong>；为"消费群体占比"，非"销量占比"</td></tr><tr><td>E2</td><td>新能源汽车 <strong>26—45岁中青年占65.1%</strong>；80后+90后合计64.1%；Z世代（95后+00后）占比26%；首台车平均拥有年龄30.5岁，00后首台车低至22岁</td><td>《新能源汽车消费者：用户画像、购车决策与市场趋势》，三个皮匠报告，<a href="https://www.sgpjbg.com.cn/news/7074777.html" target="_blank" rel="noopener noreferrer">https://www.sgpjbg.com.cn/news/7074777.html</a></td><td>D/E（报告站汇编，未注明原始数据方）</td><td class="cell-warn">数据出处不明</td></tr><tr><td>E3</td><td>车型偏好差异：00后偏好紧凑型SUV；90后偏好20万以上中型及中大型新能源车；80后偏好10—20万价位段</td><td>同E2</td><td>D/E</td><td>定性描述，无量化支撑</td></tr><tr><td>E4</td><td>燃油车侧：<strong>传统燃油车消费正从中青年向中老年转变，50—60岁人群成为核心拉动点</strong></td><td>《汽车人群：用户画像、消费特征》，三个皮匠报告，<a href="https://www.sgpjbg.com/news/7074424.html" target="_blank" rel="noopener noreferrer">https://www.sgpjbg.com/news/7074424.html</a></td><td>E</td><td class="cell-warn"><strong>仅此一处来源，无交叉验证，未确认</strong></td></tr><tr><td>E5</td><td>J.D. Power：到2026年00后购车者比例三年间翻了3倍，增速超过以往任何一代</td><td>同E1来源（转述J.D. Power）</td><td>E</td><td class="cell-warn">未核到J.D. Power原始发布</td></tr><tr><td>E6</td><td>换购/增购结构：2016年增换购占比32%，2019年突破50%，<strong>2025年升至65%以上</strong></td><td>同E4</td><td>D/E</td><td>全品类口径</td></tr></tbody></table></div>
+<blockquote><strong>年龄段数据结论：官方统计（公安部、中汽协、乘联分会）均不发布分年龄段购车数据</strong>。本项全部依赖第三方调研机构，样本口径、是否为"销量占比"均未确认，<strong>不能用于定量结论</strong>。</blockquote>
+<h3 id="f-口碑-满意度-好评率-的替代指标">F. 口碑 / 满意度（"好评率"的替代指标）</h3>
+<div class="tw"><table><thead><tr><th>#</th><th>事实</th><th>来源</th><th>可信度</th><th>适用范围/限制</th></tr></thead><tbody><tr><td>F1</td><td><strong>2025年中国新能源汽车行业用户满意度指数（NEV-CACSI）80分</strong>（满分100），同比+1分；纯电80分(+2)、混动80分(+1)；感知质量80.6分(+1.2)、感知价值79.7分(+1.5)；质量可靠性80.8分(+0.7)、性能设计81.1分(+0.5)；<strong>自主品牌80分，与合资持平</strong>（燃油车领域自主低于合资1分）；<strong>百辆新车故障次数109次，同比增加18次</strong></td><td>《2025年中国新能源汽车行业用户满意度指数同比提升》，中质国优测评（中国质量协会 NEV-CACSI 官方发布平台），2025-12-03发布，<a href="https://ceping.caq.org.cn/xwzx/23350.html" target="_blank" rel="noopener noreferrer">https://ceping.caq.org.cn/xwzx/23350.html</a></td><td><strong>A（权威第三方测评机构官方发布）</strong></td><td>覆盖162款车型、40家生产企业、55个品牌、128个重点城市，有效样本25,303个，调查期2025-05-01至09-30。<strong>行业级指数，未公开分车型完整榜单</strong></td></tr><tr><td>F2</td><td>J.D. Power 2025年度：理想汽车获新能源主流品牌<strong>口碑指数(NPS)第一，46.4分</strong>；销售满意度(NEV-SSI)主流品牌第一；服务满意度(NEV-CSI)第一，788分；理想L9获NEV-IQS细分市场第一；理想L7获NEV-APEAL细分市场第一</td><td>太平洋汽车网/有驾网转载，<a href="https://www.pcauto.com.cn/hj/article/3542185.html" target="_blank" rel="noopener noreferrer">https://www.pcauto.com.cn/hj/article/3542185.html</a></td><td>E（媒体转载）</td><td class="cell-warn">未核到J.D. Power原始榜单</td></tr><tr><td>F3</td><td>J.D. Power 2025中国新能源汽车产品魅力指数（NEV-APEAL）：小米SU7大型纯电动轿车第一（843分，2024年为825分）；小米YU7大型纯电动SUV第一（843分）</td><td>百度有驾，<a href="https://youjia.baidu.com/view/articleDetail/9412525810973979065" target="_blank" rel="noopener noreferrer">https://youjia.baidu.com/view/articleDetail/9412525810973979065</a></td><td>E</td><td class="cell-warn">未核到原始榜单</td></tr><tr><td>F4</td><td>卡思调查2025年新能源品牌满意度：广汽埃安86.39、特斯拉86.11、问界85.85、蔚来85.67、比亚迪85.61</td><td>手机新浪网整理，<a href="https://www.sina.cn/gc/article/nirvqsk9105608.html" target="_blank" rel="noopener noreferrer">https://www.sina.cn/gc/article/nirvqsk9105608.html</a></td><td>E</td><td class="cell-warn">未核到卡思调查原始发布</td></tr></tbody></table></div>
+<blockquote><strong>"好评率"结论：国内没有官方或行业统一发布的"分车型好评率"指标</strong>。可用的替代口径有四类（NEV-CACSI满意度、J.D. Power NEV-APEAL魅力指数/NEV-IQS新车质量/NPS、卡思调查满意度），但<strong>四者口径、分值体系、样本均不同，不可横向排序</strong>。</blockquote>
+<h3 id="g-政策目标与未来5年趋势依据">G. 政策目标与未来5年趋势依据</h3>
+<div class="tw"><table><thead><tr><th>#</th><th>事实</th><th>来源</th><th>可信度</th><th>适用范围/限制</th></tr></thead><tbody><tr><td>G1</td><td>《智能网联新能源汽车产业发展"十五五"规划》（工信部等九部门，2026年9月印发）：<strong>到2030年，国内新能源乘用车、商用车在各自领域新车总销量占比分别达到70%、40%</strong>；乘用车平均燃料消耗量3.3L/100km、纯电动乘用车电耗11.5kWh/100km左右；高速公路、城市快速路、部分城市道路实现高度自动驾驶；全员劳动生产率较2025年提升15%；2030年前实现碳达峰</td><td>《工信部：将加快自动泊车、安全事件数据交互等标准制定》，人民网财经，2026-09-12，<a href="https://finance.people.com.cn/n1/2026/0912/c1004-40797518.html" target="_blank" rel="noopener noreferrer">https://finance.people.com.cn/n1/2026/0912/c1004-40797518.html</a> ；《新能源车，比"70%"更重要的》，中工网，2026-09-14</td><td>B（A级部门文件，经官媒转述）</td><td><strong>这是未来5年最硬的官方锚点</strong>。注意：70%是"乘用车新车销量占比"，不是渗透率的唯一表述</td></tr><tr><td>G2</td><td>国务院《"十五五"碳达峰行动方案》（2026-07-09印发）：<strong>到2030年新能源汽车保有量占比力争达到30%，新能源营运交通工具保有量占比25%</strong></td><td>《国务院关于印发〈"十五五"碳达峰行动方案〉的通知》，中国经济网转载，2026-07-09，<a href="https://www.ce.cn/xwzx/gnsz/gdxw/202607/t20260709_3078415.shtml" target="_blank" rel="noopener noreferrer">https://www.ce.cn/xwzx/gnsz/gdxw/202607/t20260709_3078415.shtml</a></td><td>B</td><td>保有量口径，与G1销量口径不同</td></tr><tr><td>G3</td><td>《新型电力系统建设"十五五"规划》：<strong>到2030年充电基础设施总量超4000万个，支撑超1.1亿辆电动汽车充电</strong></td><td>新华社，2026-08-12，中国经济网转载，<a href="https://www.ce.cn/xwzx/gnsz/gdxw/202608/t20260813_3144875.shtml" target="_blank" rel="noopener noreferrer">https://www.ce.cn/xwzx/gnsz/gdxw/202608/t20260813_3144875.shtml</a></td><td>B</td><td>基建侧目标</td></tr><tr><td>G4</td><td>截至2026年8月报道时点，全国电动汽车<strong>充电基础设施（枪）总数2305.7万个</strong>，大功率充电枪超18万个</td><td>同G3</td><td>B</td><td>与G3的4000万个目标对比，可推算缺口</td></tr><tr><td>G5</td><td>工信部原副部长苏波（2026-04-11）：<strong>预计2026年渗透率突破50%，"十五五"时期至少超过70%，2030年超70%</strong></td><td>《工信部原副部长：预计2030年中国新能源汽车渗透率超70%》，中国新闻网，2026-04-11，<a href="https://www.chinanews.com.cn/cj/2026/04-11/10602187.shtml" target="_blank" rel="noopener noreferrer">https://www.chinanews.com.cn/cj/2026/04-11/10602187.shtml</a></td><td>E</td><td><strong>个人预测，非官方目标</strong>，与G1的官方目标需区分</td></tr><tr><td>G6</td><td>中汽协（2026-01）预测2026年：汽车总销量3475万辆(+1%)，<strong>新能源1900万辆(+15.2%)</strong>，出口740万辆(+4.3%)</td><td>央广网转中汽协副秘书长陈士华，2026-01-15</td><td>B</td><td><strong>预测值</strong>。实际1—8月新能源仅1065万辆、同比+10.8%，全年达成1900万辆需下半年大幅提速 → <strong>预测与实际存在明显偏离风险</strong></td></tr><tr><td>G7</td><td>海南提出平稳推进<strong>2030年禁售燃油车</strong></td><td>新华社，2026-08-20</td><td>B</td><td>地方政策，非全国</td></tr><tr><td>G8</td><td>2026年以来国内汽油价格累计上调1575元/吨（1—7月），大幅抬高燃油车用车成本，是油电替代加速的重要外部因素</td><td>同A7（乘联分会原文）</td><td>A</td><td>乘联分会的因果判断</td></tr><tr><td>G9</td><td>新能源免征购置税政策已于2025年底到期（2026年起政策切换），乘联分会指出这带来"新能源车增速高于燃油车32.6个点"的翘尾效应与2026年需求前置</td><td>新浪财经转乘联分会，2026-01-09（同A5）</td><td>B</td><td><strong>政策切换是2026年零售同比下滑的重要解释变量</strong></td></tr></tbody></table></div>
+<h2 id="四-共同点和差异点">四、共同点和差异点</h2>
+<h3 id="4-1-共同点-多来源交叉验证一致的结论">4.1 共同点（多来源交叉验证一致的结论）</h3>
+<ol><li><strong>渗透率持续、单调上升，无回落期</strong>：2023年约31.6%（推算）→ 2024年40.9% → 2025年47.9%（中汽协口径）；乘用车零售渗透率2025年54% → 2026年7月65.1% → 8月65.2%。三个独立来源（中汽协、乘联分会、公安部上牌）方向完全一致。</li><li><strong>存量渗透远低于增量渗透</strong>：新车销量占比已过半（50.8%–65.2%），但保有量占比仅12.01%（2025年底）～13.19%（2026上半年）。<strong>"街上跑的车"和"店里卖的车"是两回事</strong>，这是本次调研最反直觉、也最有价值的一点。</li><li><strong>燃油车在2026年出现"分母塌陷式"下滑</strong>：2026年7月、8月燃油乘用车零售同比均下降40%以上，纯燃油下降44%–45%，而同期新能源零售同比仅下降个位数。渗透率创新高<strong>部分来自燃油车的崩塌，而非新能源的绝对增长</strong>（1—7月新能源乘用车零售同比-12.5%）。</li><li><strong>出口成为核心增长极</strong>：2026年1—8月新能源出口343.5万辆，同比+1.2倍；8月新能源占乘用车出口58.4%。国内零售疲软与出口高增长并存。</li><li><strong>自主品牌在新能源领域占绝对主导</strong>：2026年7月自主品牌新能源渗透率83.8%（8月83.9%），主流合资仅13.7%，豪华30.9%–38.9%。</li><li><strong>经济型小车大幅萎缩</strong>：A00级2026年7月批发6.5万辆，同比-50%，占纯电份额从17.7%降至7%；4米以下新车供给2026年1—7月仅1款（占1%）。</li></ol>
+<h3 id="4-2-差异点-来源之间或维度之间的不一致">4.2 差异点（来源之间或维度之间的不一致）</h3>
+<div class="tw"><table><thead><tr><th>差异</th><th>具体表现</th><th>性质</th></tr></thead><tbody><tr><td><strong>渗透率数值差异（同期）</strong></td><td>2026年8月：中汽协"新能源新车销量占比60.6%"、中汽协"国内销量占比65.7%（乘用车68%）"、乘联分会"乘用车零售渗透率65.2%"</td><td>口径差异（含商用车/含出口 vs 国内乘用车），非数据错误</td></tr><tr><td><strong>总量 vs 零售方向相反</strong></td><td>2026年1—8月新能源产销同比+10.8%/+10.7%（增长），但1—7月新能源乘用车国内零售同比-12.5%（下滑）</td><td>生产/批发/出口强，国内零售弱。<strong>这是2026年最容易被误读的地方</strong></td></tr><tr><td class="cell-warn"><strong>省级数据互相冲突</strong></td><td>广东2025年新能源销量：122.4万辆 vs 144.3万辆；广东新能源渗透率：6.3% vs 56.3%</td><td class="cell-warn">存在明显笔误或口径混淆，<strong>不可直接引用</strong></td></tr><tr><td><strong>价格档口径不统一</strong></td><td>第三方榜单分档为"5-10万/10-20万/20万以上"，用户要求"5-10万/10-15万/15-20万"；且同一车型在不同来源价格区间不一致（长安启源Q05：6.99–10.99 vs 7.99–11.49）</td><td>分档标准缺位</td></tr><tr><td><strong>年龄段数据的样本口径不一</strong></td><td>90后34.5%（QuestAuto，截至2025年6月）vs 26-45岁65.1%（未标注数据方）</td><td>前者是代际占比，后者是年龄段占比，<strong>不可相加或互相验证</strong></td></tr><tr><td><strong>满意度与故障率方向相反</strong></td><td>用户满意度80分（同比+1分，改善），但百辆新车故障次数109次（同比+18次，恶化）</td><td>真实存在的结构性矛盾：体验在提升，但质量一致性在下降</td></tr><tr><td><strong>官方目标 vs 个人预测</strong></td><td>官方《"十五五"规划》2030年乘用车新车销量占比70%；苏波个人预测"2030年渗透率超70%"</td><td>两者数值接近但性质不同，<strong>不可混为一谈</strong></td></tr><tr><td><strong>年初预测 vs 实际进度</strong></td><td>中汽协预测2026年新能源1900万辆(+15.2%)；实际1—8月1065万辆(+10.8%)</td><td>实际增速低于预测，<strong>全年目标达成存在压力</strong></td></tr></tbody></table></div>
+<h2 id="五-初步判断-每条附依据">五、初步判断（每条附依据）</h2>
+<blockquote>以下为<strong>判断</strong>，与第二章"事实"严格分开。每条写明依据编号。</blockquote>
+<p><strong>判断1：国内新能源汽车已完成从"政策驱动的小众选择"到"市场主流"的转变，但这一结论只适用于新车市场，不适用于存量市场。</strong>&lt;br&gt;依据：A4（2025年国内销量占比50.8%）、A5（乘用车零售渗透率54%）、A8（2026年8月65.2%）对比 B1（保有量仅12.01%）、B3（13.19%）。增量与存量相差约50个百分点。</p>
+<p><strong>判断2：2026年渗透率连创新高（60%→65%）具有"分母效应"成分，不宜解读为需求强劲扩张。</strong>&lt;br&gt;依据：A7原文——1—7月新能源乘用车零售566.8万辆，同比<strong>-12.5%</strong>；同期燃油车零售同比-41%；A8同理（8月新能源零售-10.1%，燃油-40%以上）。渗透率分子降、分母降更多。</p>
+<p><strong>判断3：燃油车使用成本的外部冲击（油价）是本轮替代加速的关键变量，其可持续性存疑。</strong>&lt;br&gt;依据：A7、G8——2026年国内汽油价格累计上调1,575元/吨，乘联分会明确将"油电替代"节奏归因于油价波动。这是外生变量，若油价回落，替代速度可能放缓。</p>
+<p><strong>判断4：新能源市场的增长引擎已从"国内零售"切换到"出口"。</strong>&lt;br&gt;依据：A6（1—8月新能源出口343.5万辆，同比+1.2倍）、A7（7月新能源出口54.0万辆，同比+147.8%；出口占乘用车厂商销量41%）、A11（中国占世界新能源车份额62%）。同期国内零售为负增长。</p>
+<p><strong>判断5：入门级（A00/A0）新能源正在快速出清，市场结构向中大型、中高价位移。</strong>&lt;br&gt;依据：C4（A00级同比-50%，份额-10.7pct）、C5（5米以上新车占56%，4米以下仅1款占1%）、A7（新能源安全新国标落地，行业技术门槛抬升，低端车型短期出清）。三条证据互相印证。</p>
+<p><strong>判断6：价格档"10-20万"是最大的单一价格带，但2026年增长最快的是20-30万档。</strong>&lt;br&gt;依据：C1（2025年10-20万占43.3%）、C3（2025年20-30万零售同比+39.6%，而10-20万仅+2.3%）、C2（2025年3月新能源10-20万占42.8%）。注意：C1/C3为D级来源，未完全核实。</p>
+<p><strong>判断7：行业"量增利减"矛盾突出，价格战尚未真正结束。</strong>&lt;br&gt;依据：A10（2026年1—6月汽车行业销售利润率3.8%，利润1,954亿元同比-20%），低于工业企业平均6.5%；新华社2026-08-20报道提及前5个月整车制造利润率仅1.5%。</p>
+<p><strong>判断8：用户满意度在改善，但质量一致性在恶化，这是未来5年最大的品牌风险点。</strong>&lt;br&gt;依据：F1——NEV-CACSI 80分（+1分），但百辆新车故障次数109次（<strong>同比+18次</strong>），且故障集中度显著提高。单一来源但为A级权威机构。</p>
+<p><strong>判断9：区域渗透呈极端分化，"新能源普及"目前仍是一个主要发生在少数城市的现象。</strong>&lt;br&gt;依据：D2——341个城市中80个（23.5%）占74.5%销量；TOP10城市占26%；后100位城市合计仅4.67万台（不足广州一市的12.8%）。该来源为E级媒体深度报道，但其量级差异过大、方向明确，可作定性判断。</p>
+<p><strong>判断10：分年龄段结论目前只能作定性判断——新能源用户更年轻，但缺乏可量化的官方数据支撑。</strong>&lt;br&gt;依据：E1、E2均为第三方机构转述，且口径不一（代际占比 vs 年龄段占比）；E4（燃油车向中老年转移）仅单一来源。<strong>不建议在正式报告中给出具体数字。</strong></p>
+<p><strong>判断11：未来5年政策的确定性高于市场的确定性。</strong>&lt;br&gt;依据：G1（"十五五"规划2030年新能源乘用车新车销量占比70%）、G2（2030年保有量占比30%）、G3（2030年充电设施4000万个）均为已印发文件；而G6（中汽协预测2026年1900万辆）的实际进度已偏离。</p>
+<h2 id="六-待验证假设和还缺什么资料">六、待验证假设和还缺什么资料</h2>
+<h3 id="6-1-待验证假设-尚未证实-需进一步验证">6.1 待验证假设（尚未证实，需进一步验证）</h3>
+<div class="tw"><table><thead><tr><th>#</th><th>假设</th><th>验证路径</th><th>当前障碍</th></tr></thead><tbody><tr><td>H1</td><td>2026年新能源渗透率新高主要由燃油车崩塌（分母效应）驱动，而非新能源需求真实扩张</td><td>取2026年1—8月新能源与燃油车零售绝对值分别做同比分解</td><td>需乘联分会分月零售绝对值序列（现有数据为同比增速）</td></tr><tr><td>H2</td><td>油价回落会导致"油电替代"速度显著放缓</td><td>找2026年油价平稳/回落月份的渗透率环比数据做对照</td><td>2026年油价单边上行，无对照窗口</td></tr><tr><td>H3</td><td>各省新能源渗透率与人均GDP、充电设施密度、限购政策正相关</td><td>建立省级面板数据回归</td><td>省级渗透率数据本身不可靠（见D3/D4/D5冲突）</td></tr><tr><td>H4</td><td>2026年新能源销量实际增速将低于中汽协年初预测的15.2%</td><td>跟踪9—12月月度数据</td><td>需等待Q4数据</td></tr><tr><td>H5</td><td>10-15万档是换购家庭用户的主战场（依据E3：80后偏好10-20万）</td><td>需分价格档的用户画像数据</td><td>缺乏公开数据</td></tr><tr><td>H6</td><td>经济型新能源小车的萎缩是"政策补贴退坡+新国标门槛"双重作用，而非需求消失</td><td>对比补贴政策变动前后A00级销量</td><td>需2025—2026年政策文本与月度级别数据对齐</td></tr></tbody></table></div>
+<h3 id="6-2-还缺什么资料-按缺口严重度排序">6.2 还缺什么资料（按缺口严重度排序）</h3>
+<div class="tw"><table><thead><tr><th>缺口</th><th>严重度</th><th>说明</th><th>建议获取方式</th></tr></thead><tbody><tr><td><strong>1. 分价格档（5-10/10-15/15-20万）的官方销量TOP5榜单</strong></td><td>严重</td><td class="cell-warn">本稿全部价格档TOP5为第三方整理，未核实。<strong>用户的核心需求项未得到可靠满足</strong></td><td>采购/申请乘联分会《全国新能源乘用车市场深度分析报告》月度原文（含价格段结构）；或懂车帝/汽车之家付费数据</td></tr><tr><td><strong>2. 各车型"好评率"的统一口径数据</strong></td><td>严重</td><td>国内不存在官方"好评率"指标，四类替代口径不可横向排序</td><td>明确采用一种口径（建议 NEV-CACSI，因其为A级公开），向中国质量协会申请分车型榜单</td></tr><tr><td><strong>3. 各省新能源汽车与燃油车的准确对比数据</strong></td><td>严重</td><td class="cell-warn">现有省级数据互相冲突（广东122.4万 vs 144.3万；渗透率6.3% vs 56.3%）</td><td>公安部交管局分省上牌数据；或乘联分会《乘用车区域市场流向分析》原始报告</td></tr><tr><td><strong>4. 分年龄段新能源 vs 燃油车购车结构</strong></td><td>严重</td><td>官方零发布，第三方口径不一</td><td>只能采购第三方（QuestMobile/QuestAuto/J.D. Power/懂车帝）用户调研报告；需接受其为样本估计而非全量统计</td></tr><tr><td><strong>5. 2023年、2024年的完整对照数据（尤其价格结构、区域结构）</strong></td><td>中等</td><td>本稿2023年只有销量949万辆，渗透率为推算值31.6%</td><td>中汽协2023年度公告原文；乘联分会2023/2024年度深度分析报告</td></tr><tr><td><strong>6. 燃油车侧的对应指标（用于真正的对比）</strong></td><td>中等</td><td>燃油车保有量占比、分省燃油车销量、燃油车用户满意度均未获取</td><td>公安部、中汽协、中国质量协会同期燃油车报告</td></tr><tr><td><strong>7. 二手车/保值率、实际使用强度（年均里程）、充电行为等"使用现状"深度指标</strong></td><td>中等</td><td>用户问的是"使用现状"，本稿目前主要回答的是"销售现状"</td><td>中国汽车流通协会二手车月报；国网/充电联盟充电行为数据</td></tr><tr><td><strong>8. 保有量中乘用车与商用车的拆分</strong></td><td>低</td><td>B1的4397万辆含商用车，与"排除重卡轻卡"的要求不符</td><td>公安部细分数据（可能不公开）</td></tr></tbody></table></div>
+<h3 id="6-3-明确标为-未确认-的条目汇总">6.3 明确标为"未确认"的条目汇总</h3>
+<ol><li>2023年新能源渗透率31.6%（推算值，非原文直引）</li><li>全部价格档TOP5销量数值（D/E级来源，未核原始榜单）</li><li>15-20万元档TOP5（<strong>完全无数据</strong>）</li><li>各车型"好评率"（无此指标）</li><li>各省新能源渗透率绝对值（来源冲突）</li><li>广东2025年新能源销量（122.4万 vs 144.3万）</li><li>各年龄段新能源/燃油车占比（第三方估计，口径不一）</li><li>燃油车消费向50-60岁转移（单一来源）</li><li>J.D. Power / 卡思调查的分车型榜单（未核原始发布）</li><li>2026年全年新能源销量能否达到中汽协预测的1900万辆（进行中，不得标为已完成）</li></ol>
+<h2 id="附录-来源清单-标题-发布者-链接-发布日期-检索日期">附录：来源清单（标题 / 发布者 / 链接 / 发布日期 / 检索日期）</h2>
+<blockquote>本次检索日期统一为 <strong>2026-09-30</strong></blockquote>
+<div class="tw"><table><thead><tr><th>#</th><th>标题</th><th>发布者</th><th>链接</th><th>发布日期</th><th>级别</th></tr></thead><tbody><tr><td>S1</td><td>2026年7月份全国乘用车市场分析</td><td>中国汽车流通协会乘用车市场信息联席分会</td><td><a href="https://www.cada.cn/Trends/info_91_10550.html" target="_blank" rel="noopener noreferrer">https://www.cada.cn/Trends/info_91_10550.html</a></td><td>2026-08-11</td><td>A</td></tr><tr><td>S2</td><td>2026年5月份全国乘用车市场分析</td><td>乘联分会</td><td><a href="https://www.cada.cn/Trends/info_91_10514.html" target="_blank" rel="noopener noreferrer">https://www.cada.cn/Trends/info_91_10514.html</a></td><td>2026-06月</td><td>A</td></tr><tr><td>S3</td><td>新能源汽车月度新车销量占比再创新高</td><td>新华社（人民网财经转载）</td><td><a href="https://finance.people.com.cn/BIG5/n1/2026/0910/c1004-40796274.html" target="_blank" rel="noopener noreferrer">https://finance.people.com.cn/BIG5/n1/2026/0910/c1004-40796274.html</a></td><td>2026-09-10</td><td>A/B</td></tr><tr><td>S4</td><td>2026年8月新能源汽车产销情况简析</td><td>中国汽车工业协会统计信息网</td><td><a href="http://auto-stats.org.cn/ReadArticle.asp?NewsID=11426" target="_blank" rel="noopener noreferrer">http://auto-stats.org.cn/ReadArticle.asp?NewsID=11426</a></td><td>2026-09-24</td><td>A</td></tr><tr><td>S5</td><td>2025年全国机动车达4.69亿辆 驾驶人达5.59亿人</td><td>新华社（转公安部）</td><td><a href="https://news.cn/20260126/62f6b9393e264b9ebef0019a3efc4557/c.html" target="_blank" rel="noopener noreferrer">https://news.cn/20260126/62f6b9393e264b9ebef0019a3efc4557/c.html</a></td><td>2026-01-26</td><td>B</td></tr><tr><td>S6</td><td>2025年全国机动车保有量达4.69亿辆</td><td>人民日报</td><td><a href="https://cpc.people.com.cn/n1/2026/0127/c64387-40653410.html" target="_blank" rel="noopener noreferrer">https://cpc.people.com.cn/n1/2026/0127/c64387-40653410.html</a></td><td>2026-01-27</td><td>B</td></tr><tr><td>S7</td><td>我国汽车产销量连续17年全球第一</td><td>央广网（转中汽协）</td><td><a href="https://www.cnr.cn/2013qcpd/yc/20260115/t20260115_527493945.shtml" target="_blank" rel="noopener noreferrer">https://www.cnr.cn/2013qcpd/yc/20260115/t20260115_527493945.shtml</a></td><td>2026-01-15</td><td>B</td></tr><tr><td>S8</td><td>2025年我国汽车产销双超3400万辆</td><td>人民日报</td><td><a href="https://cpc.people.com.cn/n1/2026/0115/c64387-40645706.html" target="_blank" rel="noopener noreferrer">https://cpc.people.com.cn/n1/2026/0115/c64387-40645706.html</a></td><td>2026-01-15</td><td>B</td></tr><tr><td>S9</td><td>我国新能源汽车产销突破1600万辆</td><td>央视网汽车频道</td><td><a href="https://auto.cctv.cn/2026/01/16/ARTIHiGCxfhjlDHdinYWaaz6260116.shtml" target="_blank" rel="noopener noreferrer">https://auto.cctv.cn/2026/01/16/ARTIHiGCxfhjlDHdinYWaaz6260116.shtml</a></td><td>2026-01-16</td><td>B</td></tr><tr><td>S10</td><td>2024年我国新能源汽车产销量均超1200万辆</td><td>新华社（中国政府网）</td><td><a href="https://big5.www.gov.cn/gate/big5/www.gov.cn/yaowen/liebiao/202501/content_6998270.htm" target="_blank" rel="noopener noreferrer">https://big5.www.gov.cn/gate/big5/www.gov.cn/yaowe…nt_6998270.htm</a></td><td>2025-01-13</td><td>B</td></tr><tr><td>S11</td><td>中国新能源汽车产销总量连续10年全球第一</td><td>中国外文局亚太传播中心</td><td><a href="http://www.apcreports.org.cn/index/news/46954.html" target="_blank" rel="noopener noreferrer">http://www.apcreports.org.cn/index/news/46954.html</a></td><td>2025-01</td><td>B</td></tr><tr><td>S12</td><td>12月"零批"同比双增，2025年新能源车翘尾收官</td><td>新浪财经（转乘联分会）</td><td><a href="https://finance.sina.com.cn/stock/t/2026-01-09/doc-inhftpvi5658134.shtml" target="_blank" rel="noopener noreferrer">https://finance.sina.com.cn/stock/t/2026-01-09/doc…i5658134.shtml</a></td><td>2026-01-09</td><td>B</td></tr><tr><td>S13</td><td>新能源乘用车渗透率再创新高</td><td>中国经济网（转乘联分会）</td><td><a href="https://www.ce.cn/macro/more/202609/t20260909_3202871.shtml" target="_blank" rel="noopener noreferrer">https://www.ce.cn/macro/more/202609/t20260909_3202871.shtml</a></td><td>2026-09-09</td><td>B</td></tr><tr><td>S14</td><td>油电分化加剧、出口持续托底，8月乘用车零售环比修复</td><td>中国青年网</td><td><a href="https://auto.youth.cn/xw/202609/t20260909_16860220.htm" target="_blank" rel="noopener noreferrer">https://auto.youth.cn/xw/202609/t20260909_16860220.htm</a></td><td>2026-09-09</td><td>B</td></tr><tr><td>S15</td><td>2025年中国新能源汽车行业用户满意度指数同比提升</td><td>中质国优测评（中国质量协会 NEV-CACSI）</td><td><a href="https://ceping.caq.org.cn/xwzx/23350.html" target="_blank" rel="noopener noreferrer">https://ceping.caq.org.cn/xwzx/23350.html</a></td><td>2025-12-03</td><td>A</td></tr><tr><td>S16</td><td>工信部：将加快自动泊车、安全事件数据交互等标准制定</td><td>人民网财经</td><td><a href="https://finance.people.com.cn/n1/2026/0912/c1004-40797518.html" target="_blank" rel="noopener noreferrer">https://finance.people.com.cn/n1/2026/0912/c1004-40797518.html</a></td><td>2026-09-12</td><td>B</td></tr><tr><td>S17</td><td>新能源车，比"70%"更重要的</td><td>中工网</td><td><a href="https://www.workercn.cn/c/2026-09-14/8892874.shtml" target="_blank" rel="noopener noreferrer">https://www.workercn.cn/c/2026-09-14/8892874.shtml</a></td><td>2026-09-14</td><td>B</td></tr><tr><td>S18</td><td>国务院关于印发《"十五五"碳达峰行动方案》的通知</td><td>国务院（中国经济网转载）</td><td><a href="https://www.ce.cn/xwzx/gnsz/gdxw/202607/t20260709_3078415.shtml" target="_blank" rel="noopener noreferrer">https://www.ce.cn/xwzx/gnsz/gdxw/202607/t20260709_3078415.shtml</a></td><td>2026-07-09</td><td>B</td></tr><tr><td>S19</td><td>新能源汽车迎来两个"首次"突破，怎么看</td><td>新华社（中国经济网转载）</td><td><a href="https://www.ce.cn/xwzx/gnsz/gdxw/202608/t20260813_3144875.shtml" target="_blank" rel="noopener noreferrer">https://www.ce.cn/xwzx/gnsz/gdxw/202608/t20260813_3144875.shtml</a></td><td>2026-08-12/13</td><td>B</td></tr><tr><td>S20</td><td>新华深读丨中国新能源汽车25年产业风云</td><td>新华社</td><td><a href="https://www.news.cn/fortune/20260820/07c8abd063ab4a02bdfe980710c2c003/c.html" target="_blank" rel="noopener noreferrer">https://www.news.cn/fortune/20260820/07c8abd063ab4…0c2c003/c.html</a></td><td>2026-08-20</td><td>B</td></tr><tr><td>S21</td><td>工信部原副部长：预计2030年中国新能源汽车渗透率超70%</td><td>中国新闻网</td><td><a href="https://www.chinanews.com.cn/cj/2026/04-11/10602187.shtml" target="_blank" rel="noopener noreferrer">https://www.chinanews.com.cn/cj/2026/04-11/10602187.shtml</a></td><td>2026-04-11</td><td>E（个人观点）</td></tr><tr><td>S22</td><td>汽车"新宠"来了（中国新闻周刊）</td><td>新浪（转乘联分会区域报告）</td><td><a href="https://news.sina.cn/gn/2026-03-16/detail-inhrawmm9291235.d.html" target="_blank" rel="noopener noreferrer">https://news.sina.cn/gn/2026-03-16/detail-inhrawmm9291235.d.html</a></td><td>2026-03-16</td><td>D</td></tr><tr><td>S23</td><td>2025中国新能源汽车死角报告</td><td>腾讯新闻 / 电动星球</td><td><a href="https://view.inews.qq.com/a/20260224A05HFW00" target="_blank" rel="noopener noreferrer">https://view.inews.qq.com/a/20260224A05HFW00</a></td><td>2026-02-24</td><td>E</td></tr><tr><td>S24</td><td>中国新能源汽车，都被哪些省买走了</td><td>今日头条</td><td><a href="https://m.toutiao.com/article/7625977156320920091" target="_blank" rel="noopener noreferrer">https://m.toutiao.com/article/7625977156320920091</a></td><td>2026年</td><td>E</td></tr><tr><td>S25</td><td>安徽"车谷"登顶 广东守擂"销量王"</td><td>今日头条</td><td><a href="https://m.toutiao.com/article/7599481181473669658" target="_blank" rel="noopener noreferrer">https://m.toutiao.com/article/7599481181473669658</a></td><td>2026年</td><td>E</td></tr><tr><td>S26</td><td>2026年5月5-15万元汽车销量排行榜</td><td>太平洋汽车网（标注"统计数据来源于乘联会"）</td><td><a href="https://m.pcauto.com.cn/x/5158/51586586.html" target="_blank" rel="noopener noreferrer">https://m.pcauto.com.cn/x/5158/51586586.html</a></td><td>2026-06-18更新（数据为2026年5月）</td><td>D</td></tr><tr><td>S27</td><td>新能源车买哪款好？2026年8月销量榜</td><td>手机新浪网（转太平洋汽车整理）</td><td><a href="https://www.sina.cn/news/article/comos_nistrnr6650754.html" target="_blank" rel="noopener noreferrer">https://www.sina.cn/news/article/comos_nistrnr6650754.html</a></td><td>2026年</td><td>D/E</td></tr><tr><td>S28</td><td>认清国内购车真实格局（10-20万/5-10万半年榜）</td><td>有驾网</td><td><a href="https://youjia-pc.bdstatic.com/article/10176166873228071398.html" target="_blank" rel="noopener noreferrer">https://youjia-pc.bdstatic.com/article/10176166873228071398.html</a></td><td>2026年</td><td>E</td></tr><tr><td>S29</td><td>新能源汽车消费者：用户画像、购车决策与市场趋势</td><td>三个皮匠报告</td><td><a href="https://www.sgpjbg.com.cn/news/7074777.html" target="_blank" rel="noopener noreferrer">https://www.sgpjbg.com.cn/news/7074777.html</a></td><td>2026年</td><td>D/E</td></tr><tr><td>S30</td><td>汽车人群：定义、用户画像、消费特征</td><td>三个皮匠报告</td><td><a href="https://www.sgpjbg.com/news/7074424.html" target="_blank" rel="noopener noreferrer">https://www.sgpjbg.com/news/7074424.html</a></td><td>2026年</td><td>D/E</td></tr><tr><td>S31</td><td>合资车企，这样"抓住"年轻人（引QuestAuto）</td><td>腾讯搜一搜</td><td><a href="https://so.html5.qq.com/page/real/search_news?docid=70000021_7296a91641279652" target="_blank" rel="noopener noreferrer">https://so.html5.qq.com/page/real/search_news?doci…96a91641279652</a></td><td>2026年</td><td>D/E</td></tr><tr><td>S32</td><td>2025新能源乘用车市场（3月深度分析报告转载）</td><td>三个皮匠报告</td><td><a href="https://www.sgpjbg.com/labels/2025xinnengyuanchengyongcheshichang/1/6776389.html" target="_blank" rel="noopener noreferrer">https://www.sgpjbg.com/labels/2025xinnengyuancheng…1/6776389.html</a></td><td>2025年</td><td>D</td></tr><tr><td>S33</td><td>2025乘联会销量报告（年度销量报告转载）</td><td>三个皮匠报告</td><td><a href="https://www.sgpjbg.com.cn/labels/chenglianhuixiaoliangbaogao/1/6776140.html" target="_blank" rel="noopener noreferrer">https://www.sgpjbg.com.cn/labels/chenglianhuixiaol…1/6776140.html</a></td><td>2026年</td><td>D</td></tr><tr><td>S34</td><td>理想汽车斩获7项大奖（J.D. Power 2025）</td><td>有驾网 / 太平洋汽车网</td><td><a href="https://www.pcauto.com.cn/hj/article/3542185.html" target="_blank" rel="noopener noreferrer">https://www.pcauto.com.cn/hj/article/3542185.html</a></td><td>2026年</td><td>E</td></tr><tr><td>S35</td><td>双车双冠！小米SU7和YU7拿下第一（NEV-APEAL）</td><td>百度有驾</td><td><a href="https://youjia.baidu.com/view/articleDetail/9412525810973979065" target="_blank" rel="noopener noreferrer">https://youjia.baidu.com/view/articleDetail/9412525810973979065</a></td><td>2026年</td><td>E</td></tr><tr><td>S36</td><td>新能源乘用车行业洞察报告(2026)</td><td>中项网</td><td><a href="https://www.hyccpc360.com/industryFreeDetail/27202.html" target="_blank" rel="noopener noreferrer">https://www.hyccpc360.com/industryFreeDetail/27202.html</a></td><td>2026年</td><td class="cell-excl"><strong>已排除</strong>（该页面自注"注：示例数据"，属虚构示例，不作为事实来源）</td></tr></tbody></table></div>
+<p><strong>本稿性质</strong>：初稿。第3章价格档TOP5、省级数据、年龄段数据三项均未完成可靠取证，已在正文与第6章逐条标注。未经核实的数据不得用于对外交付。</p>
+    <footer>
+      本页由市场研究初稿（Markdown）自动转换为单文件 HTML，可直接用于静态托管。所有数据均保留原始来源标注，未经核实的数据已在正文标为“未确认”，不得用于对外交付。<br>
+      生成时间：2026-09-30 ｜ 源文件：国内新能源汽车使用现状_市场研究初稿_20260930.md
+    </footer>
+  </main>
+</div>
+<button id="top" title="回到顶部" aria-label="回到顶部">↑</button>
+<script>
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a'));
+  var heads = links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var toc = document.querySelector('nav.toc');
+  var h = document.querySelector('nav.toc .toc-h');
+  if(h){h.addEventListener('click',function(){toc.classList.toggle('open');});}
+  function onScroll(){
+    var y = window.scrollY + 90, cur = 0;
+    for(var i=0;i<heads.length;i++){ if(heads[i] && heads[i].offsetTop <= y) cur = i; }
+    links.forEach(function(a,i){ a.classList.toggle('on', i===cur); });
+    var btn = document.getElementById('top');
+    btn.classList.toggle('show', window.scrollY > 500);
+    var act = links[cur];
+    if(act && toc.getBoundingClientRect().height < window.innerHeight){
+      var r = act.getBoundingClientRect(), c = toc.getBoundingClientRect();
+      if(r.top < c.top || r.bottom > c.bottom) act.scrollIntoView({block:'center'});
+    }
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll);
+  onScroll();
+  var t = document.getElementById('top');
+  t.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+  links.forEach(function(a){
+    a.addEventListener('click', function(){
+      if(window.innerWidth <= 960) toc.classList.remove('open');
+    });
+  });
+})();
+</script>
+</body>
+</html>
