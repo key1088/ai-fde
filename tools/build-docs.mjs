@@ -20,6 +20,8 @@ import { JSDOM } from 'jsdom';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = 'https://ai-fde.dev';
+const ADSENSE =
+  '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>';
 const sources = JSON.parse(fs.readFileSync(path.join(root, 'content/sources.json'), 'utf8'));
 
 const LANGS = {
@@ -204,6 +206,7 @@ ${next ? `<a class="next" href="/${L.dir}/${next.slug}/"><span class="dir">${t.n
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.ico">
 <link rel="stylesheet" href="/assets/doc.css">
+${ADSENSE}
 <script type="application/ld+json">${jsonld}</script>
 </head>
 <body>
@@ -298,6 +301,7 @@ function indexPage({ lang, series, articles }) {
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.ico">
 <link rel="stylesheet" href="/assets/doc.css">
+${ADSENSE}
 <script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
