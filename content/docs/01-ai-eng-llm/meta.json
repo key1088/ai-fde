@@ -1,0 +1,39 @@
+{
+  "slug": "01-ai-eng-llm",
+  "series": "ai-fde-roadmap",
+  "order": 1,
+  "source": "https://mp.weixin.qq.com/s/YGG_6ZE287PQUV1PmWP06g",
+  "date": "2026-10-07",
+  "images": [
+    {
+      "name": "img-01.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR83TpTOTF2b90OcHZcdn6Vcvutq4s9iaibiaABKgMUkKOnEFT84fhgVibefb7YbvvTcS8YdpBwo1Ytc73B7ia7UKqk5rb3qJQDYpFTIY/640?wx_fmt=png&from=appmsg"
+    },
+    {
+      "name": "img-02.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR82KlM0NQMc4ia00FpOf9L0f5R4m6M2plXu8QBRyhxfDNh1NWY7BPDxPuqeCtAqAtsT1jeHcuWl3sYoU8eCe5M6RMCEHic7SZvGTU/640?wx_fmt=png&from=appmsg"
+    },
+    {
+      "name": "img-03.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR818qaPEWSiaVDA2iaMib23Bqq8xYfSxicdbMgSnibQp5DH7ibE75YeXvJIoD7Q2uh00TPyibKOMNeQpbtX10UvD7U5oicxAcmgoufW7w80/640?wx_fmt=png&from=appmsg"
+    }
+  ],
+  "title": {
+    "zh": "先搞清楚模型一定会错在哪",
+    "en": "First, Understand Exactly Where the Model Will Always Fail"
+  },
+  "subtitle": {
+    "zh": "AI-FDE转型之路·AI工程01-LLM能力与边界",
+    "en": "The AI-FDE Transition Path · AI Engineering 01 — LLM Capabilities & Boundaries"
+  },
+  "summary": {
+    "zh": "做 AI 交付，第一件事不是学怎么调模型，而是知道它能做什么、不能做什么、会在哪儿错。这篇给出四类必错场景，以及「什么算会了」。",
+    "en": "In AI delivery, the first thing to learn is not how to tune a model, but what it can and cannot do and where it always fails. This piece lays out four failure classes and what 'knowing it' looks like."
+  },
+  "tags": [
+    "AI工程",
+    "LLM",
+    "幻觉",
+    "能力边界"
+  ]
+}

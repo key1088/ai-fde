@@ -10,6 +10,8 @@
 
 - English（默认）：<https://ai-fde.dev/>
 - 中文：<https://ai-fde.dev/zh/>
+- 文档（中文，公众号系列《AI-FDE 转型之路》）：<https://ai-fde.dev/zh/docs/>
+- 文档（英文）：<https://ai-fde.dev/docs/>
 
 两个页面是**各自独立的静态 HTML**（不是用 JS 切换），所以中英文都能被搜索引擎直接收录。
 部署在 Cloudflare Pages 上。
@@ -26,6 +28,25 @@
   - 文字版结果（适合粘贴到聊天 / 群 / 文章）
   - 结果卡片 PNG（1080×1550，带二维码，本机绘制）
   - JSON 备份 / 恢复（跨语言、跨浏览器通用）
+
+## 文档站 / Docs
+
+`/docs/`（英文）与 `/zh/docs/`（中文）是同一条内容线的两个语言版本，内容来自公众号系列
+《AI-FDE 转型之路》。公众号负责触达，站点负责沉淀：可被搜索、可被更新、可成体系。
+
+**内容工作流**（详见 [`CONTENT.md`](./CONTENT.md)，以后每篇都走这套）：
+
+```bash
+node tools/import-wechat.mjs <slug>   # 公众号链接 → 干净 Markdown + 图片
+# 人工校对 zh.md，写 en.md / 补 meta.json 的 en 字段
+npm run build:docs                    # Markdown → 静态页 + sitemap
+# 改了工具页再跑 npm run build:all
+```
+
+- 内容源（可手改）：`content/sources.json` + `content/docs/<slug>/{meta.json,zh.md,en.md}`
+- 图片：`media/docs/<slug>/`（正文以 `/media/docs/<slug>/img-XX.png` 引用）
+- 生成物（勿手改，随仓库提交供部署）：`docs/**`、`zh/docs/**`、`sitemap.xml`
+- 每页自带：系列目录、本页目录、上/下一篇、中英切换、公众号原文链接、`hreflang`/JSON-LD 级 SEO
 
 ## 技术 / Tech
 
@@ -116,11 +137,19 @@ npm run serve          # python3 -m http.server 8080
 
 ```
 .
-├── index.html            # 英文页（默认，生成产物；同时是构建的源文件）
+├── index.html            # 英文工具页（默认，生成产物；同时是构建的源文件）
 ├── zh/
-│   └── index.html        # 中文页（生成产物）
+│   └── index.html        # 中文工具页（生成产物）
+├── docs/                 # 英文文档站（生成产物）
+├── zh/docs/              # 中文文档站（生成产物）
+├── content/              # 文档内容源：sources.json + docs/<slug>/{meta.json,zh.md,en.md}
+├── media/docs/<slug>/    # 文档配图（生成/下载，随站部署）
+├── assets/doc.css        # 文档站公共样式
 ├── tools/
-│   └── build.mjs         # 生成上面两个静态页
+│   ├── build.mjs         # 生成工具页 index.html 与 zh/index.html
+│   ├── import-wechat.mjs # 公众号文章 → Markdown
+│   └── build-docs.mjs    # Markdown → docs/ 与 zh/docs/
+├── CONTENT.md            # 内容工作流说明
 ├── og-image.png          # 社媒分享缩略图 1200×630
 ├── apple-touch-icon.png  # iOS 主屏图标
 ├── favicon.ico           # 浏览器标签图标
@@ -139,10 +168,12 @@ npm run serve          # python3 -m http.server 8080
 
 - [x] 中英双语静态页（`/` 英文默认，`/zh/` 中文）
 - [x] SEO：canonical / hreflang / OG 图 / JSON-LD / sitemap / robots
-- [ ] 教学文档页（AI-FDE 是什么、如何转型、逐域学习路径）
+- [x] 教学文档站：公众号《AI-FDE 转型之路》系列入库（`/docs/`、`/zh/docs/`），含抓取/翻译/构建流程
+- [ ] 文档全文搜索（构建期索引，纯前端）
+- [ ] RSS / 订阅
 - [ ] 更多页面（案例库、术语表、课程大纲）
 - [ ] 统计与广告位（隐私政策页先行）
-- [ ] 把单文件拆成模板 / 组件，方便多页扩展
+- [ ] 把工具页单文件拆成模板 / 组件，方便多页扩展
 
 ## License
 

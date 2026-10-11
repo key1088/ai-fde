@@ -9,3 +9,5 @@ package-lock.json
 README.md
 wrangler.jsonc
 .assetsignore
+content
+CONTENT.md

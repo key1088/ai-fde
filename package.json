@@ -6,9 +6,15 @@
   "type": "module",
   "scripts": {
     "build": "node tools/build.mjs",
+    "build:docs": "node tools/build-docs.mjs",
+    "build:all": "node tools/build.mjs && node tools/build-docs.mjs",
+    "import:wechat": "node tools/import-wechat.mjs",
     "serve": "python3 -m http.server 8080"
   },
   "devDependencies": {
-    "jsdom": "^24.0.0"
+    "jsdom": "^24.0.0",
+    "marked": "^18.1.0",
+    "turndown": "^7.2.4",
+    "turndown-plugin-gfm": "^1.0.2"
   }
 }

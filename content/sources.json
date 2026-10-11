@@ -1,0 +1,32 @@
+{
+  "_comment": "公众号文章 → 站点文档 的导入清单。新增一篇文章：在 articles 里加一条（slug 唯一、order 决定排序），然后 node tools/import-wechat.mjs <slug>。",
+  "series": {
+    "ai-fde-roadmap": {
+      "title": { "zh": "AI-FDE 转型之路", "en": "The AI-FDE Transition Path" },
+      "description": {
+        "zh": "从客户现场走向 AI 交付：一套写给实施、售前、交付、运维背景同学的 AI-FDE 转型学习路径。",
+        "en": "From the client's site to AI delivery: a learning path for implementation, pre-sales, delivery and operations people moving into the AI-FDE role."
+      }
+    }
+  },
+  "articles": [
+    {
+      "slug": "00-intro",
+      "series": "ai-fde-roadmap",
+      "order": 0,
+      "url": "https://mp.weixin.qq.com/s/qRW8fBZiS-kBpb3QaXNC8Q"
+    },
+    {
+      "slug": "01-ai-eng-llm",
+      "series": "ai-fde-roadmap",
+      "order": 1,
+      "url": "https://mp.weixin.qq.com/s/YGG_6ZE287PQUV1PmWP06g"
+    },
+    {
+      "slug": "02-ai-eng-prompt",
+      "series": "ai-fde-roadmap",
+      "order": 2,
+      "url": "https://mp.weixin.qq.com/s/UFA25CeOSOA0CYmzDD5TYw"
+    }
+  ]
+}

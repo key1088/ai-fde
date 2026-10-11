@@ -1,0 +1,34 @@
+{
+  "slug": "02-ai-eng-prompt",
+  "series": "ai-fde-roadmap",
+  "order": 2,
+  "source": "https://mp.weixin.qq.com/s/UFA25CeOSOA0CYmzDD5TYw",
+  "date": "2026-10-11",
+  "images": [
+    {
+      "name": "img-01.png",
+      "src": "https://mmbiz.qpic.cn/mmbiz_png/B5MbN9tHR815ZO9rpnRCgBMPQQb2QvtCVgCa7L9h668iaic0ya46NmgCh6kPcQqJB2ZDD4fuuePlIFaKgQqaUiam9toXYOextpZicrPB4iciaLGc8/640?wx_fmt=png&from=appmsg"
+    },
+    {
+      "name": "img-02.png",
+      "src": "https://mmbiz.qpic.cn/mmbiz_png/B5MbN9tHR83yfDK4ZErFBvFh1DzDGTibamiaxgbQPkhOia2bibcptq5UDufS7WXFcDAuI0HeKmmvfZnibRnKOXKx8W4JkwLU8aoGDjyorJ7vmXEE/640?wx_fmt=png&from=appmsg"
+    }
+  ],
+  "title": {
+    "zh": "Prompt 不是玄学，是可以回归测试的代码",
+    "en": "Prompts Aren't Magic — They're Code You Can Regression-Test"
+  },
+  "subtitle": {
+    "zh": "AI-FDE 转型之路 · AI 工程 02-Prompt工程",
+    "en": "The AI-FDE Transition Path · AI Engineering 02 — Prompt Engineering"
+  },
+  "summary": {
+    "zh": "Prompt 是 AI 项目里唯一「谁都能改、但没人负责」的地方。把它当代码管：存文件、记改动、跑回归题。",
+    "en": "Prompts are the one place in an AI project that anyone can change and nobody owns. Treat them like code: keep them in files, log every change, and run a regression set."
+  },
+  "tags": [
+    "AI工程",
+    "Prompt",
+    "回归测试"
+  ]
+}

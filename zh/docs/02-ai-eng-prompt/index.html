@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prompt 不是玄学，是可以回归测试的代码 · AI-FDE 转型之路</title>
+<meta name="description" content="Prompt 是 AI 项目里唯一「谁都能改、但没人负责」的地方。把它当代码管：存文件、记改动、跑回归题。">
+<link rel="canonical" href="https://ai-fde.dev/zh/docs/02-ai-eng-prompt/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/02-ai-eng-prompt/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/02-ai-eng-prompt/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/02-ai-eng-prompt/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Prompt 不是玄学，是可以回归测试的代码">
+<meta property="og:description" content="Prompt 是 AI 项目里唯一「谁都能改、但没人负责」的地方。把它当代码管：存文件、记改动、跑回归题。">
+<meta property="og:url" content="https://ai-fde.dev/zh/docs/02-ai-eng-prompt/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/02-ai-eng-prompt/img-01.png">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Prompt 不是玄学，是可以回归测试的代码","description":"Prompt 是 AI 项目里唯一「谁都能改、但没人负责」的地方。把它当代码管：存文件、记改动、跑回归题。","datePublished":"2026-10-11","inLanguage":"zh-CN","image":"https://ai-fde.dev/media/docs/02-ai-eng-prompt/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/zh/docs/02-ai-eng-prompt/","isPartOf":{"@type":"CreativeWorkSeries","name":"AI-FDE 转型之路"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/zh/docs/">AI-FDE <span>· 文档</span></a>
+  <nav>
+    <a href="/zh/">自评工具</a>
+    <a href="/zh/docs/" class="on">文档</a>
+    <a class="lang" href="/docs/02-ai-eng-prompt/">EN</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">本系列</div>
+<div class="toc-body">
+<a class="art" href="/zh/docs/00-intro/"><span class="no">01</span>为什么最懂客户的人反而最焦虑</a>
+<a class="art" href="/zh/docs/01-ai-eng-llm/"><span class="no">02</span>先搞清楚模型一定会错在哪</a>
+<a class="art cur" href="/zh/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompt 不是玄学，是可以回归测试的代码</a>
+</div>
+<div class="toc-h">本页目录</div>
+<div class="toc-body">
+<a class="h2" href="#一说不清Prompt好在哪就等于没改">一、说不清Prompt好在哪，就等于没改</a>
+<a class="h2" href="#二为什么这件事值得单独一篇">二、为什么这件事值得单独一篇</a>
+<a class="h2" href="#三Prompt是什么">三、Prompt是什么</a>
+<a class="h2" href="#四再说怎么写Prompt">四、再说怎么写Prompt</a>
+<a class="h2" href="#五再说怎么管Prompt">五、再说怎么管Prompt</a>
+<a class="h2" href="#六什么算会了">六、什么算会了</a>
+<a class="h2" href="#七坑">七、坑</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
+    <article>
+      <h1 class="doc-title">Prompt 不是玄学，是可以回归测试的代码</h1>
+      <p class="doc-sub">AI-FDE 转型之路 · AI 工程 02-Prompt工程</p>
+      <p class="doc-meta">2026-10-11 · 本文首发于微信公众号「杀他个回马枪」</p>
+      <h2 id="一说不清Prompt好在哪就等于没改">一、说不清Prompt好在哪，就等于没改</h2>
+<p>我的判断很简单：<strong>改完 Prompt，如果你说不清"好在哪、好多少"，那就等于没改。</strong></p>
+<p><strong><a href="/zh/docs/01-ai-eng-llm/">上一讲我们确定了模型一定会错，且错法有规律</a></strong>。这一讲讲怎么跟它说话。这两件事的顺序不能反——先知道它会错在哪，才知道该在 Prompt 里约束什么；反过来先学一堆"万能模板"，学到的是句式，不是判断。</p>
+<p><img src="/media/docs/02-ai-eng-prompt/img-01.png" alt="" loading="lazy" decoding="async"></p>
+<h2 id="二为什么这件事值得单独一篇">二、为什么这件事值得单独一篇</h2>
+<p>Prompt 是 AI 项目里唯一一个"<strong>谁都能改、但没人负责</strong>"的地方。开发能改，产品能改，客户看了两眼也能提意见"你加一句让它别乱说"。改起来零成本，所以它被改得最频繁，也最容易变成事故现场。没有版本管理，不同的模型Prompt的效果也不一样。</p>
+<p>我遇到过一次真实的麻烦：制度问答上线一个月，客户说"最近答得没以前稳了"。我们查了一圈，模型没换、知识库没动，最后是有人在三天前改了一句 Prompt，加了句"尽量给用户完整详细的回答"。加这句话的人是好意，效果是模型开始在没有材料的地方也硬凑完整答案。没人记得改过，因为没记录。</p>
+<p>所以我要的不是"写好 Prompt"，是<strong>让 Prompt 变成可追溯的东西</strong>。措辞谁都能调，但改动要留痕、要有前后对比。这就是我把它比作代码的原因：代码能跑就行吗？不行，要能评审、能回滚、能回归。</p>
+<p>Prompt在LLM应用中是很基础的内容，也是很重要的内容。在知识库应用场景中，在Agent的使用场景中，都需要提前设计好Prompt。</p>
+<p>**有些人说随着大模型的不断迭代，Prompt已经不是很重要了。**这一话对了一半，只能说大模型的不断迭代，AI更加聪明，虽然Prompt提示词不需要描述那么多了，例如不需要定义角色了，但是任务描述依然是不可或缺的内容。</p>
+<h2 id="三Prompt是什么">三、Prompt是什么</h2>
+<p>我们再来看Pormpt是什么？理解 Prompt，首先要明确一个核心问题：<strong>LLM（大语言模型）本身是一个根据上下文预测下一个 Token 的模型，而 Prompt 是我们用来告诉模型当前要处理什么问题、遵循什么要求、依据什么信息完成任务的输入。</strong></p>
+<p>Prompt 不是一门神秘的咒语，也不只是我们平时输入的那句话。它是人与大语言模型之间的交互接口，也是控制模型行为的重要手段。</p>
+<p>Prompt（提示词）是提供给大语言模型的输入信息，用于引导模型生成符合预期的输出。</p>
+<p><img src="/media/docs/02-ai-eng-prompt/img-02.png" alt="" loading="lazy" decoding="async"></p>
+<h2 id="四再说怎么写Prompt">四、再说怎么写Prompt</h2>
+<p>你需要将大模型当做一个<strong>新入职的同事</strong>，新同事刚刚入职，你怎么更好的安排工作呢。怎么给新同事介绍一下岗位的职能呢，你应该不会就一句话吧，你不会跟一个刚入职的聪明人说"好好干"，用力踩，哈哈。</p>
+<p>你会说清楚四件事：</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th><strong>要素</strong></th>
+<th><strong>写什么</strong></th>
+<th><strong>不写会怎样</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>他是谁、边界在哪</strong></td>
+<td>你是银行制度问答助手，只回答制度相关问题</td>
+<td>用户聊什么它都接，聊天气也编</td>
+</tr>
+<tr>
+<td><strong>干什么、按什么步骤</strong></td>
+<td>先判断是否在材料范围内，不在就直接说没有</td>
+<td>缺材料时它自己补</td>
+</tr>
+<tr>
+<td><strong>材料怎么给他</strong></td>
+<td>明确标出"以下为检索到的制度原文，答案只能来自这里"</td>
+<td>它分不清哪段是材料、哪段是问题</td>
+</tr>
+<tr>
+<td><strong>输出什么样、什么时候闭嘴</strong></td>
+<td>固定格式 + 必须带出处 + 没命中时输出固定拒答话术</td>
+<td>格式随机，拒答靠它心情</td>
+</tr>
+</tbody></table></div>
+<p>这四件事里，最后一条最容易被漏，也最值钱。给大模型强调<strong>不知道就说不知道</strong>，拒答条件是 Prompt 的核心。&nbsp;上一讲说的四类必错场景，兜底动作大多就是写在这里的。</p>
+<h2 id="五再说怎么管Prompt">五、再说怎么管Prompt</h2>
+<p><strong>1、Prompt 存成文件，不要只存在平台输入框里。</strong>&nbsp;平台里改完就覆盖了，谁改的、什么时候改的，查不出来。存文件、进版本库，跟代码一样。每次交互的Prompt自己记录下来，反复的雕琢。</p>
+<p><strong>2、每次改动写一行记录。</strong>&nbsp;不用长，四个字段就够：</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th><strong>字段</strong></th>
+<th><strong>内容示例</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>改动时间 / 人</td>
+<td>2026-09-28 / 小林</td>
+</tr>
+<tr>
+<td>改了什么</td>
+<td>输出约束段新增"未命中时统一回复固定话术"</td>
+</tr>
+<tr>
+<td>为什么改</td>
+<td>客户反馈：无材料时模型仍在编造条款</td>
+</tr>
+<tr>
+<td>预期影响</td>
+<td>拒答率上升，编造类投诉下降</td>
+</tr>
+</tbody></table></div>
+<p><strong>3、准备一组回归题，二十到三十条。</strong>&nbsp;不用多，但必须覆盖四类必错场景，还要有几条"业务上最常见"的普通题。流程是：改之前跑一遍存下来，改之后跑一遍，只看结果变了的题——变好了几条、变坏了几条、哪几条。</p>
+<p><strong>测试Prompt的时候，一定要清空之前的会话，不然容易污染大模型的解析，为什么会污染大模型呢，这一块再下一章会详细讲解其原理。</strong></p>
+<p>我自己的经验是，二十条题里通常有三到五条会动，其中总有一两条是变坏的。看到变坏的，要么改回去，要么接受这个取舍并记下来。<strong>能说出"这次改动让 A 类变好、B 类变差，我选前者"，这就叫专业；说"感觉好点了"，不叫。</strong></p>
+<h2 id="六什么算会了">六、什么算会了</h2>
+<ul>
+<li><p>你能拿出这个项目最近三次 Prompt 改动的时间、原因、影响。</p>
+</li>
+<li><p>客户问"为什么这次答案跟上次不一样"，你有记录可查，不用猜。</p>
+</li>
+<li><p>你手上有一组固定回归题，改 Prompt 前后都会跑一遍。</p>
+</li>
+</ul>
+<p>自检两句：你现在的 Prompt 存在哪里？存在平台输入框里的，等于没有版本管理。你能不能五分钟内拿出二十条回归题？拿不出来，下次改动就是在赌。</p>
+<p><strong>动手任务</strong>（就放在这一节里，别等"以后有空"）：把你现在项目里的主 Prompt 从平台里导出来，存成文件，建上面那张四字段的变更记录表，然后攒二十条回归题（四类必错场景各四条，加四条最常见的普通题）。</p>
+<p>这件事一下午能做完，做完之后这个项目才第一次具备"可维护"的属性。</p>
+<h2 id="七坑">七、坑</h2>
+<p><strong>示例不是越多越好。</strong>&nbsp;示例会把模型拉向示例的形状。我干过一次蠢事：为了让输出格式稳定，我塞了四条示例，四条都是同一种问法，结果它学会了只认那一种问法，换个问法格式就散。示例要覆盖不同的问法，两三条足矣。不然让大模型不知道怎么选择，不要让它猜你的意思。</p>
+<p><strong>别把一堆业务规则写进 Prompt。</strong>&nbsp;规则写到第五条你就改不动了，改一条怕影响另外四条。规则多的场景应该走检索——把规则放进知识库，让它按需取。这是后面 RAG 那两篇的事。</p>
+<p><strong>"你是一个专业的资深专家"这类话，基本没用。</strong>&nbsp;它不改变模型的概率分布，只占字数（因为现在大模型已经很聪明了）。而字数是真的要花钱的，这就是下一讲的内容：上下文是稀缺资源，我们得算着用。</p>
+<hr>
+<p><strong>《AI-FDE 转型之路》</strong>：写给不写代码的 IT 实施 / 售前 / 运维，把已有的交付能力「AI 化」。全系列 55 篇，六大模块 53 项技能。</p>
+<p>想先看看自己缺什么：AI-FDE 技能自评地图，53 项打分，出一张雷达图。<a href="/zh/docs/00-intro/">AI-FDE 转型之路 · 开篇</a></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/zh/docs/01-ai-eng-llm/"><span class="dir">← 上一篇</span><span class="ttl">先搞清楚模型一定会错在哪</span></a>
+<span class="spacer"></span>
+</div>
+    <div class="doc-foot">
+      <p>本文首发于微信公众号「杀他个回马枪」 · <a href="https://mp.weixin.qq.com/s/UFA25CeOSOA0CYmzDD5TYw" target="_blank" rel="noopener noreferrer">在公众号阅读原文</a></p>
+      <p>想先看看自己缺什么？用自评地图打个分  <a href="/zh/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>

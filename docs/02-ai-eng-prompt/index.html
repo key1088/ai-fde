@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prompts Aren't Magic — They're Code You Can Regression-Test · The AI-FDE Transition Path</title>
+<meta name="description" content="Prompts are the one place in an AI project that anyone can change and nobody owns. Treat them like code: keep them in files, log every change, and run a regression set.">
+<link rel="canonical" href="https://ai-fde.dev/docs/02-ai-eng-prompt/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/02-ai-eng-prompt/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/02-ai-eng-prompt/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/02-ai-eng-prompt/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Prompts Aren't Magic — They're Code You Can Regression-Test">
+<meta property="og:description" content="Prompts are the one place in an AI project that anyone can change and nobody owns. Treat them like code: keep them in files, log every change, and run a regression set.">
+<meta property="og:url" content="https://ai-fde.dev/docs/02-ai-eng-prompt/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/02-ai-eng-prompt/img-01.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Prompts Aren't Magic — They're Code You Can Regression-Test","description":"Prompts are the one place in an AI project that anyone can change and nobody owns. Treat them like code: keep them in files, log every change, and run a regression set.","datePublished":"2026-10-11","inLanguage":"en","image":"https://ai-fde.dev/media/docs/02-ai-eng-prompt/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/docs/02-ai-eng-prompt/","isPartOf":{"@type":"CreativeWorkSeries","name":"The AI-FDE Transition Path"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/docs/">AI-FDE <span>· Docs</span></a>
+  <nav>
+    <a href="/">Self-Assessment</a>
+    <a href="/docs/" class="on">Docs</a>
+    <a class="lang" href="/zh/docs/02-ai-eng-prompt/">中文</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">In this series</div>
+<div class="toc-body">
+<a class="art" href="/docs/00-intro/"><span class="no">01</span>Why Those Who Know the Customer Best Are the Most Anxious</a>
+<a class="art" href="/docs/01-ai-eng-llm/"><span class="no">02</span>First, Understand Exactly Where the Model Will Always Fail</a>
+<a class="art cur" href="/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompts Aren't Magic — They're Code You Can Regression-Test</a>
+</div>
+<div class="toc-h">On this page</div>
+<div class="toc-body">
+<a class="h2" href="#1-If-You-Cant-Say-Why-a-Prompt-Is-Better-You-Havent-Changed-Anything">1. If You Can't Say Why a Prompt Is Better, You Haven't Changed Anything</a>
+<a class="h2" href="#2-Why-This-Deserves-Its-Own-Article">2. Why This Deserves Its Own Article</a>
+<a class="h2" href="#3-What-a-Prompt-Is">3. What a Prompt Is</a>
+<a class="h2" href="#4-How-to-Write-a-Prompt-Again">4. How to Write a Prompt, Again</a>
+<a class="h2" href="#5-How-to-Manage-a-Prompt-Again">5. How to Manage a Prompt, Again</a>
+<a class="h2" href="#6-What-Counts-as-Knowing-It">6. What Counts as Knowing It</a>
+<a class="h2" href="#7-Pitfalls">7. Pitfalls</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/docs/">Docs</a> / The AI-FDE Transition Path</div>
+    <article>
+      <h1 class="doc-title">Prompts Aren't Magic — They're Code You Can Regression-Test</h1>
+      <p class="doc-sub">The AI-FDE Transition Path · AI Engineering 02 — Prompt Engineering</p>
+      <p class="doc-meta">2026-10-11 · First published on WeChat (杀他个回马枪)</p>
+      <h2 id="1-If-You-Cant-Say-Why-a-Prompt-Is-Better-You-Havent-Changed-Anything">1. If You Can't Say Why a Prompt Is Better, You Haven't Changed Anything</h2>
+<p>My judgment is simple: <strong>when you've changed a prompt, if you can't say clearly "what got better and by how much," then you haven't really changed it.</strong></p>
+<p><strong><a href="/docs/01-ai-eng-llm/">In the previous piece we established that the model will definitely be wrong, and that its failures follow patterns</a>.</strong> This piece is about how to talk to it. The order of these two matters: only once you know where it fails do you know what to constrain in the prompt. Do it the other way around — start by learning a pile of "universal templates" — and what you learn is sentence patterns, not judgment.</p>
+<p><img src="/media/docs/02-ai-eng-prompt/img-01.png" alt="" loading="lazy" decoding="async"></p>
+<h2 id="2-Why-This-Deserves-Its-Own-Article">2. Why This Deserves Its Own Article</h2>
+<p>The prompt is the one place in an AI project that "<strong>anyone can change, but nobody owns</strong>." Developers can change it, product can change it, and a client who glances at it twice can suggest "add a line telling it not to make things up." Changing it costs nothing, so it gets changed most often — and most easily turns into an accident scene. There's no version control, and the same prompt behaves differently across models.</p>
+<p>I once hit a real problem: a policy Q&amp;A had been live for a month when the client said "it's been less stable than before lately." We searched all around — the model hadn't changed, the knowledge base hadn't moved — and finally found that three days earlier someone had changed one line in the prompt, adding "try to give the user a complete and detailed answer." The person meant well; the effect was that the model started forcing complete answers even where it had no material. Nobody remembered making the change, because there was no record.</p>
+<p>So what I want is not "writing a good prompt" — it's <strong>making the prompt traceable</strong>. Anyone can adjust the wording, but changes must leave a trace and have a before/after comparison. That's why I compare it to code: does code only need to run? No — it needs to be reviewable, rollback-able, regression-testable.</p>
+<p>Prompts are very basic in LLM applications, and also very important. In knowledge-base scenarios and in agent scenarios, the prompt has to be designed up front.</p>
+<p><strong>Some people say that as large models keep iterating, prompts no longer matter much.</strong> That's half right. It's true that as models get smarter, the prompt doesn't need to describe as much — for example, you no longer need to define a role — but the task description remains indispensable.</p>
+<h2 id="3-What-a-Prompt-Is">3. What a Prompt Is</h2>
+<p>Let's look again at what a prompt is. To understand prompts you first need one core point: <strong>an LLM is fundamentally a model that predicts the next token given the context, and a prompt is the input we use to tell the model what problem to handle, what requirements to follow, and what information to base its answer on.</strong></p>
+<p>A prompt is not a mysterious incantation, and it's not just the sentence you type in. It's the interaction interface between a person and a large language model, and an important means of controlling the model's behavior.</p>
+<p>A prompt is the input information given to a large language model, used to guide the model toward generating the expected output.</p>
+<p><img src="/media/docs/02-ai-eng-prompt/img-02.png" alt="" loading="lazy" decoding="async"></p>
+<h2 id="4-How-to-Write-a-Prompt-Again">4. How to Write a Prompt, Again</h2>
+<p>You need to treat the large model as a <strong>new colleague who just joined</strong>. A new colleague has just come on board — how do you best assign work? How do you explain the role's responsibilities? You probably wouldn't use one sentence. You wouldn't say to a smart new hire, "just do a good job," and that's it, ha.</p>
+<p>You'd explain four things clearly:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Element</th>
+<th>What to write</th>
+<th>What happens if you omit it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Who it is, where the boundary is</strong></td>
+<td>You are a bank policy Q&amp;A assistant; you only answer policy-related questions</td>
+<td>It takes on whatever the user talks about, even making things up about the weather</td>
+</tr>
+<tr>
+<td><strong>What to do, in what steps</strong></td>
+<td>First judge whether it's within the material; if not, say plainly that there's nothing</td>
+<td>With no material it fills in its own</td>
+</tr>
+<tr>
+<td><strong>How to give it the material</strong></td>
+<td>Clearly mark "the following is retrieved policy text; the answer may only come from here"</td>
+<td>It can't tell which part is material and which is the question</td>
+</tr>
+<tr>
+<td><strong>What the output looks like, and when to shut up</strong></td>
+<td>Fixed format + must cite sources + a fixed refusal line when nothing hits</td>
+<td>Random format; refusal depends on its mood</td>
+</tr>
+</tbody></table></div>
+<p>Of these four, the last is the easiest to miss and the most valuable. Emphasize to the model: <strong>if you don't know, say you don't know.</strong> The refusal condition is the core of the prompt. For the four classes of guaranteed failure from the previous piece, the fallback action is mostly written here.</p>
+<h2 id="5-How-to-Manage-a-Prompt-Again">5. How to Manage a Prompt, Again</h2>
+<p><strong>1. Keep prompts in files, not only in the platform's input box.</strong> Change it in the platform and it's overwritten — who changed it, and when, can't be found. Put it in a file and into version control, just like code. Record each interaction's prompt yourself and refine it repeatedly.</p>
+<p><strong>2. Write one line of record per change.</strong> It doesn't need to be long; four fields are enough:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Example content</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Time / person</td>
+<td>2026-09-28 / Xiaolin</td>
+</tr>
+<tr>
+<td>What changed</td>
+<td>Output-constraint section adds "when nothing hits, always reply with the fixed line"</td>
+</tr>
+<tr>
+<td>Why</td>
+<td>Client feedback: with no material the model still fabricated clauses</td>
+</tr>
+<tr>
+<td>Expected impact</td>
+<td>Refusal rate up, fabrication complaints down</td>
+</tr>
+</tbody></table></div>
+<p><strong>3. Prepare a regression set of twenty to thirty questions.</strong> Not many, but it must cover the four classes of guaranteed failure, plus a few "most common in the business" ordinary questions. The process: run it before the change and save the results, run it after the change, and look only at the questions whose results changed — how many got better, how many got worse, and which ones.</p>
+<p><strong>When testing a prompt, always clear the previous session</strong> — otherwise it easily pollutes the model's parsing. Why it pollutes the model is explained in detail in the next chapter.</p>
+<p>My own experience: out of twenty questions, usually three to five will move, and among those there's always one or two that got worse. When you see one got worse, either change it back or accept the trade-off and write it down. <strong>Being able to say "this change made class A better and class B worse, and I chose the former" — that's professional. Saying "it feels better" is not.</strong></p>
+<h2 id="6-What-Counts-as-Knowing-It">6. What Counts as Knowing It</h2>
+<ul>
+<li>You can produce the time, reason and impact of the last three prompt changes on this project.</li>
+<li>When the client asks "why is this answer different from last time," you have a record to check, not a guess.</li>
+<li>You have a fixed regression set, and you run it before and after every prompt change.</li>
+</ul>
+<p>Two self-check questions: where are your prompts stored now? If they're in the platform's input box, that's the same as having no version control. Can you produce twenty regression questions within five minutes? If not, the next change is a gamble.</p>
+<p><strong>Hands-on task</strong> (do it in this section, don't wait for "someday"): export your project's main prompt from the platform, save it as a file, build the four-field change log above, then assemble twenty regression questions (four for each of the four failure classes, plus four of the most common ordinary questions).</p>
+<p>This can be done in an afternoon, and once it's done the project has the property of being "maintainable" for the first time.</p>
+<h2 id="7-Pitfalls">7. Pitfalls</h2>
+<p><strong>More examples is not better.</strong> Examples pull the model toward the shape of the examples. I once did something dumb: to stabilize the output format I stuffed in four examples, all four with the same phrasing, and the result was that it learned to recognize only that phrasing — switch to another and the format falls apart. Examples should cover different phrasings; two or three is plenty. Otherwise you leave the model not knowing which to choose — don't make it guess what you mean.</p>
+<p><strong>Don't stuff a pile of business rules into the prompt.</strong> By the fifth rule you can't change anything, because changing one might affect the other four. Scenarios with many rules should use retrieval — put the rules in a knowledge base and let it fetch them on demand. That's for the two RAG pieces later.</p>
+<p><strong>Lines like "you are a professional senior expert" are basically useless.</strong> They don't change the model's probability distribution, they just consume tokens (because today's models are already smart). And tokens genuinely cost money — which is the subject of the next piece: context is a scarce resource, and we have to spend it carefully.</p>
+<hr>
+<p><strong>《The AI-FDE Transition Path》</strong>: written for IT implementation / pre-sales / operations people who don't write code, to "AI-ify" the delivery skills they already have. 55 articles in all, six domains, 53 skills.</p>
+<p>Want to see what you're missing first? The AI-FDE skill self-assessment map: rate 53 skills, get a radar chart. <a href="/docs/00-intro/">The AI-FDE Transition Path · Introduction</a></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/docs/01-ai-eng-llm/"><span class="dir">← Previous</span><span class="ttl">First, Understand Exactly Where the Model Will Always Fail</span></a>
+<span class="spacer"></span>
+</div>
+    <div class="doc-foot">
+      <p>First published on WeChat (杀他个回马枪) · <a href="https://mp.weixin.qq.com/s/UFA25CeOSOA0CYmzDD5TYw" target="_blank" rel="noopener noreferrer">Read the original on WeChat</a></p>
+      <p>Want to see where you stand? Score yourself on the map  <a href="/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>

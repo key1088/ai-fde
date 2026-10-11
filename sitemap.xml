@@ -17,4 +17,68 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://ai-fde.dev/docs/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ai-fde.dev/docs/00-intro/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/00-intro/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/00-intro/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/00-intro/"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ai-fde.dev/docs/01-ai-eng-llm/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/01-ai-eng-llm/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/01-ai-eng-llm/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/01-ai-eng-llm/"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ai-fde.dev/docs/02-ai-eng-prompt/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/02-ai-eng-prompt/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/02-ai-eng-prompt/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/02-ai-eng-prompt/"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ai-fde.dev/zh/docs/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ai-fde.dev/zh/docs/00-intro/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/00-intro/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/00-intro/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/00-intro/"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ai-fde.dev/zh/docs/01-ai-eng-llm/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/01-ai-eng-llm/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/01-ai-eng-llm/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/01-ai-eng-llm/"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ai-fde.dev/zh/docs/02-ai-eng-prompt/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/02-ai-eng-prompt/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/02-ai-eng-prompt/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/02-ai-eng-prompt/"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>

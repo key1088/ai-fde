@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>First, Understand Exactly Where the Model Will Always Fail · The AI-FDE Transition Path</title>
+<meta name="description" content="In AI delivery, the first thing to learn is not how to tune a model, but what it can and cannot do and where it always fails. This piece lays out four failure classes and what 'knowing it' looks like.">
+<link rel="canonical" href="https://ai-fde.dev/docs/01-ai-eng-llm/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/01-ai-eng-llm/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/01-ai-eng-llm/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/01-ai-eng-llm/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="First, Understand Exactly Where the Model Will Always Fail">
+<meta property="og:description" content="In AI delivery, the first thing to learn is not how to tune a model, but what it can and cannot do and where it always fails. This piece lays out four failure classes and what 'knowing it' looks like.">
+<meta property="og:url" content="https://ai-fde.dev/docs/01-ai-eng-llm/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/01-ai-eng-llm/img-01.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"First, Understand Exactly Where the Model Will Always Fail","description":"In AI delivery, the first thing to learn is not how to tune a model, but what it can and cannot do and where it always fails. This piece lays out four failure classes and what 'knowing it' looks like.","datePublished":"2026-10-07","inLanguage":"en","image":"https://ai-fde.dev/media/docs/01-ai-eng-llm/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/docs/01-ai-eng-llm/","isPartOf":{"@type":"CreativeWorkSeries","name":"The AI-FDE Transition Path"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/docs/">AI-FDE <span>· Docs</span></a>
+  <nav>
+    <a href="/">Self-Assessment</a>
+    <a href="/docs/" class="on">Docs</a>
+    <a class="lang" href="/zh/docs/01-ai-eng-llm/">中文</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">In this series</div>
+<div class="toc-body">
+<a class="art" href="/docs/00-intro/"><span class="no">01</span>Why Those Who Know the Customer Best Are the Most Anxious</a>
+<a class="art cur" href="/docs/01-ai-eng-llm/"><span class="no">02</span>First, Understand Exactly Where the Model Will Always Fail</a>
+<a class="art" href="/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompts Aren't Magic — They're Code You Can Regression-Test</a>
+</div>
+<div class="toc-h">On this page</div>
+<div class="toc-body">
+<a class="h2" href="#1-The-First-Thing-Is-Not-Learning-to-Tune-the-Model">1. The First Thing Is Not Learning to Tune the Model</a>
+<a class="h2" href="#2-What-AI-Actually-Is">2. What AI Actually Is</a>
+<a class="h2" href="#3-So-What-Is-an-LLM">3. So What Is an LLM?</a>
+<a class="h2" href="#4-An-LLM-Is-Not-Looking-Up-an-Answer">4. An LLM Is Not Looking Up an Answer</a>
+<a class="h2" href="#5-The-Four-Classes-of-Guaranteed-Failure">5. The Four Classes of Guaranteed Failure</a>
+<a class="h2" href="#6-What-Counts-as-Knowing-It">6. What Counts as Knowing It</a>
+<a class="h2" href="#7-Hands-On-Task">7. Hands-On Task</a>
+<a class="h2" href="#8-Pitfalls">8. Pitfalls</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/docs/">Docs</a> / The AI-FDE Transition Path</div>
+    <article>
+      <h1 class="doc-title">First, Understand Exactly Where the Model Will Always Fail</h1>
+      <p class="doc-sub">The AI-FDE Transition Path · AI Engineering 01 — LLM Capabilities &amp; Boundaries</p>
+      <p class="doc-meta">2026-10-07 · First published on WeChat (杀他个回马枪)</p>
+      <h2 id="1-The-First-Thing-Is-Not-Learning-to-Tune-the-Model">1. The First Thing Is Not Learning to Tune the Model</h2>
+<p>In AI delivery, the first thing to learn is not how to tune the model, and not which vendor's model to pick. It's what the model can do, what it cannot do, and where it tends to fail. <strong>You have to know the model's capabilities and its boundaries.</strong></p>
+<p><strong>I think this is the single highest-ROI thing in the whole AI Engineering volume.</strong> Spend two hours and you save two months of rework later. The client won't give you credit for which model you used; they'll dock you for one wrong answer. The success of this role never depends on the best performance — it depends on the worst.</p>
+<h2 id="2-What-AI-Actually-Is">2. What AI Actually Is</h2>
+<p>In one sentence:</p>
+<blockquote>
+<p><strong>AI (Artificial Intelligence) is fundamentally a class of technology that lets machines gain perception, understanding, generation, prediction, decision-making and execution abilities through data, models and algorithms.</strong></p>
+</blockquote>
+<p>Breaking it down further:</p>
+<p><strong>AI ≠ a specific piece of software, and AI ≠ LLM.</strong></p>
+<p>You can think of it like this:</p>
+<pre><code>Artificial Intelligence
+│
+├── Perception
+│   ├── Computer vision
+│   ├── Speech recognition
+│   └── Multimodal
+│
+├── Understanding &amp; reasoning
+│   ├── Machine learning
+│   ├── Deep learning
+│   └── LLM
+│
+├── Generation
+│   ├── Text
+│   ├── Image
+│   ├── Audio
+│   └── Video
+│
+└── Action
+    ├── Agent
+    ├── Tool calling
+    └── Automated execution
+</code></pre>
+<h2 id="3-So-What-Is-an-LLM">3. So What Is an LLM?</h2>
+<p><strong>LLM = Large Language Model.</strong></p>
+<blockquote>
+<p><strong>An LLM is a type of model within AI responsible for "language and knowledge processing."</strong></p>
+</blockquote>
+<p>Mainstream LLMs, domestic and international, include:</p>
+<blockquote>
+<p>OpenAI's GPT series, Anthropic's Claude series, Google's Gemini series, Meta's Llama series — and in China, Alibaba's Qwen, DeepSeek, Moonshot's Kimi, Zhipu's GLM, ByteDance's Doubao, Baidu's Ernie, and more.</p>
+</blockquote>
+<p>Their core ability is not "knowing the answer." It is:</p>
+<blockquote>
+<p><strong>Predicting the most likely next piece of content given the context, and forming a statistical representation of language, knowledge, code and problem patterns across a very large number of parameters.</strong></p>
+</blockquote>
+<p>The essence of an LLM is just predicting the next word — it's always predicting; the prediction just becomes what you read as the answer.</p>
+<blockquote>
+<p><strong>"The capital of China is ___" — the next word with the highest weight is probably "Bei," then "jing."</strong></p>
+</blockquote>
+<p><img src="/media/docs/01-ai-eng-llm/img-01.png" alt="" loading="lazy" decoding="async"></p>
+<h2 id="4-An-LLM-Is-Not-Looking-Up-an-Answer">4. An LLM Is Not Looking Up an Answer</h2>
+<p>Many people's default mental model of a large model is a "smart search box" — you ask, it goes to a database, finds it, and reads it back. That model is wrong, and dangerously so.</p>
+<p>What it's actually doing is more like <strong>letting someone who has read a great many books answer from memory</strong>: you ask a question, and based on the characters so far, they work out the most probable next character by probability, then keep writing. They have indeed read a lot, so they are often right — but they are <strong>completing</strong>, not <strong>looking up</strong>.</p>
+<p>Where's the difference? A lookup that finds nothing will say "there's nothing." Completion will not say "there's nothing." <strong>When it can't remember clearly, it makes something up in the right tone — fluently, with correct punctuation, reading more like the truth than the truth.</strong> That is where hallucinations come from. The model isn't broken; this is just how it works.</p>
+<p><img src="/media/docs/01-ai-eng-llm/img-02.png" alt="" loading="lazy" decoding="async"></p>
+<p>Once you understand this, one judgment follows naturally: <strong>anything that depends on "precise facts" cannot use a bare model.</strong> Either you give it material (retrieval — covered later), or you give it a path to shut up when it can't answer (refusal), or you admit this scenario shouldn't be done at all.</p>
+<p>These need to be solved with tools — with agents, skills, and MCP interfaces.</p>
+<h2 id="5-The-Four-Classes-of-Guaranteed-Failure">5. The Four Classes of Guaranteed Failure</h2>
+<p>I group failures into four classes. I didn't invent them; I reverse-engineered them from several hundred wrong answers in a policy Q&amp;A project, and the hit rate is high.</p>
+<p><img src="/media/docs/01-ai-eng-llm/img-03.png" alt="" loading="lazy" decoding="async"></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Recognition signal</th>
+<th>Example</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Timeliness</strong></td>
+<td>The answer depends on "what happened recently"</td>
+<td>A policy revised this month, the latest listed interest rate, yesterday's announcement</td>
+<td>Must connect to retrieval or an external data source; can't rely on model memory</td>
+</tr>
+<tr>
+<td><strong>Proprietary long tail</strong></td>
+<td>Internal system names, product codes, department abbreviations, in-house jargon</td>
+<td>"Who maintains module ZX07 in the credit system?"</td>
+<td>Put it in a knowledge base and align terminology; refuse when it can't answer</td>
+</tr>
+<tr>
+<td><strong>Numbers &amp; computation</strong></td>
+<td>Involves arithmetic, statistics, cross-table aggregation</td>
+<td>"How many transactions in these three quarters combined?"</td>
+<td>Let a tool do the math; don't let the model produce the number</td>
+</tr>
+<tr>
+<td><strong>Multi-hop &amp; out of scope</strong></td>
+<td>Needs to chain three or more sources, or the sources simply don't contain it</td>
+<td>"Per Article 3 of Policy A, does this go through Process B or Process C?"</td>
+<td>Split into multiple steps; when the material doesn't contain it, say so plainly</td>
+</tr>
+</tbody></table></div>
+<p>I'd suggest memorizing the recognition signals — more useful than memorizing concepts. On a client site you have only tens of seconds to judge; being able to say immediately "this one is proprietary long tail, we need a terminology table first" beats going back to look it up.</p>
+<p>One lesson of my own, by the way. Early on, doing policy Q&amp;A, after the first version went live the client complained it "answers inaccurately." My first reaction was that the model was bad and I wanted to switch to a bigger one. Later we laid the wrong answers out and classified them, and found that nearly half were document-parsing problems — tables cut apart, scanned pages OCR'd with the wrong numbers. That belongs to later articles, but here's the lesson up front: <strong>seeing "answers are inaccurate" and reaching for a bigger model is the most expensive, least effective first reaction.</strong></p>
+<h2 id="6-What-Counts-as-Knowing-It">6. What Counts as Knowing It</h2>
+<p>My own bar is two things:</p>
+<ol>
+<li>Give me any business scenario, and within thirty seconds I can say which class it most likely falls into, and what the fallback action is.</li>
+<li>I can articulate clearly "which questions should be refused" instead of forcing an answer. The cost of forcing an answer is far higher than refusing: once a client catches one fabrication, they won't believe the next ten correct answers either.</li>
+</ol>
+<p>Three self-check questions — if you can't answer them, go back and read again:</p>
+<ul>
+<li>The client asks "will your thing make things up?" How do you answer? Just saying "we optimized it" isn't enough; you need to say which classes you refuse and what path a refusal takes.</li>
+<li>In the project you're on, roughly what share of questions hit the "timeliness" class? (Example numbers, for estimation only: in policy Q&amp;A it's usually between 20% and 40%; calibrate per project.)</li>
+<li>Does your system currently have a "refuse" action? Or does it always have to spit out something?</li>
+</ul>
+<h2 id="7-Hands-On-Task">7. Hands-On Task</h2>
+<p>Pull the last twenty real user questions from your Q&amp;A system, classify them into the four classes above, count how many fall into each, and mark the share that "should actually have been refused."</p>
+<p>This takes less than half an hour, but it's the foundation of everything you optimize later. If you can't even tell where the errors are, changing the prompt, swapping the model, and adding retrieval are all guesswork. When you're done you'll find the classification is often very different from your impression — I assumed it was mostly a timeliness problem, but proprietary long tail actually ranked first.</p>
+<h2 id="8-Pitfalls">8. Pitfalls</h2>
+<p><strong>Don't judge correctness by how confident the tone sounds.</strong> A model's fluency and its accuracy are basically unrelated — the smoother the answer, the more dangerous, because people don't go and verify it. My habit now: any answer containing a specific number, date, or clause number, I check the cited source.</p>
+<p><strong>Don't ask the model "are you sure?"</strong> Ask it to self-rate its confidence and you'll mostly get polite modesty or baffling overconfidence — neither is useful. Real confidence comes from retrieval hits, format validation, rule validation — external mechanisms, not the model's own word.</p>
+<p><strong>Don't treat the four classes as "problems to eliminate."</strong> They can't be eliminated. What you need is a definite handling path for each: add material where you can, refuse where you should, hand off to a human where you should. Admit it will be wrong, then design what happens when it is — that's delivery.</p>
+<hr>
+<p><strong>《The AI-FDE Transition Path》</strong>: written for IT implementation / pre-sales / operations people — and anyone else — who don't write code, to "AI-ify" the delivery skills they already have. 55+ articles, six domains, 53 skills.</p>
+<p>Want to see what you're missing first? The AI-FDE skill self-assessment map: rate 53 skills, get a radar chart. <a href="/docs/00-intro/">The AI-FDE Transition Path · Introduction</a></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/docs/00-intro/"><span class="dir">← Previous</span><span class="ttl">Why Those Who Know the Customer Best Are the Most Anxious</span></a>
+<a class="next" href="/docs/02-ai-eng-prompt/"><span class="dir">Next →</span><span class="ttl">Prompts Aren't Magic — They're Code You Can Regression-Test</span></a>
+</div>
+    <div class="doc-foot">
+      <p>First published on WeChat (杀他个回马枪) · <a href="https://mp.weixin.qq.com/s/YGG_6ZE287PQUV1PmWP06g" target="_blank" rel="noopener noreferrer">Read the original on WeChat</a></p>
+      <p>Want to see where you stand? Score yourself on the map  <a href="/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>
