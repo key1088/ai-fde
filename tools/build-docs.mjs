@@ -37,8 +37,6 @@ const UI = {
     prev: '上一篇',
     next: '下一篇',
     home: '文档',
-    source: '本文首发于微信公众号「杀他个回马枪」',
-    sourceLink: '在公众号阅读原文',
     cta: '想先看看自己缺什么？用自评地图打个分 →',
     updated: '更新于',
     indexTitle: 'AI-FDE 转型之路 · 文档',
@@ -54,8 +52,6 @@ const UI = {
     prev: 'Previous',
     next: 'Next',
     home: 'Docs',
-    source: 'First published on WeChat (杀他个回马枪)',
-    sourceLink: 'Read the original on WeChat',
     cta: 'Want to see where you stand? Score yourself on the map →',
     updated: 'Updated',
     indexTitle: 'The AI-FDE Transition Path · Docs',
@@ -228,12 +224,11 @@ ${tocHtml}
     <article>
       <h1 class="doc-title">${esc(title)}</h1>
       ${sub ? `<p class="doc-sub">${esc(sub)}</p>` : ''}
-      <p class="doc-meta">${art.meta.date ? `${esc(art.meta.date)} · ` : ''}${esc(t.source)}</p>
+      ${art.meta.date ? `<p class="doc-meta">${esc(art.meta.date)}</p>` : ''}
       ${body}
     </article>
 ${pager}
     <div class="doc-foot">
-      <p>${esc(t.source)} · <a href="${esc(art.meta.source)}" target="_blank" rel="noopener noreferrer">${esc(t.sourceLink)}</a></p>
       <p>${esc(t.cta.replace('→', ''))} <a href="${L.tool}">→</a></p>
     </div>
   </main>
@@ -388,18 +383,21 @@ for (const lang of ['zh', 'en']) {
 // 配图直接由 import-wechat.mjs 落在 /media/docs/<slug>/，构建时无需再复制
 
 // sitemap.xml：固定两条工具页 + 全部文档页
+const buildDate = new Date().toISOString().slice(0, 10);
+const latestDate = articles.reduce((m, a) => (a.meta.date && a.meta.date > m ? a.meta.date : m), buildDate);
 const urls = [
-  { loc: `${SITE}/`, alt: [['en', `${SITE}/`], ['zh-CN', `${SITE}/zh/`], ['x-default', `${SITE}/`]], p: '1.0' },
-  { loc: `${SITE}/zh/`, alt: [['en', `${SITE}/`], ['zh-CN', `${SITE}/zh/`], ['x-default', `${SITE}/`]], p: '0.8' },
+  { loc: `${SITE}/`, alt: [['en', `${SITE}/`], ['zh-CN', `${SITE}/zh/`], ['x-default', `${SITE}/`]], p: '1.0', lastmod: buildDate },
+  { loc: `${SITE}/zh/`, alt: [['en', `${SITE}/`], ['zh-CN', `${SITE}/zh/`], ['x-default', `${SITE}/`]], p: '0.8', lastmod: buildDate },
 ];
 for (const lang of ['en', 'zh']) {
   const L = LANGS[lang];
-  urls.push({ loc: `${SITE}${L.urlBase}/`, alt: [['en', `${SITE}${LANGS.en.urlBase}/`], ['zh-CN', `${SITE}${LANGS.zh.urlBase}/`], ['x-default', `${SITE}${LANGS.en.urlBase}/`]], p: '0.9' });
+  urls.push({ loc: `${SITE}${L.urlBase}/`, alt: [['en', `${SITE}${LANGS.en.urlBase}/`], ['zh-CN', `${SITE}${LANGS.zh.urlBase}/`], ['x-default', `${SITE}${LANGS.en.urlBase}/`]], p: '0.9', lastmod: latestDate });
   for (const a of articles) {
     urls.push({
       loc: `${SITE}${L.urlBase}/${a.slug}/`,
       alt: [['en', `${SITE}${LANGS.en.urlBase}/${a.slug}/`], ['zh-CN', `${SITE}${LANGS.zh.urlBase}/${a.slug}/`], ['x-default', `${SITE}${LANGS.en.urlBase}/${a.slug}/`]],
       p: '0.7',
+      lastmod: a.meta.date || buildDate,
     });
   }
 }
@@ -411,8 +409,9 @@ ${urls
     (u) => `  <url>
     <loc>${u.loc}</loc>
 ${u.alt.map(([h, href]) => `    <xhtml:link rel="alternate" hreflang="${h}" href="${href}"/>`).join('\n')}
+    <lastmod>${u.lastmod}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>${u.p}</priority>
+    <priority>${u.p}</priority>>
   </url>`
   )
   .join('\n')}

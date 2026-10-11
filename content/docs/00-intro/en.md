@@ -30,7 +30,7 @@ I built an AI-FDE assessment page (with AI's help). You can use it to assess you
 
 Assessment site: https://ai-fde.dev/
 
-You can also scan the QR code (press and hold, then scan to jump to the assessment site), or click "Read original" at the end of the article.
+You can also scan the QR code (press and hold, then scan to jump to the assessment site).
 
 ![](/media/docs/00-intro/img-02.png)
 
