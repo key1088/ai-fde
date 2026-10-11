@@ -18,3 +18,9 @@
 
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
+
+/docs/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/zh/docs/*
+  Cache-Control: public, max-age=0, must-revalidate

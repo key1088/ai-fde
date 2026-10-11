@@ -66,6 +66,8 @@ const UI = {
 
 marked.setOptions({ gfm: true, breaks: false });
 
+const problems = [];
+
 function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -115,6 +117,9 @@ function renderBody(md) {
     a.setAttribute('target', '_blank');
     a.setAttribute('rel', 'noopener noreferrer');
   });
+  // 自检：中文标点紧贴 ** 时 CommonMark 不认，会漏成字面星号
+  const literal = (c.textContent.match(/\*\*/g) || []).length + (c.textContent.match(/^##/gm) || []).length;
+  if (literal) problems.push(`正文残留 Markdown 标记 ${literal} 处（检查中英标点旁的 ** 是否闭合）`);
   return { html: c.innerHTML, toc };
 }
 
@@ -416,3 +421,8 @@ ${u.alt.map(([h, href]) => `    <xhtml:link rel="alternate" hreflang="${h}" href
 fs.writeFileSync(path.join(root, 'sitemap.xml'), sitemap);
 
 console.log(`✅ 文档站已生成：${wrote} 个页面 · ${articles.length} 篇文章 · sitemap 更新`);
+if (problems.length) {
+  console.error('\n❌ 自检未通过：');
+  for (const p of [...new Set(problems)]) console.error('  - ' + p);
+  process.exit(1);
+}
