@@ -411,13 +411,16 @@ ${urls
 ${u.alt.map(([h, href]) => `    <xhtml:link rel="alternate" hreflang="${h}" href="${href}"/>`).join('\n')}
     <lastmod>${u.lastmod}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>${u.p}</priority>>
+    <priority>${u.p}</priority>
   </url>`
   )
   .join('\n')}
 </urlset>
 `;
 fs.writeFileSync(path.join(root, 'sitemap.xml'), sitemap);
+if (/>\s*>/.test(sitemap.replace(/\n\s*/g, '\n')) || (sitemap.match(/<\/priority>>/) || []).length) {
+  problems.push('sitemap.xml 标签多了一个 >（检查模板拼接）');
+}
 
 console.log(`✅ 文档站已生成：${wrote} 个页面 · ${articles.length} 篇文章 · sitemap 更新`);
 if (problems.length) {
