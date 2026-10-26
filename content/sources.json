@@ -27,6 +27,42 @@
       "series": "ai-fde-roadmap",
       "order": 2,
       "url": "https://mp.weixin.qq.com/s/UFA25CeOSOA0CYmzDD5TYw"
+    },
+    {
+      "slug": "03-ai-eng-context",
+      "series": "ai-fde-roadmap",
+      "order": 3,
+      "url": "https://mp.weixin.qq.com/s/6ZUkfI-f8eEAsyDoLntXHg"
+    },
+    {
+      "slug": "04-ai-eng-rag",
+      "series": "ai-fde-roadmap",
+      "order": 4,
+      "url": "https://mp.weixin.qq.com/s/X7-wH5yZtShcJ1O37AlC9w"
+    },
+    {
+      "slug": "05-ai-eng-doc-parsing",
+      "series": "ai-fde-roadmap",
+      "order": 5,
+      "url": "https://mp.weixin.qq.com/s/3vX-T02DlBy0lkZhLxnP6w"
+    },
+    {
+      "slug": "06-ai-eng-tool-calling",
+      "series": "ai-fde-roadmap",
+      "order": 6,
+      "url": "https://mp.weixin.qq.com/s/is6llQD2CbJG3zYdU2c_lg"
+    },
+    {
+      "slug": "06-ai-eng-tool-calling-principles",
+      "series": "ai-fde-roadmap",
+      "order": 6.5,
+      "url": "https://mp.weixin.qq.com/s/ptZApIsKXzyInfPbIPqF7g"
+    },
+    {
+      "slug": "07-ai-eng-python",
+      "series": "ai-fde-roadmap",
+      "order": 7,
+      "url": "https://mp.weixin.qq.com/s/kOyauld3xlLSpLb_KEQRIA"
     }
   ]
 }

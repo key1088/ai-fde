@@ -19,7 +19,7 @@
 <link rel="icon" href="/favicon.ico">
 <link rel="stylesheet" href="/assets/doc.css">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"AI-FDE 转型之路 · 文档","description":"从客户现场走向 AI 交付：写给实施、售前、交付、运维背景同学的 AI-FDE 转型学习路径。","inLanguage":"zh-CN","url":"https://ai-fde.dev/zh/docs/","hasPart":[{"@type":"Article","headline":"为什么最懂客户的人反而最焦虑","url":"https://ai-fde.dev/zh/docs/00-intro/"},{"@type":"Article","headline":"先搞清楚模型一定会错在哪","url":"https://ai-fde.dev/zh/docs/01-ai-eng-llm/"},{"@type":"Article","headline":"Prompt 不是玄学，是可以回归测试的代码","url":"https://ai-fde.dev/zh/docs/02-ai-eng-prompt/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"AI-FDE 转型之路 · 文档","description":"从客户现场走向 AI 交付：写给实施、售前、交付、运维背景同学的 AI-FDE 转型学习路径。","inLanguage":"zh-CN","url":"https://ai-fde.dev/zh/docs/","hasPart":[{"@type":"Article","headline":"为什么最懂客户的人反而最焦虑","url":"https://ai-fde.dev/zh/docs/00-intro/"},{"@type":"Article","headline":"先搞清楚模型一定会错在哪","url":"https://ai-fde.dev/zh/docs/01-ai-eng-llm/"},{"@type":"Article","headline":"Prompt 不是玄学，是可以回归测试的代码","url":"https://ai-fde.dev/zh/docs/02-ai-eng-prompt/"},{"@type":"Article","headline":"Context-Engineering：大模型到底看得见什么","url":"https://ai-fde.dev/zh/docs/03-ai-eng-context/"},{"@type":"Article","headline":"知识库答不准，问题通常不在模型","url":"https://ai-fde.dev/zh/docs/04-ai-eng-rag/"},{"@type":"Article","headline":"80% 的 RAG 问题出在文档解析","url":"https://ai-fde.dev/zh/docs/05-ai-eng-doc-parsing/"},{"@type":"Article","headline":"工具描述是写给模型看的说明书","url":"https://ai-fde.dev/zh/docs/06-ai-eng-tool-calling/"},{"@type":"Article","headline":"大模型怎么使用工具","url":"https://ai-fde.dev/zh/docs/06-ai-eng-tool-calling-principles/"},{"@type":"Article","headline":"Python 入门指南：先搞定环境，再谈代码","url":"https://ai-fde.dev/zh/docs/07-ai-eng-python/"}]}</script>
 </head>
 <body>
 <header class="site">
@@ -41,7 +41,7 @@
     <div class="hero">
       <h1>AI-FDE 转型之路</h1>
       <p>从客户现场走向 AI 交付：一套写给实施、售前、交付、运维背景同学的 AI-FDE 转型学习路径。</p>
-      <p style="margin-top:10px;font-size:13.5px;color:#8a94a2">3 篇文章</p>
+      <p style="margin-top:10px;font-size:13.5px;color:#8a94a2">9 篇文章</p>
     </div>
     <div class="series">
       <div class="cards">
@@ -59,6 +59,36 @@
   <div class="no">03 · 2026-10-11</div>
   <h3>Prompt 不是玄学，是可以回归测试的代码</h3>
   <p>Prompt 是 AI 项目里唯一「谁都能改、但没人负责」的地方。把它当代码管：存文件、记改动、跑回归题。</p>
+</a>
+<a class="card" href="/zh/docs/03-ai-eng-context/">
+  <div class="no">04 · 2026-10-13</div>
+  <h3>Context-Engineering：大模型到底看得见什么</h3>
+  <p>大模型没有记忆，它每一轮看到的只是你重新拼好的一段文字。理解 Context 的组成、上限、压缩、幻觉和成本，才知道该往里面放什么、拿掉什么。</p>
+</a>
+<a class="card" href="/zh/docs/04-ai-eng-rag/">
+  <div class="no">05 · 2026-10-17</div>
+  <h3>知识库答不准，问题通常不在模型</h3>
+  <p>RAG 是让模型开卷考。大部分活其实在检索这一侧，所以答不准时先拆链路、打中间结果、按故障表定位，而不是先换模型。</p>
+</a>
+<a class="card" href="/zh/docs/05-ai-eng-doc-parsing/">
+  <div class="no">06 · 2026-10-21</div>
+  <h3>80% 的 RAG 问题出在文档解析</h3>
+  <p>RAG 最脏最累、投入产出比也最高的一段：扫描件、表格、多栏和标题层级四个杀手，以及切分、体检表和 Dify 落地映射。</p>
+</a>
+<a class="card" href="/zh/docs/06-ai-eng-tool-calling/">
+  <div class="no">07 · 2026-10-22</div>
+  <h3>工具描述是写给模型看的说明书</h3>
+  <p>模型缺的不是智力，是数据、算力和手脚。工具该怎么分类、怎么接，以及为什么一行工具描述就能决定它调不调用。</p>
+</a>
+<a class="card" href="/zh/docs/06-ai-eng-tool-calling-principles/">
+  <div class="no">08 · 2026-10-23</div>
+  <h3>大模型怎么使用工具</h3>
+  <p>模型从头到尾没有调用过任何工具，它只输出一段「我要调什么、参数是什么」的文本。把四轮完整报文摊开，看清执行、回填、成本和 MCP 的边界。</p>
+</a>
+<a class="card" href="/zh/docs/07-ai-eng-python/">
+  <div class="no">09 · 2026-10-24</div>
+  <h3>Python 入门指南：先搞定环境，再谈代码</h3>
+  <p>写给不写代码的 FDE：版本、虚拟环境、离线装库、读报错、五分钟看懂一段陌生代码，以及让 AI 改代码时如何保住验收权。</p>
 </a>
       </div>
     </div>

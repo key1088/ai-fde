@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工具描述是写给模型看的说明书 · AI-FDE 转型之路</title>
+<meta name="description" content="模型缺的不是智力，是数据、算力和手脚。工具该怎么分类、怎么接，以及为什么一行工具描述就能决定它调不调用。">
+<link rel="canonical" href="https://ai-fde.dev/zh/docs/06-ai-eng-tool-calling/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/06-ai-eng-tool-calling/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/06-ai-eng-tool-calling/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/06-ai-eng-tool-calling/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="工具描述是写给模型看的说明书">
+<meta property="og:description" content="模型缺的不是智力，是数据、算力和手脚。工具该怎么分类、怎么接，以及为什么一行工具描述就能决定它调不调用。">
+<meta property="og:url" content="https://ai-fde.dev/zh/docs/06-ai-eng-tool-calling/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/06-ai-eng-tool-calling/img-01.png">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"工具描述是写给模型看的说明书","description":"模型缺的不是智力，是数据、算力和手脚。工具该怎么分类、怎么接，以及为什么一行工具描述就能决定它调不调用。","datePublished":"2026-10-22","inLanguage":"zh-CN","image":"https://ai-fde.dev/media/docs/06-ai-eng-tool-calling/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/zh/docs/06-ai-eng-tool-calling/","isPartOf":{"@type":"CreativeWorkSeries","name":"AI-FDE 转型之路"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/zh/docs/">AI-FDE <span>· 文档</span></a>
+  <nav>
+    <a href="/zh/">自评工具</a>
+    <a href="/zh/docs/" class="on">文档</a>
+    <a class="lang" href="/docs/06-ai-eng-tool-calling/">EN</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">本系列</div>
+<div class="toc-body">
+<a class="art" href="/zh/docs/00-intro/"><span class="no">01</span>为什么最懂客户的人反而最焦虑</a>
+<a class="art" href="/zh/docs/01-ai-eng-llm/"><span class="no">02</span>先搞清楚模型一定会错在哪</a>
+<a class="art" href="/zh/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompt 不是玄学，是可以回归测试的代码</a>
+<a class="art" href="/zh/docs/03-ai-eng-context/"><span class="no">04</span>Context-Engineering：大模型到底看得见什么</a>
+<a class="art" href="/zh/docs/04-ai-eng-rag/"><span class="no">05</span>知识库答不准，问题通常不在模型</a>
+<a class="art" href="/zh/docs/05-ai-eng-doc-parsing/"><span class="no">06</span>80% 的 RAG 问题出在文档解析</a>
+<a class="art cur" href="/zh/docs/06-ai-eng-tool-calling/"><span class="no">07</span>工具描述是写给模型看的说明书</a>
+<a class="art" href="/zh/docs/06-ai-eng-tool-calling-principles/"><span class="no">08</span>大模型怎么使用工具</a>
+<a class="art" href="/zh/docs/07-ai-eng-python/"><span class="no">09</span>Python 入门指南：先搞定环境，再谈代码</a>
+</div>
+<div class="toc-h">本页目录</div>
+<div class="toc-body">
+<a class="h2" href="#一大模型什么情况下需要工具">一、大模型什么情况下需要工具</a>
+<a class="h2" href="#二FDE-手边的工具">二、FDE 手边的工具</a>
+<a class="h2" href="#三工具接上了不等于模型会用">三、工具接上了，不等于模型会用</a>
+<a class="h2" href="#四坏的写法和好的写法放在一起看">四、坏的写法和好的写法，放在一起看</a>
+<a class="h2" href="#五什么算会了">五、什么算会了</a>
+<a class="h2" href="#六坑">六、坑</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
+    <article>
+      <h1 class="doc-title">工具描述是写给模型看的说明书</h1>
+      <p class="doc-sub">AI-FDE 转型之路 · AI 工程 06-Tool-Calling</p>
+      <p class="doc-meta">2026-10-22</p>
+      <h2 id="一大模型什么情况下需要工具">一、大模型什么情况下需要工具</h2>
+<p>我的判断是：光靠一个模型，答不好企业里的问题。不是它不够聪明，是它天生缺三样东西——<strong>不知道你的数据、算不准数、动不了手。</strong></p>
+<p>打个比方。把模型想成一个读过很多书的顾问，被请进一间没有电话、没有计算器、也没有手的房间。你问他"这条制度怎么理解"，他讲得头头是道；换个问法——"这份补充规定现在还执行吗"、"上个月这笔费用超没超预算"、"帮我把这条申请改成已受理并通知申请人"，他就只能靠猜。前两个他会给你一个很像样的日期和数字，第三个他连按哪个按钮都不知道。</p>
+<p>这三类缺口要分开看，因为补法完全不同（以下客户与项目均为虚构示例，仅用于说明方法）：</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>缺口</th>
+<th>表现</th>
+<th>例子（恒信银行制度问答）</th>
+<th>靠什么补</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>不知道</td>
+<td>训练截止之后的事、内网数据、此刻的状态</td>
+<td>这份 2025 年发的补充通知现在执行到第几版</td>
+<td>检索类工具：查知识库、查内部接口、联网搜索</td>
+</tr>
+<tr>
+<td>算不准</td>
+<td>日期差、金额合计、百分比、排第几</td>
+<td>两笔报销相差多少天、这笔超没超 5%</td>
+<td>计算类工具：代码执行、计算器、统计接口</td>
+</tr>
+<tr>
+<td>做不了</td>
+<td>查完还得去改点什么</td>
+<td>把这条申请改成"已受理"并通知申请人</td>
+<td>动作类工具：写接口、发消息、发起审批</td>
+</tr>
+</tbody></table></div>
+<p>我在项目上养成的习惯：先拿这张表去筛需求，再谈做不做。客户一口气提的十个"AI 干不了"的场景，往往有四五个不是模型不行，是没给它工具——这类不用换模型、不用调 Prompt，接个接口就通了。剩下那几个，才真要改流程或者做取舍。分不清这两拨，就会把简单问题做成大项目。</p>
+<p>还有一层要说透：工具不是给模型升级智力的，是给它接上眼睛和手。接上之后模型还是那个模型，该幻觉的地方照样幻觉，差别只在于它现在有地方去查、有办法真把事办了。这个区别值钱：不少方案做砸，是因为把工具当万能药，指望它顺带把幻觉也治了——治不了，那是另外三章的事。</p>
+<h2 id="二FDE-手边的工具">二、FDE 手边的工具</h2>
+<p>别按技术实现分（用 HTTP 还是 gRPC、REST 还是 GraphQL，那是开发关心的事），要按它替模型干了什么事分。这样分的好处是，需求会上你能直接对着客户的功能清单划：这条用得上第几类，缺哪类。</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>类别</th>
+<th>干什么</th>
+<th>典型例子</th>
+<th>什么时候用</th>
+<th>最常见的坑</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>取信息</td>
+<td>把外部数据拿进来给模型看</td>
+<td>联网搜索、知识库检索、查制度接口、查工单状态</td>
+<td>答案依赖模型不知道的事实</td>
+<td>返回一大坨原始报文全塞给模型，上下文被撑爆——第 03 讲那笔账又多一行</td>
+</tr>
+<tr>
+<td>做计算</td>
+<td>让代码算，别让模型算</td>
+<td>计算器、代码执行、算日期差、金额合计、排序筛选</td>
+<td>结果要精确，日期和金额不能糊</td>
+<td>明明是算的事，却指望模型心算，错了还看不出来</td>
+</tr>
+<tr>
+<td>干动作</td>
+<td>真的去改点什么</td>
+<td>改工单状态、发通知、发起审批、写库</td>
+<td>用户要的是"办了"，不是"知道"</td>
+<td>不加确认环节，模型一句话就把生产数据改了</td>
+</tr>
+<tr>
+<td>接老系统</td>
+<td>把已有系统包成 AI 能用的样子</td>
+<td>内部接口包一层、OpenAPI/Swagger 导入、MCP 服务器</td>
+<td>能力早就有了，只是模型用不了</td>
+<td>一个工具只干一件小事，几十个工具摊在模型面前，它挑不过来</td>
+</tr>
+</tbody></table></div>
+<p>第四类最容易被低估。银行里绝大多数"AI 要用到的能力"，早就躺在某个系统里了——统一认证、审批流、客户信息查询、额度校验。你真正新写的代码很少，干的是把已有接口翻译成模型看得懂、并且能正确调用的形式。实施出身的人做这件事反而有优势：你知道那个接口在哪、谁能批权限、返回哪一版也就够用了。</p>
+<p><img src="/media/docs/06-ai-eng-tool-calling/img-01.png" alt="" loading="lazy" decoding="async"></p>
+<p>落到低代码平台上（以 Dify 这类为代表，示例平台，按客户环境选），配上工具基本就四条路：</p>
+<p><strong>平台内置工具</strong>：联网搜索（需要对接搜索）、代码执行、取当前时间这类通用能力，勾一下就能用，适合先把链路跑通再谈优化。</p>
+<p><strong>自定义工具</strong>：把内部 HTTP 接口喂进去，如果对方有 OpenAPI/Swagger 文档，多数平台能直接导入生成；剩下的活就是写清楚描述——也就是本章后半段要讲的。</p>
+<p><strong>工作流当工具</strong>：把一串步骤（先查、再判断、再去查）包成一个工具给上一层调用。这是我们最常用的办法，复杂度收在里面，外面只露一个干净的出口。</p>
+<p><strong>MCP</strong>：把一整套能力打包成一个服务，多个应用共用。这条第 07 讲专门说。</p>
+<p>最后一条我自己的红线：同一个决策层上，工具不要超过十个。超过十个，模型挑错工具的次数会明显往上走。这时候该做的不是继续打磨描述，而是把同类工具合并，或者按场景分组做二级路由——先让一道粗分类器选场景，再进场景里的工具集。</p>
+<p>最后答一个高频问题：<strong>那 Agent 算哪一类？</strong>&nbsp;它不在清单里——<strong>它是拿工具的那一层，不是手里的工具</strong>。工具一次调用、一次结果；Agent 把"再想想下一步"这个循环跑起来，自己决定调什么、什么时候收工。两者是包含关系不是并列关系：<strong>没有工具的 Agent，只是个聊得漂亮却什么都办不了的聊天机器人。</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>看什么</th>
+<th>工具</th>
+<th>Agent</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>调用几次</td>
+<td>一次调用返回一次结果</td>
+<td>循环调用，自己决定下一步</td>
+</tr>
+<tr>
+<td>谁说了算</td>
+<td>上层给参数，它照做</td>
+<td>自己决定调哪个工具、什么时候停</td>
+</tr>
+<tr>
+<td>出错以后</td>
+<td>报错交回上层，由上层决定</td>
+<td>可能自我纠错，也可能一路自我确认到错到底（第 09 讲那场事故）</td>
+</tr>
+</tbody></table></div>
+<p>有一种情况会让你觉得清单里也有 Agent：把一个专门的小循环包成工具交给上层调用（子循环当工具用）。这不矛盾——<strong>对调用它的那一层它是个工具，对它自己那层它是完整循环</strong>。界线只有一条：<strong>它有没有"再想想下一步"这一步。</strong>&nbsp;有的，按第 09 讲那套给它画停止线；没有的，把这段描述写好就够了。</p>
+<h2 id="三工具接上了不等于模型会用">三、工具接上了，不等于模型会用</h2>
+<p>恒信银行的制度问答做到第三个月，我们给系统挂了三个工具：查制度生效日期、查某份文档的适用范围、查条款修订记录。上线后发现问题：明明该查生效日期的，系统偏要自己去材料里翻，翻不到就编一个。</p>
+<p>我们一开始以为是模型的推理能力不够。后来把工具描述调出来看，那个工具的说明只有一行：「查询制度的生效日期」。</p>
+<p>问题就在这行字上。打个比方：你出差在酒店前台问一句"附近有什么好吃的"，前台如果说"有吃的"，你会觉得他在敷衍；他说"步行五分钟有家本地人常去的小馆子，晚上八点后基本不用等位，人均六七十，不过周二休息"，你立刻能决定去不去。模型决定"这次调不调用"的依据，全部来自你写的那段描述——它不会去读你的接口源码，也看不到你的数据库表结构。</p>
+<p>这段描述要回答四个问题：</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>为什么要答</th>
+<th>不答会怎样</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>什么时候该用它</td>
+<td>模型靠这个判断"这次要不要调"</td>
+<td>该调不调，或者什么题都调</td>
+</tr>
+<tr>
+<td>什么时候不该用</td>
+<td>边界比正面描述更有效</td>
+<td>客户问个常识，它也去查一遍，慢且容易乱</td>
+</tr>
+<tr>
+<td>参数是什么意思</td>
+<td>模型要自己把参数填对</td>
+<td>填错单位、日期格式、账号类型</td>
+</tr>
+<tr>
+<td>它会回什么、失败了怎么说</td>
+<td>决定模型下一步动作</td>
+<td>拿到错的结果继续往下编</td>
+</tr>
+</tbody></table></div>
+<p>四个里面，我最看重第二条——写清楚"不要用它"的场景。这是大部分人漏掉的一条，也是见效最快的一条。</p>
+<p><img src="/media/docs/06-ai-eng-tool-calling/img-02.png" alt="" loading="lazy" decoding="async"></p>
+<h2 id="四坏的写法和好的写法放在一起看">四、坏的写法和好的写法，放在一起看</h2>
+<p>这就是本篇要你带走的东西。左边是我们上线第一版的描述，右边是改过的（示例改写，仅用于说明方法）：</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>坏的写法</th>
+<th>好的写法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>工具名</td>
+<td>dateQuery</td>
+<td>查询制度生效日期</td>
+</tr>
+<tr>
+<td>一句话说明</td>
+<td>查询日期</td>
+<td>查询某份制度文件的生效日期与失效日期。当用户询问"这份规定从什么时候开始执行""现在还有效吗"时调用</td>
+</tr>
+<tr>
+<td>什么时候不用</td>
+<td>没写</td>
+<td>只答生效与失效两种日期；用户问的是修订历史或适用范围时，用另外两个工具，不要用这个</td>
+</tr>
+<tr>
+<td>参数</td>
+<td>id（没解释）</td>
+<td>doc_id：制度文件的内部编号，形如"ZX-07"，从检索结果里取，不要让用户口述猜测</td>
+</tr>
+<tr>
+<td>返回</td>
+<td>返回结果</td>
+<td>成功：返回生效日期与失效日期两个字段；失败：返回固定的"未查到该文件的生效日期"，不要让它猜</td>
+</tr>
+<tr>
+<td>失败动作</td>
+<td>没写</td>
+<td>查不到时明确告诉用户查不到，禁止根据文件名推测日期</td>
+</tr>
+</tbody></table></div>
+<p>改完之后的效果，老实说算不上脱胎换骨——这类改动通常不会出现"一下全对了"那种剧情（示例观察，仅用于演示口径：误调用率能降一截，具体要按你的项目实测）。真正的变化是可控了：模型该调不调的时候，你能对着描述去改，而不是去猜。</p>
+<h2 id="五什么算会了">五、什么算会了</h2>
+<p>你手上的需求能分成三类：给它信息就能答的、必须算的、必须动手改的。分不出来，说明你在用模型硬扛本该工具干的活。</p>
+<p>你能说出项目里每个工具属于哪一类、业务是从哪个系统里长出来的。说不清来源的工具，多半是当初为演示加的。</p>
+<p>你能把每个工具的一句话描述背出来，并说出"它什么时候不该被调用"。说不出来的工具，模型大概率也不会正确调用。</p>
+<p>你有一次拿着描述去改、并且改完验证了效果的经历——不是"改了感觉好点了"，是"误调用从多少降到了多少"（第 02 讲那套记录这时候就用上了）。</p>
+<p>动手任务：先按第二节那四类，把你项目现在挂的工具列一遍，标出缺哪类；再挑调用最频繁的一个，把它的描述按四个问题重写一遍。然后拿二十条真实问题测：有多少条应该调用但没调的，有多少条不该调用却调了的，记录改前改后的两个数。</p>
+<h2 id="六坑">六、坑</h2>
+<p>把接口文档整段复制进去。接口文档是给人看的，里面有大量模型不需要的信息：作者、版本历史、内部术语、调用示例。塞进去不仅没用，还要花 Token——第 03 讲那笔账又多一行。</p>
+<p>参数取值范围只写在心里。日期要什么格式、编号是什么形状、枚举值有哪些——这些不写进描述，模型就会按它见过的样子编一个。我们因为它吃过一次亏：模型自己"猜"了一个不存在的文档编号，工具返回空，它接着告诉用户"该制度已失效"，客户那边直接炸了。</p>
+<p>能改数据的工具不加护栏。第三类"干动作"的工具是最危险的一类。我的做法是：这类工具要么先出方案等人点确认，要么限定只能改某些状态和某些范围，并且每一次调用留痕。第 13 讲讲护栏时会展开。</p>
+<p>一次改十个地方。改描述也要按第 02 讲的规矩来：改一处、跑一遍回归题、看变化。同时把名字、说明、边界、示例全部重写，等于什么都没验证。</p>
+<p>下一讲接着说工具这件事，但换个角度：如果你的工具背后是一整套老系统，有没有办法少写点对接代码——把内部系统包成一个能给 AI 用的服务。</p>
+<hr>
+<p>《AI-FDE 转型之路》：写给不写代码的 IT 实施 / 售前 / 运维，把已有的交付能力「AI 化」。全系列 55 篇，六大模块 53 项技能。</p>
+<p>想先看看自己缺什么：AI-FDE 技能自评地图，53 项打分，出一张雷达图。<a href="/zh/docs/00-intro/">AI-FDE 转型之路 · 开篇</a></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/zh/docs/05-ai-eng-doc-parsing/"><span class="dir">← 上一篇</span><span class="ttl">80% 的 RAG 问题出在文档解析</span></a>
+<a class="next" href="/zh/docs/06-ai-eng-tool-calling-principles/"><span class="dir">下一篇 →</span><span class="ttl">大模型怎么使用工具</span></a>
+</div>
+    <div class="doc-foot">
+      <p>想先看看自己缺什么？用自评地图打个分  <a href="/zh/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>

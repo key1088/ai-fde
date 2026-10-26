@@ -44,7 +44,7 @@ npm run build:docs                    # Markdown → 静态页 + sitemap
 ```
 
 - 内容源（可手改）：`content/sources.json` + `content/docs/<slug>/{meta.json,zh.md,en.md}`
-- 图片：`media/docs/<slug>/`（正文以 `/media/docs/<slug>/img-XX.png` 引用）
+- 图片：`media/docs/<slug>/`（正文以 `/media/docs/<slug>/img-XX.<ext>` 引用）
 - 生成物（勿手改，随仓库提交供部署）：`docs/**`、`zh/docs/**`、`sitemap.xml`
 - 每页自带：系列目录、本页目录、上/下一篇、中英切换、`hreflang`/JSON-LD 级 SEO
 

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Context Engineering: What the Model Can Actually See · The AI-FDE Transition Path</title>
+<meta name="description" content="A model has no memory: every turn it sees only the text you reassemble and send. Understand what context contains, how it is capped, compressed and billed — and you know what to put in and what to leave out.">
+<link rel="canonical" href="https://ai-fde.dev/docs/03-ai-eng-context/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/03-ai-eng-context/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/03-ai-eng-context/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/03-ai-eng-context/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Context Engineering: What the Model Can Actually See">
+<meta property="og:description" content="A model has no memory: every turn it sees only the text you reassemble and send. Understand what context contains, how it is capped, compressed and billed — and you know what to put in and what to leave out.">
+<meta property="og:url" content="https://ai-fde.dev/docs/03-ai-eng-context/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/03-ai-eng-context/img-01.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Context Engineering: What the Model Can Actually See","description":"A model has no memory: every turn it sees only the text you reassemble and send. Understand what context contains, how it is capped, compressed and billed — and you know what to put in and what to leave out.","datePublished":"2026-10-13","inLanguage":"en","image":"https://ai-fde.dev/media/docs/03-ai-eng-context/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/docs/03-ai-eng-context/","isPartOf":{"@type":"CreativeWorkSeries","name":"The AI-FDE Transition Path"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/docs/">AI-FDE <span>· Docs</span></a>
+  <nav>
+    <a href="/">Self-Assessment</a>
+    <a href="/docs/" class="on">Docs</a>
+    <a class="lang" href="/zh/docs/03-ai-eng-context/">中文</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">In this series</div>
+<div class="toc-body">
+<a class="art" href="/docs/00-intro/"><span class="no">01</span>Why Those Who Know the Customer Best Are the Most Anxious</a>
+<a class="art" href="/docs/01-ai-eng-llm/"><span class="no">02</span>First, Understand Exactly Where the Model Will Always Fail</a>
+<a class="art" href="/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompts Aren't Magic — They're Code You Can Regression-Test</a>
+<a class="art cur" href="/docs/03-ai-eng-context/"><span class="no">04</span>Context Engineering: What the Model Can Actually See</a>
+<a class="art" href="/docs/04-ai-eng-rag/"><span class="no">05</span>When the Knowledge Base Is Wrong, the Model Usually Isn't</a>
+<a class="art" href="/docs/05-ai-eng-doc-parsing/"><span class="no">06</span>80% of RAG Problems Start in Document Parsing</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling/"><span class="no">07</span>Tool Descriptions Are Manuals Written for the Model</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling-principles/"><span class="no">08</span>How a Model Actually Uses a Tool</a>
+<a class="art" href="/docs/07-ai-eng-python/"><span class="no">09</span>A Python Primer: Get the Environment Right First</a>
+</div>
+<div class="toc-h">On this page</div>
+<div class="toc-body">
+<a class="h2" href="#1-What-Is-Context">1. What Is Context</a>
+<a class="h2" href="#2-The-Relationship-Between-Prompt-and-Context">2. The Relationship Between Prompt and Context</a>
+<a class="h2" href="#3-Context-and-Large-Models">3. Context and Large Models</a>
+<a class="h2" href="#4-Conversation-Compression">4. Conversation Compression</a>
+<a class="h2" href="#5-Hallucinations-in-Large-Models">5. Hallucinations in Large Models</a>
+<a class="h2" href="#6-Memory-in-Large-Models">6. Memory in Large Models</a>
+<a class="h2" href="#7-What-Is-Context-Engineering">7. What Is Context Engineering?</a>
+<a class="h2" href="#8-Context-Is-Money">8. Context Is Money</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/docs/">Docs</a> / The AI-FDE Transition Path</div>
+    <article>
+      <h1 class="doc-title">Context Engineering: What the Model Can Actually See</h1>
+      <p class="doc-sub">The AI-FDE Transition Path · AI Engineering 03 — Context Engineering</p>
+      <p class="doc-meta">2026-10-13</p>
+      <h2 id="1-What-Is-Context">1. What Is Context</h2>
+<p>Context is the surrounding information. How should we understand it? People with a technical background get it fairly easily, but for those without one it can be quite hard to grasp. It can also be called the surrounding circumstances.</p>
+<p>And how should we understand those circumstances? For example, Xiao Wang and Xiao Ming are chatting, and Xiao Wang tells a joke. Xiao Ming hears it and bursts out laughing. Xiao Liang sees this and is curious, so he asks them why they are laughing. Xiao Wang tells Xiao Liang the whole story behind the joke, and Xiao Liang starts laughing too. The content they talk about among themselves is the Context, the surrounding information.</p>
+<h2 id="2-The-Relationship-Between-Prompt-and-Context">2. The Relationship Between Prompt and Context</h2>
+<p>A prompt is the input text—generally, a prompt refers to the content of a single output; if mapped onto humans, it is the content of one interaction (Xiao Wang says something to Xiao Ming). A prompt is one interaction's content within the Context; it can be a single sentence or a passage.</p>
+<p><img src="/media/docs/03-ai-eng-context/img-01.png" alt="" loading="lazy" decoding="async"></p>
+<p>The real formation of Context starts at ②, that is, from the first sentence, accumulating and increasing context through ③ and ④, and ending the conversation at ⑤, when the two people leave.</p>
+<p>The difference between humans and large models in conversation: <strong>humans have memory, while large models have no memory—whatever you say to the AI, it only remembers the sentence you just said to it.</strong></p>
+<h2 id="3-Context-and-Large-Models">3. Context and Large Models</h2>
+<p>As just mentioned, a large model only remembers what you just said—it has no automatic, persistent chat memory. So how do you interact with a large model multiple times? How does DeepSeek's chat do it? You can't just ask one question, get one answer, and be done, right?</p>
+<p>Here's how it works: when you say your second sentence, the program sends "the content of your first sentence" + "the content of the model's first answer" + "the content of your second sentence" all together to the large model.</p>
+<p>And for the third sentence? The program sends "the content of your first sentence" + "the content of the model's first answer" + "the content of your second sentence" + "the content of the model's second answer" + "the content of your third sentence" all together to the large model.</p>
+<p>The fourth, fifth, sixth, Nth—all the same. Sentences 1 through N plus the model's answers—that's the Context. See the figure below to get a better sense of what Context means.</p>
+<p><img src="/media/docs/03-ai-eng-context/img-02.png" alt="" loading="lazy" decoding="async"></p>
+<p>Every time you interact with the large model, all the previous chat information is sent to it, so the model knows what's been discussed—like a snowball rolling and getting bigger and bigger. Is there an upper limit to a large model's context? Of course there is. For example: according to DeepSeek's official documentation, as of October 2026.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Maximum context window</th>
+<th>Maximum output length</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DeepSeek-V4-Pro</td>
+<td>1,048,576 Tokens (about 1M)</td>
+<td>393,216 Tokens</td>
+</tr>
+<tr>
+<td>DeepSeek-V4-Flash</td>
+<td>1,048,576 Tokens (about 1M)</td>
+<td>393,216 Tokens</td>
+</tr>
+</tbody></table></div>
+<p>So here's the question: <strong>what exactly is a Token?</strong></p>
+<p>A Token is the basic unit a large model uses when processing text. One Chinese character may correspond to one or more Tokens; an English word may also be split into multiple Tokens. What determines how it's split—does even a single English word get split? That's determined by the tokenizer the large model uses and its vocabulary.</p>
+<p>The snowball keeps growing. What if it exceeds the maximum context window? If it really does, the large model can't handle it—it throws an error and gives up.</p>
+<h2 id="4-Conversation-Compression">4. Conversation Compression</h2>
+<p>When designing a product, the context size is always planned so that it does not exceed the model's maximum context window. When an interactive conversation is about to exceed the threshold set in the product design, the program compresses the model's conversation, having the model summarize the previous Context content and extract it into a summary. This summary then becomes the Context, and the size of the Context is reduced.</p>
+<p>Besides compression, there are many other ways to reduce the size of the Context.</p>
+<ol>
+<li>Truncation</li>
+</ol>
+<p>Once the set limit is exceeded, the earliest conversation is discarded.</p>
+<p>Example: keep only the most recent 200 messages; when a new message comes in, the earliest message is deleted.</p>
+<p><img src="/media/docs/03-ai-eng-context/img-03.png" alt="" loading="lazy" decoding="async"></p>
+<ol start="2">
+<li>History Filtering</li>
+</ol>
+<p>Based on rules or relevance, pick out the historical information related to the current question.</p>
+<p>Example: when the user asks about database selection, keep only the earlier content that discussed databases.</p>
+<ol start="3">
+<li>Retrieval</li>
+</ol>
+<p>Store historical information and look it up when needed, rather than sending all of it to the model every time.</p>
+<p>Example: when the user asks "What database did we settle on earlier?", the program finds the relevant content from the history records.</p>
+<ol start="4">
+<li>Summarization / State Extraction</li>
+</ol>
+<p>Condense a large amount of conversation into brief key information.</p>
+<p>Example: summarize multiple rounds of discussion as "Tech stack: Spring Boot + MySQL; current task: optimize query performance."</p>
+<ol start="5">
+<li>Hierarchical Memory</li>
+</ol>
+<p>Store information in layers, and use content from different layers as needed.</p>
+<p>Example: recent conversations go in the current context, important project decisions are stored separately, and old materials are retrieved when needed.</p>
+<ol start="6">
+<li>Sliding Window</li>
+</ol>
+<p>Keep only the most recent stretch of conversation; as new content comes in, old content gradually moves out.</p>
+<p>Example: always keep the most recent 10 rounds of conversation. This can be seen as one way of implementing truncation.</p>
+<ol start="7">
+<li>Token Budgeting</li>
+</ol>
+<p>Allocate token quotas to different kinds of content so that no single part takes up too much space.</p>
+<p>Example: limit the length of retrieved materials and reserve space for the current question and the model's answer.</p>
+<ol start="8">
+<li>External Memory and Persistent Storage</li>
+</ol>
+<p>Save important information to a database or file, and retrieve it when needed.</p>
+<p>Example: save the project's tech stack, business rules and key decisions, and read them on demand in later conversations.</p>
+<h2 id="5-Hallucinations-in-Large-Models">5. Hallucinations in Large Models</h2>
+<p>When your Context grows larger and larger, the information described in the Context increases, and when a large model reads data without rules, it may no longer be able to find the key points. A bit described here, a bit described there, and the large model starts to hallucinate—this is one of the reasons large models produce hallucinations.</p>
+<p>When your Context grows larger and larger, you enable the large model's session compression feature, condensing a large amount of content into a short segment of session. Do you think the condensed data can still preserve the original meaning? Isn't it the case that the large model has hallucinated here too? This is also one of the reasons large models produce hallucinations.</p>
+<p>Therefore, improper context management and distortion from session compression can both increase the risk of large models producing incorrect answers or hallucinations.</p>
+<h2 id="6-Memory-in-Large-Models">6. Memory in Large Models</h2>
+<p>Memory — as we said earlier, Context is the information a large model can see when generating its current response. But if we send all historical conversations to the large model every time, not only does it consume a large number of Tokens, we also need to send every previous conversation to the large model for it to remember the earlier content.</p>
+<p>So here's the question: if we don't put all historical conversations into the Context, how does the large model remember earlier information?</p>
+<p>This is where Memory comes in.</p>
+<p>For example, in one conversation you tell the AI: "I'm developing a Spring Boot project, the database is MySQL, and the JDK version is 17."</p>
+<p>A few days later, you start a new session and ask: "Help me optimize the query performance of this project."</p>
+<p>If the AI can remember the earlier project background, it can answer directly based on that information without making you introduce it all over again.</p>
+<p>So how is this information stored?</p>
+<p>In real applications, memory is usually <strong>not</strong> the large model automatically and permanently saving all conversations. Instead, the application extracts important information and saves it to history records, a database, or other storage. It could be an MD file, a JSON file, or some database data.</p>
+<p>When later conversations need this information, it is retrieved, put into the current Context, and sent to the large model.</p>
+<p>For example, the workbuddy you use records your memory. Even when you open a new task, it sends your personal preferences along with the question to the large model, which reduces time cost.</p>
+<h2 id="7-What-Is-Context-Engineering">7. What Is Context Engineering?</h2>
+<p>After reading the previous sections, you may have realized that context management is not just about sending chat history to a large model.</p>
+<p>We need to consider: which information should be kept, which should be removed, how to compress historical conversations, how to store memory, and when to retrieve information from a knowledge base.</p>
+<p>If these tasks are not done well, even a highly capable large model may give wrong answers due to missing key information, confused context, or distorted historical information.</p>
+<p>Therefore, we need to design these tasks as an engineering discipline—this is Context Engineering.</p>
+<p>In practical applications, context engineering usually needs to consider the following aspects:</p>
+<p><strong>Information sources:</strong> System instructions, user input, historical conversations, memory, knowledge bases, and tool execution results.</p>
+<p><strong>Information filtering:</strong> Determine which information is relevant to the current task and avoid irrelevant content interfering with the model.</p>
+<p><strong>Information management:</strong> Truncate, summarize, and compress historical conversations to control the size of the context.</p>
+<p><strong>Information retrieval:</strong> When needed, obtain relevant information from knowledge bases, databases, or historical records.</p>
+<p><strong>Context assembly:</strong> Organize the filtered information reasonably and then send it to the large model.</p>
+<p>Moreover, context engineering is especially important in RAG and Agent product design, as it directly affects product quality.</p>
+<p><strong>The large model determines what the model can do, while context engineering largely determines whether it can obtain the correct information in a specific task and bring its capabilities into full play.</strong></p>
+<h2 id="8-Context-Is-Money">8. Context Is Money</h2>
+<p>Both input and output are billed by token, and every request has to carry the entire context again. A 5,000-token system prompt, called 10,000 times, is 50 million tokens. At the level of a single stage, this cost is invisible; once you scale up, the bill amount is the most eye-catching line. As compute increases, this cost should get cheaper and cheaper—as cheap as bandwidth.</p>
+<hr>
+<p><strong>"The AI-FDE Transition Path"</strong>: written for IT implementation / pre-sales / operations people who don't write code, to "AI-ify" the delivery capabilities they already have. 55 articles in the series, 53 skills across six modules.</p>
+<p>Want to first see what you're missing: the AI-FDE Skills Self-Assessment Map, 53 items scored, producing a radar chart. <a href="/docs/00-intro/">The AI-FDE Transition Path · Introduction</a></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/docs/02-ai-eng-prompt/"><span class="dir">← Previous</span><span class="ttl">Prompts Aren't Magic — They're Code You Can Regression-Test</span></a>
+<a class="next" href="/docs/04-ai-eng-rag/"><span class="dir">Next →</span><span class="ttl">When the Knowledge Base Is Wrong, the Model Usually Isn't</span></a>
+</div>
+    <div class="doc-foot">
+      <p>Want to see where you stand? Score yourself on the map  <a href="/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>

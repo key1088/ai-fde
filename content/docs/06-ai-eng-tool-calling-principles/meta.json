@@ -1,0 +1,34 @@
+{
+  "slug": "06-ai-eng-tool-calling-principles",
+  "series": "ai-fde-roadmap",
+  "order": 6.5,
+  "source": "https://mp.weixin.qq.com/s/ptZApIsKXzyInfPbIPqF7g",
+  "date": "2026-10-23",
+  "images": [
+    {
+      "name": "img-01.png",
+      "src": "https://mmbiz.qpic.cn/mmbiz_png/B5MbN9tHR80nMjLNtwMhMkajSaO0icZibb2vIq3HeKbW5lyv0ZPrECsTo4dhuEWB3ib3a4JLhYFVCu3jVQPvXIQ7YAtB7iboxwg4o6bUtcJ3dEo/640?wx_fmt=png&from=appmsg"
+    },
+    {
+      "name": "img-02.png",
+      "src": "https://mmbiz.qpic.cn/mmbiz_png/B5MbN9tHR83bV7LiaCpOibNic13ibwtNUFzn8bmQ9Eib2aVQgppFwcMjfUsXyZ6XvTGqH7yJLLibtnzHYjsibwgN7P2vy6vF6Ip1vUz4aajAyDib2UA/640?wx_fmt=png&from=appmsg"
+    }
+  ],
+  "title": {
+    "zh": "大模型怎么使用工具",
+    "en": "How a Model Actually Uses a Tool"
+  },
+  "subtitle": {
+    "zh": "AI-FDE 转型之路 · AI 工程 06-Tool-Calling 原理",
+    "en": "The AI-FDE Transition Path · AI Engineering 06 — Tool Calling, Under the Hood"
+  },
+  "summary": {
+    "zh": "模型从头到尾没有调用过任何工具，它只输出一段「我要调什么、参数是什么」的文本。把四轮完整报文摊开，看清执行、回填、成本和 MCP 的边界。",
+    "en": "The model never calls a tool. It only emits text saying what it wants to call and with which arguments. A four-round request walkthrough shows execution, result injection, cost and where MCP actually fits."
+  },
+  "tags": [
+    "AI工程",
+    "Tool Calling",
+    "原理"
+  ]
+}

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>知识库答不准，问题通常不在模型 · AI-FDE 转型之路</title>
+<meta name="description" content="RAG 是让模型开卷考。大部分活其实在检索这一侧，所以答不准时先拆链路、打中间结果、按故障表定位，而不是先换模型。">
+<link rel="canonical" href="https://ai-fde.dev/zh/docs/04-ai-eng-rag/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/04-ai-eng-rag/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/04-ai-eng-rag/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/04-ai-eng-rag/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="知识库答不准，问题通常不在模型">
+<meta property="og:description" content="RAG 是让模型开卷考。大部分活其实在检索这一侧，所以答不准时先拆链路、打中间结果、按故障表定位，而不是先换模型。">
+<meta property="og:url" content="https://ai-fde.dev/zh/docs/04-ai-eng-rag/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/04-ai-eng-rag/img-01.png">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"知识库答不准，问题通常不在模型","description":"RAG 是让模型开卷考。大部分活其实在检索这一侧，所以答不准时先拆链路、打中间结果、按故障表定位，而不是先换模型。","datePublished":"2026-10-17","inLanguage":"zh-CN","image":"https://ai-fde.dev/media/docs/04-ai-eng-rag/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/zh/docs/04-ai-eng-rag/","isPartOf":{"@type":"CreativeWorkSeries","name":"AI-FDE 转型之路"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/zh/docs/">AI-FDE <span>· 文档</span></a>
+  <nav>
+    <a href="/zh/">自评工具</a>
+    <a href="/zh/docs/" class="on">文档</a>
+    <a class="lang" href="/docs/04-ai-eng-rag/">EN</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">本系列</div>
+<div class="toc-body">
+<a class="art" href="/zh/docs/00-intro/"><span class="no">01</span>为什么最懂客户的人反而最焦虑</a>
+<a class="art" href="/zh/docs/01-ai-eng-llm/"><span class="no">02</span>先搞清楚模型一定会错在哪</a>
+<a class="art" href="/zh/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompt 不是玄学，是可以回归测试的代码</a>
+<a class="art" href="/zh/docs/03-ai-eng-context/"><span class="no">04</span>Context-Engineering：大模型到底看得见什么</a>
+<a class="art cur" href="/zh/docs/04-ai-eng-rag/"><span class="no">05</span>知识库答不准，问题通常不在模型</a>
+<a class="art" href="/zh/docs/05-ai-eng-doc-parsing/"><span class="no">06</span>80% 的 RAG 问题出在文档解析</a>
+<a class="art" href="/zh/docs/06-ai-eng-tool-calling/"><span class="no">07</span>工具描述是写给模型看的说明书</a>
+<a class="art" href="/zh/docs/06-ai-eng-tool-calling-principles/"><span class="no">08</span>大模型怎么使用工具</a>
+<a class="art" href="/zh/docs/07-ai-eng-python/"><span class="no">09</span>Python 入门指南：先搞定环境，再谈代码</a>
+</div>
+<div class="toc-h">本页目录</div>
+<div class="toc-body">
+<a class="h2" href="#一先说-RAG-是什么">一、先说 RAG 是什么</a>
+<a class="h2" href="#二为什么需要RAG">二、为什么需要RAG</a>
+<a class="h2" href="#三RAG最重要的知识点">三、RAG最重要的知识点</a>
+<a class="h2" href="#四RAG-都用在哪">四、RAG 都用在哪</a>
+<a class="h2" href="#五RAG-用什么平台搭">五、RAG 用什么平台搭</a>
+<a class="h2" href="#六答不准的时候怎么办">六、答不准的时候，怎么办</a>
+<a class="h2" href="#七一张故障定位对照表">七、一张故障定位对照表</a>
+<a class="h2" href="#八什么算会了">八、什么算会了</a>
+<a class="h2" href="#九坑">九、坑</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
+    <article>
+      <h1 class="doc-title">知识库答不准，问题通常不在模型</h1>
+      <p class="doc-sub">AI-FDE 转型之路 · AI 工程 04-RAG 全链路</p>
+      <p class="doc-meta">2026-10-17</p>
+      <h2 id="一先说-RAG-是什么">一、先说 RAG 是什么</h2>
+<p>先把这个词拆开，因为它被说得太玄了。RAG 就干一件事：让模型开卷考。</p>
+<p>模型原本是闭卷考——它只能凭训练时记住的东西回答。记得住就答得漂亮，记不清的时候它不会说"我不知道"，它会顺着语气往下编，编得很顺，标点都对。这就是为什么你问它某个银行内部制度的细节，它能给你一段读起来特别像那么回事、但根本不存在的规定。</p>
+<p>开卷考就不一样了：1）你问一个问题，系统先去你的资料里翻，翻到相关的那几页，2）把那几页和问题一起递给模型，3）让它照着这几页组织成人话，并且告诉你出处在哪一页，如果找不到就让他说“我不知道”。</p>
+<p>RAG三个字母正好对应三步：</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>字母</th>
+<th>原词</th>
+<th>大白话</th>
+<th>对应谁在干活</th>
+<th>依赖项</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>R</td>
+<td>Retrieval 检索</td>
+<td>去你的文档里找相关段落</td>
+<td>程序找，不是模型找</td>
+<td>依赖程序，向量库</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Augmented 增强</td>
+<td>把找到的段落塞进问题里，一起递过去</td>
+<td>拼装，纯工程活</td>
+<td>依赖大模型</td>
+</tr>
+<tr>
+<td>G</td>
+<td>Generation 生成</td>
+<td>模型照着这些材料，说成人话</td>
+<td>这一步才是模型</td>
+<td>依赖大模型</td>
+</tr>
+</tbody></table></div>
+<p>所以 RAG 不是让模型变聪明，是让模型少瞎编，让大模型有据所依。</p>
+<p><img src="/media/docs/04-ai-eng-rag/img-01.png" alt="" loading="lazy" decoding="async"></p>
+<p>这是我最想让非技术同事记住的一句——它决定了后面所有事情：既然大部分活是检索干的，那答不准的时候，先怀疑检索那几步，而不是先怀疑模型。</p>
+<p>为什么银行这类客户几乎必须走这条路？三个理由，都很实在：</p>
+<p>制度会改。差旅标准今年和明年不一样，改完总不能等模型重新学一遍。用 RAG，你只要把新文件传进库里，下一秒就能答新的。</p>
+<p>必须有出处。客户问"凭什么这么答"，你得能指到原文第几章第几条。给不出出处的答案，在合规部门眼里等于没答。</p>
+<p>资料不外传。内部制度不能拿去给外面的模型训练，但可以在自己的环境里检索。</p>
+<h2 id="二为什么需要RAG">二、为什么需要RAG</h2>
+<p>一般说RAG，都知道说的是知识库，但真正RAG是指知识库检索+LLM的应用。</p>
+<p>单纯使用大模型不可以吗，为什么还需要知识库呢？</p>
+<p>咱们上章节说了大模型不会主动储存对话信息，每次对话都需要将之前的对话发送给它，它才知道你说的是什么东西。</p>
+<p><a href="/zh/docs/03-ai-eng-context/">AI-FDE 转型之路 · AI 工程 03-Context-Engineering</a></p>
+<p>大模型是一个静态的黑盒子，大模型在训练完成后，它的知识数据就是固定的了。大模型的知识储备主要是训练时给它的语料，当然训练结束后的新闻肯定是不知道的，它更不知道您企业内部的信息（因为训练的时候没有给它企业内部的数据）。</p>
+<p>例如：Deepseek训练数据的日期（在网页版本上面问一下）</p>
+<p><img src="/media/docs/04-ai-eng-rag/img-02.png" alt="" loading="lazy" decoding="async"></p>
+<p>图例：Deepseek网页截图</p>
+<p>知识每天都是再更新的，但是大模型不是每天更新，那应该怎么办呢，难道每天都需要训练一次大模型吗，NO,NO,NO，这个训练的成本太高了。这时候就有了知识库，大模型是静态黑盒子，知识库是一个动态的增量数据。大模型要学习新的知识，除了训练外，可以实时地加载知识库。</p>
+<p>知识库可以说是一个大一些的Prompt，大一点的Context，知识库是可以随时进行更新的，知识库也是企业可以看的见的数据，可以将私有的、敏感的数据放在知识库里面，这样不需要重新训练模型，也可以使用大模型来处理企业自己的数据。</p>
+<p>当知识库小的时候，可以将整个知识库发送给大模型，让模型加载成Context，然后与其对话。当知识库的数据特别大时，就不能发送整个知识库了，需要先检索你需要的数据，将“你检索出来的数据”+“你的问题”发送给大模型，让模型来生成你想要的结果。</p>
+<p>小Tips：咱们日常使用的Deepseek、Qwen、GPT、Gemini这些都属于通用型大模型。有些针对垂直领域的模型，包括：百川智能 Baichuan、京东健康 京医千询、华为云盘古大模型。垂直模型里面包含行业内的特有的数据，这样就可以让大模型的知识更丰富、更灵活。</p>
+<h2 id="三RAG最重要的知识点">三、RAG最重要的知识点</h2>
+<p>用户提问后，将用户的问题进行拆分，使用拆分的问题去检索知识库，然后将检索到的内容+用户的问题发送给大模型，大模型来帮你处理这个问题。现在真正的难点是知识库检索的质量，如果可以检索到对应的内容，现阶段大模型是可以更好的回答问题的。如果检索不到数据，或者检索到的数据很差，再好的模型也解决不了你的问题。通用性的问题，大模型+知识库检索到的数据，是可以正常处理。但是有些专业术语和特定领域的知识通用大模型是不知道的，这种就没有办法回答，需要将专业术语和特定领域的知识也一起发送给大模型，这就可以解决这种问题。这也是为什么有些公司专门训练垂直领域的大模型呢。</p>
+<p><img src="/media/docs/04-ai-eng-rag/img-03.png" alt="" loading="lazy" decoding="async"></p>
+<h2 id="四RAG-都用在哪">四、RAG 都用在哪</h2>
+<p>讲了是什么，再说用在哪。我按"客户真会为它掏钱"的标准列了五个，都是我自己或同行做过的类型（项目与客户均为虚构示例，仅用于说明方法）：</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>典型问题</th>
+<th>为什么适合</th>
+<th>要盯住什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>制度 / 规章问答</td>
+<td>"差旅住宿标准是多少""这个审批要几级"</td>
+<td>文件多、更新快、必须给出处</td>
+<td>版本：新旧文件同时在库里，答成旧的就是事故</td>
+</tr>
+<tr>
+<td>业务材料初审</td>
+<td>"这份信贷材料缺什么""条款有没有矛盾"</td>
+<td>规则明确、可以清单化</td>
+<td>它只能"提示"，不能"判定"，终审必须留给人</td>
+</tr>
+<tr>
+<td>客服 / 坐席辅助</td>
+<td>"客户问这个产品怎么收费"</td>
+<td>话术要统一，不能让坐席自己编</td>
+<td>答错会被客户截图，话术库要单独维护</td>
+</tr>
+<tr>
+<td>内部 IT / 运维知识库</td>
+<td>"这个报错上次怎么处理的"</td>
+<td>老师傅的经验沉淀下来，不用每次找人</td>
+<td>记录质量差就是垃圾进垃圾出</td>
+</tr>
+<tr>
+<td>合同 / 公文条款查找</td>
+<td>"这份合同里违约责任怎么写的"</td>
+<td>长文档人工翻很慢，机器定位快</td>
+<td>长文档切分容易把条款切碎，宁可留重叠</td>
+</tr>
+</tbody></table></div>
+<p>反过来说，这四类别硬上 RAG（这条比上面那张表更重要，因为踩坑都在"以为它什么都能干"）：</p>
+<p>1）要精确计算的。</p>
+<p>金额汇总、笔数统计、跨表求差——模型的算术不可靠，这类该让系统算，模型只负责把结果说清楚。</p>
+<p>2）要实时数据的。</p>
+<p>当前余额、当前排队人数、今天的汇率——RAG 检索的是静态文档，这类该走接口查，查完再给模型。</p>
+<p>3）要跨几十份文档横向汇总的。</p>
+<p>检索一次只能拿回几段，装不下几十份。要么先做结构化入库，要么拆成多轮。</p>
+<p>4）答案压根不在任何文档里的。</p>
+<p>靠经验判断的事，检索找不到东西，模型就会编——而且这次编得特别自信。</p>
+<p>一句话收口：RAG 适合"答案写在某份文档里，但人找起来慢"的事。凡是不满足这句话的，先别上。</p>
+<h2 id="五RAG-用什么平台搭">五、RAG 用什么平台搭</h2>
+<p>讲了是什么、用在哪，下一个问题自然是"用什么搭"。我的判断是：选平台的坑不在"谁功能多"，在于"哪条约束你躲不掉"。用排除法筛平台。</p>
+<p>平台大致就三条路：</p>
+<p>第一条路：开源自建。自己找台服务器装起来，数据全在自己手里。适合内网、强合规、以后要长期运维的场景。</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>平台</th>
+<th>一句话定位</th>
+<th>适合谁</th>
+<th>要盯住什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dify</td>
+<td>最全能，知识库 + 可视化工作流 + 多模型接入</td>
+<td>要定制流程、要接别的系统的团队</td>
+<td>复杂文档解析一般；需要有人运维</td>
+</tr>
+<tr>
+<td>RAGFlow</td>
+<td>文档解析最强，扫描件、表格、多栏排版都能啃</td>
+<td>合同、报表、手册这类硬骨头文档</td>
+<td>硬件要求高，调参门槛也高</td>
+</tr>
+<tr>
+<td>MaxKB</td>
+<td>开箱即用，界面是给业务人员用的</td>
+<td>技术人手少、想快速跑起来的部门</td>
+<td>深度定制能力弱一些</td>
+</tr>
+<tr>
+<td>FastGPT</td>
+<td>知识库问答成熟，问答对清洗做得好</td>
+<td>做对外问答、标准 FAQ</td>
+<td>新版本重心转向智能体，大文档解析不算强项</td>
+</tr>
+<tr>
+<td>AnythingLLM</td>
+<td>桌面级，个人电脑上就能跑</td>
+<td>自己先玩明白、做个原型</td>
+<td>中文处理和权限体系偏弱，不适合严格合规场景</td>
+</tr>
+</tbody></table></div>
+<p>第二条路：大、中厂商平台。云厂商提供公有云产品，支持开箱即用。针对不同场景也支持私有化部署，个性化定制。客户常见的选择：</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>平台</th>
+<th>一句话定位</th>
+<th>适合谁</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>火山 HiAgent</td>
+<td>多租户 + 评测监控体系完整，私有化经验丰富</td>
+<td>大集团统一管理多个部门的应用</td>
+</tr>
+<tr>
+<td>阿里云百炼</td>
+<td>通义系列底座，跟阿里云产品打通</td>
+<td>已经是阿里云客户的</td>
+</tr>
+<tr>
+<td>腾讯云 ADP</td>
+<td>打通企业微信、腾讯会议，支持私有化与混合云</td>
+<td>想把问答塞进员工日常沟通工具的</td>
+</tr>
+<tr>
+<td>百度千帆</td>
+<td>中文语义检索强，支持私有化与信创适配</td>
+<td>强合规、要信创适配、知识密集型场景</td>
+</tr>
+<tr>
+<td>各行业头部IT公司的产品</td>
+<td>根据需求进行个性化产品定制，更贴近行业</td>
+<td>适合有自研能力的企业</td>
+</tr>
+</tbody></table></div>
+<p>选型时我只看四条硬约束，这四条是踩过坑才排出来的：</p>
+<p>1）能不能在内网跑。</p>
+<p>客户说"必须内网"的时候，这一条直接筛掉一半选项——没得商量，别指望后面再改。</p>
+<p>2）国产化和信创能不能过。</p>
+<p>客户要是指定了芯片、操作系统、数据库，平台得能适配，不然后面验收卡在这儿。</p>
+<p>3）能不能把中间那几段检索结果打出来。</p>
+<p>这一条最容易被忽略，但它直接决定第四节的活能不能干——看不到中间结果的平台，等于让你蒙着眼睛修水管。</p>
+<p>4）数据能不能整体导出带走。</p>
+<p>文档、向量、配置能不能导出，决定了三年后你换平台时是搬家还是重做。</p>
+<p>最后说个实在建议：别在选型上耗两周。我的做法是先用 Dify 把一条链路跑通（文档进去、问题出来、出处能点开），跑通之后你才知道自己真正需要什么，这时候再选型，一周就能定。反过来，先选型再动手的人，往往选完发现那套东西根本啃不动自己那批文档。</p>
+<p>我之前写了一套Dify的使用教程可以参考一下（当然Dify不单单是知识库），可以点击以下链接查看Dify实战教程。</p>
+<p><a href="https://mp.weixin.qq.com/mp/appmsgalbum?__biz=MjM5MDMwMTQ0Nw==&amp;action=getalbum&amp;album_id=4495053795147841541#wechat_redirect" target="_blank" rel="noopener noreferrer">Dify 实战教程</a></p>
+<p>还有一句必须说：平台救不了烂数据。同一批乱七八糟的扫描件，换哪个平台都答不准——文档那一头的事，后面单独讲。</p>
+<p>不复杂的业务场景，选择低代码开发平台就可以满足要求。但是真正复杂的业务还是需要高码平台，需要定制写代码来满足业务要求，现在真正跑复杂业务的场景，大部分都是要定制化开发。</p>
+<h2 id="六答不准的时候怎么办">六、答不准的时候，怎么办</h2>
+<p>答不准的时候，别怀疑模型的问题，我的判断是：客户说"答不准"，十次里有七八次，问题不在模型那一段，而是在调用模型前的步骤（可以详细读一下第二节RAG的原理）。</p>
+<p>恒信银行的智能制度问答上线第二个月，王处长把几个答错的截图甩过来，说"这个模型是不是不太行"（以下客户与项目均为虚构示例，仅用于说明方法）。我们团队老周的第一反应跟大多数人一样：换个大一点的模型试试。</p>
+<p>我拦住了。不是因为换模型没用，是因为那时候我们还不知道错在哪——换完如果对了几条，我们也不知道为什么对；如果还是错，就只剩下"再换一个"这一招。而且换模型的成本最高：要重新对接、重测、重走一遍客户那边的评估。</p>
+<p>真正该做的第一件事，是先把链路拆开，找到坏的那一段。</p>
+<p>先打个比方。你家的自来水出了问题，可能是水厂的问题，也可能是管道，也可能是楼顶那个水箱。你不会一上来就换水厂——你会先接一杯水看看，问题出在"根本没送到"还是"送到了但有杂质"。</p>
+<p>知识库问答也是一条管子，从文档到答案一共要走七段：</p>
+<p>1)解析 → 2)切分 → 3)向量化 → 4)检索 → 5)重排 → 6)生成 → 7)引用溯源</p>
+<p>前四段决定"有没有把正确材料送上来"，第五段决定"正确的材料排在第几位"，第六段决定"看着材料能不能答对"，第七段决定"客户信不信"。</p>
+<p>大多数人的做法是把这七段当成一个黑盒，输入一个问题，看最后吐出来的答案对不对。答案错了，就只会换模型——而模型只是第六段。你把七段里的问题都算在它头上，它确实挺冤。</p>
+<p>这里有一个极省事的分诊动作，也是我最想让你记住的：把中间结果打出来看。具体说，就是在第 04 讲之后加一步——每次回答都把"这次检索回来的那几段原文"一起显示出来。有了这一步，一次就能把链路切成两半：</p>
+<p>材料里有正确答案，但最终答错了 → 问题在重排或生成（第五六段）</p>
+<p>材料里压根没有正确答案 → 问题在前四段，跟模型没关系</p>
+<p>这一步在调试界面就能做，不用改代码。我每次接手一个"答不准"的项目，第一件事就是要求把它打开。</p>
+<h2 id="七一张故障定位对照表">七、一张故障定位对照表</h2>
+<p>这是我带走的那个东西。拿到一批答错的题，按这张表逐条归类：</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>现象</th>
+<th>嫌疑段</th>
+<th>验证动作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>答案完全不沾边，像在聊别的制度</td>
+<td>解析 / 切分</td>
+<td>拿答案里的关键词去原文全文搜，看能不能搜到那段——搜不到就是压根没进库</td>
+</tr>
+<tr>
+<td>沾边，但细节答错（条款号、金额、日期错）</td>
+<td>切分 / 检索</td>
+<td>打印返回的前 K 段，看正确那一段在不在里面、排第几；在第四五位基本等于没起作用</td>
+</tr>
+<tr>
+<td>正确材料确实在前几位，答案还是错</td>
+<td>重排 / 生成</td>
+<td>把正确的那段手动挪到第一位重跑一次，答对了就是排序问题，如果还错才是生成问题</td>
+</tr>
+<tr>
+<td>答案对，但客户不认</td>
+<td>引用溯源</td>
+<td>看出处有没有返回、出处指向的是不是这一段；给不出出处的答案在金融客户眼里等于没有</td>
+</tr>
+<tr>
+<td>换个问法就崩</td>
+<td>向量化 / 查询改写</td>
+<td>同一个问题用三种说法问，看命中是否稳定；口语问法差是常见短板</td>
+</tr>
+</tbody></table></div>
+<p>这张表我用得很频繁，因为它把"答不准"这种没法动手的描述，翻译成了"下一步验什么"。</p>
+<p>补一句现实感：我做过的项目里，按这张表归类下来，落在前两段（解析和切分）的通常占大头（示例数字，仅用于演示口径：多数项目在四成以上，个别能到六成）。这也是为什么下一讲要单独拎出文档解析。</p>
+<h2 id="八什么算会了">八、什么算会了</h2>
+<p>客户甩来一条答错的截图，你能在五分钟内说出"我怀疑是第几段，怎么验"。</p>
+<p>你的项目后台能看到"这次检索回来的原文是哪几段"——看不到，你就是在黑盒里调。</p>
+<p>你能给出一张归类结果的饼：错在前四段占多少、错在后面占多少。给不出这个比例，说明你还没分诊过。</p>
+<p>自检一句：你现在 Debug 的时候，看的是最终答案，还是中间那几段材料？只看最终答案的人，等于蒙着眼睛修水管。</p>
+<p>动手任务：先找一下平台将流程搭建然后。然后把你项目里最近二十条答错的问题拉出来，按上面那张表逐条归类，数一下每类各占多少。做完你会发现，第一名往往不是你以为的那个。</p>
+<h2 id="九坑">九、坑</h2>
+<p>跳过分诊直接优化。最常见的浪费：没归类就改 Prompt、调温度、加提示。改完看起来好一点，其实是把某一类救回来了，另一类更糟，而你不知道是哪一类。</p>
+<p>只看排序第一的那条。模型最终看进去了几段，才是真相。打印前五段出来看看，你经常会发现正确答案就在第四位——它其实找到了，只是排得太靠后。</p>
+<p>把"命中率"当唯一指标。命中率这个词在不同人口里意思完全不同：有人指检索命中，有人指答案正确。谈指标之前先统一口径，否则验收时双方说的根本不是一件事。</p>
+<p>写到最后，RAG应用属于一个见效快、后期提升的边际成本高的工程。大家搭建出来的应用效果的都差不多，你想要是比别人的质量多出10%，是需要下一部分力气了。</p>
+<p>要在RAG上多榨出那10%，重点在数据层做好结构感知分块、质量分级路由和元数据，检索层用混合检索、RRF、重排和查询改写提升排序质量，生成层加可回答性判断、忠实度约束和引用溯源，评测层做环节拆解、失败归因和反馈闭环；优先投入分块、元数据、重排和环节评测。这部分就需要交给研发团队了，不属于FDE的活儿。</p>
+<p>下一讲接着往下挖：既然前两段占大头，那我们就专门讲第一段——文档解析。</p>
+<hr>
+<p>《AI-FDE 转型之路》：写给不写代码的 IT 实施 / 售前 / 运维，把已有的交付能力「AI 化」。全系列 55 篇，六大模块 53 项技能。</p>
+<p>想先看看自己缺什么：AI-FDE 技能自评地图，53 项打分，出一张雷达图。<a href="/zh/docs/00-intro/">AI-FDE 转型之路 · 开篇</a></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/zh/docs/03-ai-eng-context/"><span class="dir">← 上一篇</span><span class="ttl">Context-Engineering：大模型到底看得见什么</span></a>
+<a class="next" href="/zh/docs/05-ai-eng-doc-parsing/"><span class="dir">下一篇 →</span><span class="ttl">80% 的 RAG 问题出在文档解析</span></a>
+</div>
+    <div class="doc-foot">
+      <p>想先看看自己缺什么？用自评地图打个分  <a href="/zh/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>

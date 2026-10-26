@@ -1,0 +1,34 @@
+{
+  "slug": "06-ai-eng-tool-calling",
+  "series": "ai-fde-roadmap",
+  "order": 6,
+  "source": "https://mp.weixin.qq.com/s/is6llQD2CbJG3zYdU2c_lg",
+  "date": "2026-10-22",
+  "images": [
+    {
+      "name": "img-01.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR81Y0m3Om7gdrMeL3dNd8D7X9vib4xxUWEkMlLCE9wmIvyIRDWsYXMLHjBTLaObB56NUFjZdVUmDGtXhxXFVEc7PJiad9xIBk0BMk/640?wx_fmt=png&from=appmsg"
+    },
+    {
+      "name": "img-02.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR83CCtavtwDjWcXQwjGv5kDPxeJictkUotBdvGQLAFOVxElacia9kySOuBBTEiaXZx1Iia96tzs9UdTCrbXdcyvL7vTy4tOb26V02K0/640?wx_fmt=png&from=appmsg"
+    }
+  ],
+  "title": {
+    "zh": "工具描述是写给模型看的说明书",
+    "en": "Tool Descriptions Are Manuals Written for the Model"
+  },
+  "subtitle": {
+    "zh": "AI-FDE 转型之路 · AI 工程 06-Tool-Calling",
+    "en": "The AI-FDE Transition Path · AI Engineering 06 — Tool Calling"
+  },
+  "summary": {
+    "zh": "模型缺的不是智力，是数据、算力和手脚。工具该怎么分类、怎么接，以及为什么一行工具描述就能决定它调不调用。",
+    "en": "What the model lacks isn't intelligence but data, arithmetic and hands. How to classify and connect tools — and why one line of tool description decides whether it gets called."
+  },
+  "tags": [
+    "AI工程",
+    "Tool Calling",
+    "Agent"
+  ]
+}

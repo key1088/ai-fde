@@ -1,0 +1,34 @@
+{
+  "slug": "05-ai-eng-doc-parsing",
+  "series": "ai-fde-roadmap",
+  "order": 5,
+  "source": "https://mp.weixin.qq.com/s/3vX-T02DlBy0lkZhLxnP6w",
+  "date": "2026-10-21",
+  "images": [
+    {
+      "name": "img-01.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR818Y58dj0h6lmTRCIWaFdvGHHAc15l322iaDJOuPPiauHNZfqwYNqPxjKWUpzicbmE0OjBjcc2niasmbRkGVbKpBH6zicYoyR7dwBRU/640?wx_fmt=png&from=appmsg"
+    },
+    {
+      "name": "img-02.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR82xjhFeAugsh1XSjShMsOO8zWIeWU0E3dsiaagam54V9TicuzLTOQrbsa4Qns0SDKQnp1aUeV4hTZfTaDaqTyNjXegBT4t43haibk/640?wx_fmt=png&from=appmsg"
+    }
+  ],
+  "title": {
+    "zh": "80% 的 RAG 问题出在文档解析",
+    "en": "80% of RAG Problems Start in Document Parsing"
+  },
+  "subtitle": {
+    "zh": "AI-FDE 转型之路 · AI 工程 05-文档解析工程",
+    "en": "The AI-FDE Transition Path · AI Engineering 05 — Document Parsing"
+  },
+  "summary": {
+    "zh": "RAG 最脏最累、投入产出比也最高的一段：扫描件、表格、多栏和标题层级四个杀手，以及切分、体检表和 Dify 落地映射。",
+    "en": "The dirtiest, most tedious and highest-ROI part of RAG: four killers — scans, tables, multi-column layouts and heading hierarchy — plus chunking, a health-check sheet and a Dify implementation map."
+  },
+  "tags": [
+    "AI工程",
+    "文档解析",
+    "RAG"
+  ]
+}

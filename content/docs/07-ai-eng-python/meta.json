@@ -1,0 +1,51 @@
+{
+  "slug": "07-ai-eng-python",
+  "series": "ai-fde-roadmap",
+  "order": 7,
+  "source": "https://mp.weixin.qq.com/s/kOyauld3xlLSpLb_KEQRIA",
+  "date": "2026-10-24",
+  "images": [
+    {
+      "name": "img-01.png",
+      "originalName": "img-01.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR81GrCrXeHAibtzzOZlzhlBM3Jp1ZaibOOyXYVaX4gxRCUWAF24bFFcq6I4ZtkIiayjn1zG1tjo0QUyNFnynK1mDazdibCdkibicO4nwg/640?wx_fmt=png&from=appmsg"
+    },
+    {
+      "name": "img-02.jpg",
+      "originalName": "img-02.png",
+      "src": "https://mmbiz.qpic.cn/mmbiz_jpg/B5MbN9tHR83K8S3yYibNXceK4hpHiaGPZoyslDeG1O9xtXEVbz3d74cC50KseOPjGtGWWC6K0p96KmOTvZLz7hZQaRqZ0qrAahYb1cB5icz8Nw/640?wx_fmt=jpeg&from=appmsg"
+    },
+    {
+      "name": "img-03.jpg",
+      "originalName": "img-03.png",
+      "src": "https://mmbiz.qpic.cn/mmbiz_jpg/B5MbN9tHR80IkSJG4DqxXfVEgZH37MAQaALUWO6ia6oYMYa8pCweKOucVGpxbiax4BLkGcw4f7dRDJ0Jzo7yiav3dJotaliaBQQafIqy6ibUfhxA/640?wx_fmt=jpeg&from=appmsg"
+    },
+    {
+      "name": "img-04.jpg",
+      "originalName": "img-04.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_jpg/B5MbN9tHR80jYLBgbzzaw5AQq0LULlunFJE4Mmd1SFKBdEEfkHJIuh9cSnozggmZicibjZw4wI7WibEtzk1k5dMaomhfcEkuks9P9micMYhVFYg/640?wx_fmt=jpeg&from=appmsg"
+    },
+    {
+      "name": "img-05.jpg",
+      "originalName": "img-05.png",
+      "src": "https://mmbiz.qpic.cn/mmbiz_jpg/B5MbN9tHR83AEELL10GNeda1UUKelTVrXV9HicYNkbvEkEibM2Afa7zQDDm1vfJgI2sLm5ducZc2yD9DYO70d4V5usqG5RR1RBlTGPDK1Tm7Q/640?wx_fmt=jpeg&from=appmsg"
+    }
+  ],
+  "title": {
+    "zh": "Python 入门指南：先搞定环境，再谈代码",
+    "en": "A Python Primer: Get the Environment Right First"
+  },
+  "subtitle": {
+    "zh": "AI-FDE 转型之路 · AI 工程 07-AI 工程实现（Python）",
+    "en": "The AI-FDE Transition Path · AI Engineering 07 — Building AI Systems (Python)"
+  },
+  "summary": {
+    "zh": "写给不写代码的 FDE：版本、虚拟环境、离线装库、读报错、五分钟看懂一段陌生代码，以及让 AI 改代码时如何保住验收权。",
+    "en": "For FDEs who don't write code: versions, virtual environments, offline package installs, reading tracebacks, understanding unfamiliar code in five minutes, and keeping acceptance authority when AI edits code."
+  },
+  "tags": [
+    "AI工程",
+    "Python",
+    "工程环境"
+  ]
+}

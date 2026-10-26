@@ -1,0 +1,38 @@
+{
+  "slug": "04-ai-eng-rag",
+  "series": "ai-fde-roadmap",
+  "order": 4,
+  "source": "https://mp.weixin.qq.com/s/X7-wH5yZtShcJ1O37AlC9w",
+  "date": "2026-10-17",
+  "images": [
+    {
+      "name": "img-01.png",
+      "src": "https://mmbiz.qpic.cn/mmbiz_png/B5MbN9tHR80DMBsEnHejcYsia0muHV77H7MgpjfdzkJ1gzYHAYpz8Zo96ib5ib9TsVuybs4GxNKGr49IcPt50qSkViau6CMrZBqrAHI2hdf6RnM/640?wx_fmt=png&from=appmsg"
+    },
+    {
+      "name": "img-02.png",
+      "src": "https://mmbiz.qpic.cn/mmbiz_png/B5MbN9tHR811k3r0xwMW2s88WNzIzh6icIqUtqCgGib4vqINR3HmiaPvp8NQeMnXoxdiatFzR8icbSiaR07rDibxyUoQic2icMDP23zV8Jwx3OqnY25Y/640?wx_fmt=png&from=appmsg"
+    },
+    {
+      "name": "img-03.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR81mjRb2SmBJ5T5TFssqP60rkLZFy8Cuj6TfzPLu1KhKGtHjicGicJtZwc7pkdb0PgeOp8GhiaGC2ZTJm9aofiagU2RcYPHU9OhoIBA/640?wx_fmt=png&from=appmsg"
+    }
+  ],
+  "title": {
+    "zh": "知识库答不准，问题通常不在模型",
+    "en": "When the Knowledge Base Is Wrong, the Model Usually Isn't"
+  },
+  "subtitle": {
+    "zh": "AI-FDE 转型之路 · AI 工程 04-RAG 全链路",
+    "en": "The AI-FDE Transition Path · AI Engineering 04 — The Full RAG Pipeline"
+  },
+  "summary": {
+    "zh": "RAG 是让模型开卷考。大部分活其实在检索这一侧，所以答不准时先拆链路、打中间结果、按故障表定位，而不是先换模型。",
+    "en": "RAG is an open-book exam for the model. Most of the work happens on the retrieval side, so when answers are wrong, split the pipeline, print the intermediate results and use a triage table — don't start by swapping the model."
+  },
+  "tags": [
+    "AI工程",
+    "RAG",
+    "知识库"
+  ]
+}

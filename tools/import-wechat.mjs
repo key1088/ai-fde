@@ -94,13 +94,22 @@ function normalize(container, slug, assetsDir) {
     span.remove();
   });
 
-  // 2) <pre> 里通常是「一行一个 <code>」→ 合并成单个 <code> 块
+  // 2) <pre> 里通常是「一行一个 <span>」或「一行一个 <code>」→ 合并成单个 <code> 块
+  //    公众号很多代码块把 <br> 放在 span 里，必须先把 <br> 换成换行再取 textContent，
+  //    否则整段代码会被粘成一行（缩进全丢）。
   container.querySelectorAll('pre').forEach((pre) => {
-    const lineEls = pre.querySelectorAll(':scope > code, :scope > span');
-    const lines = lineEls.length
-      ? [...lineEls].map((el) => el.textContent.replace(/\u00a0/g, ' '))
-      : [pre.textContent.replace(/\u00a0/g, ' ')];
-    const code = lines.join('\n').replace(/\s+$/, '');
+    const lineText = (el) => {
+      const clone = el.cloneNode(true);
+      clone.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
+      return clone.textContent.replace(/\u00a0/g, ' ');
+    };
+    const directCodes = [...pre.children].filter((el) => el.tagName === 'CODE');
+    const code = (directCodes.length > 1
+      ? directCodes.map(lineText).join('\n')
+      : lineText(pre)
+    )
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\s+$/, '');
     pre.innerHTML = `<code>${esc(code)}</code>`;
     pre.removeAttribute('data-lang');
     pre.removeAttribute('class');
@@ -122,11 +131,11 @@ function normalize(container, slug, assetsDir) {
     img.setAttribute('alt', img.getAttribute('alt') || '');
     img.removeAttribute('data-src');
     img.removeAttribute('data-aistatus');
-    images.push({ name, src });
+    images.push({ name, originalName: name, src });
   }
 
-  // 4) 表格：公众号的表没有 <thead>、单元格里还套着 <p>，turndown 认不出来。
-  //    统一补 <thead>（首行转 <th>）、把单元格里的块级 <p> 摊平。
+  // 4) 表格：公众号的表没有 <thead>、单元格里还套着 <p>/<section>，turndown 认不出来。
+  //    统一补 <thead>（首行转 <th>）、把单元格里的块级标签摊平（section 也要摊）。
   container.querySelectorAll('table').forEach((table) => {
     const doc = container.ownerDocument;
     const rows = [...table.querySelectorAll('tr')];
@@ -143,15 +152,46 @@ function normalize(container, slug, assetsDir) {
       thead.appendChild(headRow);
     }
     table.querySelectorAll('th,td').forEach((cell) => {
-      cell.querySelectorAll('p').forEach((p) => {
-        p.replaceWith(...p.childNodes);
-      });
       cell.querySelectorAll('br').forEach((br) => br.replaceWith(' '));
+      // 逐层摊平 p/section/div/li，嵌套结构也能处理
+      for (let guard = 0; guard < 6; guard++) {
+        const blocks = [...cell.querySelectorAll('p,section,div,li,blockquote')];
+        if (!blocks.length) break;
+        blocks.forEach((el) => el.replaceWith(...el.childNodes));
+      }
       cell.innerHTML = cell.innerHTML.replace(/\s+/g, ' ').trim();
     });
   });
 
-  // 5) 「整段加粗 + 以一/二/… 开头」的 <p> 其实是小标题 → 提升为 <h2>
+  // 5) 标题归一化：
+  //    公众号里正文段落有时也用 <h2>（只是排版字号），反过来有些小标题是纯 <p>。
+  //    规则：有「一、/第X章/1.」等编号且不长 → 统一成 <h2>；其余 h1-h4 → 降回 <p>。
+  const HEADING_RE = /^([一二三四五六七八九十百]+、|第[一二三四五六七八九十百\d]+[章节条]|[0-9]+[、.．])/;
+  container.querySelectorAll('h1,h2,h3,h4').forEach((h) => {
+    const text = h.textContent.replace(/\*\*/g, '').trim();
+    if (text && text.length <= 80 && HEADING_RE.test(text)) {
+      const nh = container.ownerDocument.createElement('h2');
+      nh.textContent = text;
+      h.replaceWith(nh);
+    } else {
+      const p = container.ownerDocument.createElement('p');
+      p.innerHTML = h.innerHTML;
+      h.replaceWith(p);
+    }
+  });
+
+  // 6) 纯文本小标题提升为 <h2>（只认「一、」这种强编号，且要求是不含子块的叶子节点）
+  container.querySelectorAll('p,section').forEach((el) => {
+    if (el.querySelector('p,section,div,table,img,pre')) return;
+    const text = el.textContent.replace(/\*\*/g, '').trim();
+    if (text && text.length <= 60 && /^[一二三四五六七八九十百]+、/.test(text) && !/[。；]$/.test(text)) {
+      const h = container.ownerDocument.createElement('h2');
+      h.textContent = text;
+      el.replaceWith(h);
+    }
+  });
+
+  // 7) 「整段加粗 + 以一/二/… 开头」的 <p> 其实是小标题 → 提升为 <h2>
   container.querySelectorAll('p').forEach((p) => {
     const text = p.textContent.trim();
     if (!text || text.length > 40) return;
@@ -165,9 +205,14 @@ function normalize(container, slug, assetsDir) {
     }
   });
 
-  // 6) 清理：纯空段、纯 <br> 段
+  // 8) 清理：纯空段、纯 <br> 段
   container.querySelectorAll('p').forEach((p) => {
     if (!p.textContent.trim() && !p.querySelector('img')) p.remove();
+  });
+
+  // 9) 标题里残留的加粗标记直接去掉（公众号常见 <strong> 被拆成多段）
+  container.querySelectorAll('h1,h2,h3').forEach((h) => {
+    h.textContent = h.textContent.replace(/\*\*/g, '').trim();
   });
 
   return images;
@@ -238,9 +283,17 @@ async function run(entry) {
   }
 
   let md = turndown.turndown(content.innerHTML);
+  // 图片可能实际是 jpg/webp，下载后扩展名会变；把正文里的路径同步成真实文件名
+  for (const img of images) {
+    if (img.originalName && img.name !== img.originalName) {
+      md = md.split(`/media/docs/${entry.slug}/${img.originalName}`).join(`/media/docs/${entry.slug}/${img.name}`);
+    }
+  }
   md = md
     // 整行加粗的标题 → 去掉 **
     .replace(/^(#{1,6}) \*\*(.+?)\*\*$/gm, '$1 $2')
+    // 标题里任何残留的 ** 都去掉
+    .replace(/^(#{1,6}) (.*)$/gm, (line, hashes, text) => `${hashes} ${text.replace(/\*\*/g, '')}`)
     // 列表项统一成 "- "
     .replace(/^[-*]\s{2,}/gm, '- ')
     .replace(/\n{3,}/g, '\n\n')

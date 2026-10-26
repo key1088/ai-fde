@@ -19,7 +19,7 @@
 <link rel="icon" href="/favicon.ico">
 <link rel="stylesheet" href="/assets/doc.css">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"The AI-FDE Transition Path · Docs","description":"From the client site to AI delivery: a learning path for implementation, pre-sales, delivery and operations people moving into the AI-FDE role.","inLanguage":"en","url":"https://ai-fde.dev/docs/","hasPart":[{"@type":"Article","headline":"Why Those Who Know the Customer Best Are the Most Anxious","url":"https://ai-fde.dev/docs/00-intro/"},{"@type":"Article","headline":"First, Understand Exactly Where the Model Will Always Fail","url":"https://ai-fde.dev/docs/01-ai-eng-llm/"},{"@type":"Article","headline":"Prompts Aren't Magic — They're Code You Can Regression-Test","url":"https://ai-fde.dev/docs/02-ai-eng-prompt/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"The AI-FDE Transition Path · Docs","description":"From the client site to AI delivery: a learning path for implementation, pre-sales, delivery and operations people moving into the AI-FDE role.","inLanguage":"en","url":"https://ai-fde.dev/docs/","hasPart":[{"@type":"Article","headline":"Why Those Who Know the Customer Best Are the Most Anxious","url":"https://ai-fde.dev/docs/00-intro/"},{"@type":"Article","headline":"First, Understand Exactly Where the Model Will Always Fail","url":"https://ai-fde.dev/docs/01-ai-eng-llm/"},{"@type":"Article","headline":"Prompts Aren't Magic — They're Code You Can Regression-Test","url":"https://ai-fde.dev/docs/02-ai-eng-prompt/"},{"@type":"Article","headline":"Context Engineering: What the Model Can Actually See","url":"https://ai-fde.dev/docs/03-ai-eng-context/"},{"@type":"Article","headline":"When the Knowledge Base Is Wrong, the Model Usually Isn't","url":"https://ai-fde.dev/docs/04-ai-eng-rag/"},{"@type":"Article","headline":"80% of RAG Problems Start in Document Parsing","url":"https://ai-fde.dev/docs/05-ai-eng-doc-parsing/"},{"@type":"Article","headline":"Tool Descriptions Are Manuals Written for the Model","url":"https://ai-fde.dev/docs/06-ai-eng-tool-calling/"},{"@type":"Article","headline":"How a Model Actually Uses a Tool","url":"https://ai-fde.dev/docs/06-ai-eng-tool-calling-principles/"},{"@type":"Article","headline":"A Python Primer: Get the Environment Right First","url":"https://ai-fde.dev/docs/07-ai-eng-python/"}]}</script>
 </head>
 <body>
 <header class="site">
@@ -41,7 +41,7 @@
     <div class="hero">
       <h1>The AI-FDE Transition Path</h1>
       <p>From the client's site to AI delivery: a learning path for implementation, pre-sales, delivery and operations people moving into the AI-FDE role.</p>
-      <p style="margin-top:10px;font-size:13.5px;color:#8a94a2">3 articles</p>
+      <p style="margin-top:10px;font-size:13.5px;color:#8a94a2">9 articles</p>
     </div>
     <div class="series">
       <div class="cards">
@@ -59,6 +59,36 @@
   <div class="no">03 · 2026-10-11</div>
   <h3>Prompts Aren't Magic — They're Code You Can Regression-Test</h3>
   <p>Prompts are the one place in an AI project that anyone can change and nobody owns. Treat them like code: keep them in files, log every change, and run a regression set.</p>
+</a>
+<a class="card" href="/docs/03-ai-eng-context/">
+  <div class="no">04 · 2026-10-13</div>
+  <h3>Context Engineering: What the Model Can Actually See</h3>
+  <p>A model has no memory: every turn it sees only the text you reassemble and send. Understand what context contains, how it is capped, compressed and billed — and you know what to put in and what to leave out.</p>
+</a>
+<a class="card" href="/docs/04-ai-eng-rag/">
+  <div class="no">05 · 2026-10-17</div>
+  <h3>When the Knowledge Base Is Wrong, the Model Usually Isn't</h3>
+  <p>RAG is an open-book exam for the model. Most of the work happens on the retrieval side, so when answers are wrong, split the pipeline, print the intermediate results and use a triage table — don't start by swapping the model.</p>
+</a>
+<a class="card" href="/docs/05-ai-eng-doc-parsing/">
+  <div class="no">06 · 2026-10-21</div>
+  <h3>80% of RAG Problems Start in Document Parsing</h3>
+  <p>The dirtiest, most tedious and highest-ROI part of RAG: four killers — scans, tables, multi-column layouts and heading hierarchy — plus chunking, a health-check sheet and a Dify implementation map.</p>
+</a>
+<a class="card" href="/docs/06-ai-eng-tool-calling/">
+  <div class="no">07 · 2026-10-22</div>
+  <h3>Tool Descriptions Are Manuals Written for the Model</h3>
+  <p>What the model lacks isn't intelligence but data, arithmetic and hands. How to classify and connect tools — and why one line of tool description decides whether it gets called.</p>
+</a>
+<a class="card" href="/docs/06-ai-eng-tool-calling-principles/">
+  <div class="no">08 · 2026-10-23</div>
+  <h3>How a Model Actually Uses a Tool</h3>
+  <p>The model never calls a tool. It only emits text saying what it wants to call and with which arguments. A four-round request walkthrough shows execution, result injection, cost and where MCP actually fits.</p>
+</a>
+<a class="card" href="/docs/07-ai-eng-python/">
+  <div class="no">09 · 2026-10-24</div>
+  <h3>A Python Primer: Get the Environment Right First</h3>
+  <p>For FDEs who don't write code: versions, virtual environments, offline package installs, reading tracebacks, understanding unfamiliar code in five minutes, and keeping acceptance authority when AI edits code.</p>
 </a>
       </div>
     </div>

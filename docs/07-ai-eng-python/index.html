@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Python Primer: Get the Environment Right First · The AI-FDE Transition Path</title>
+<meta name="description" content="For FDEs who don't write code: versions, virtual environments, offline package installs, reading tracebacks, understanding unfamiliar code in five minutes, and keeping acceptance authority when AI edits code.">
+<link rel="canonical" href="https://ai-fde.dev/docs/07-ai-eng-python/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/07-ai-eng-python/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/07-ai-eng-python/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/07-ai-eng-python/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="A Python Primer: Get the Environment Right First">
+<meta property="og:description" content="For FDEs who don't write code: versions, virtual environments, offline package installs, reading tracebacks, understanding unfamiliar code in five minutes, and keeping acceptance authority when AI edits code.">
+<meta property="og:url" content="https://ai-fde.dev/docs/07-ai-eng-python/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/07-ai-eng-python/img-01.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"A Python Primer: Get the Environment Right First","description":"For FDEs who don't write code: versions, virtual environments, offline package installs, reading tracebacks, understanding unfamiliar code in five minutes, and keeping acceptance authority when AI edits code.","datePublished":"2026-10-24","inLanguage":"en","image":"https://ai-fde.dev/media/docs/07-ai-eng-python/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/docs/07-ai-eng-python/","isPartOf":{"@type":"CreativeWorkSeries","name":"The AI-FDE Transition Path"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/docs/">AI-FDE <span>· Docs</span></a>
+  <nav>
+    <a href="/">Self-Assessment</a>
+    <a href="/docs/" class="on">Docs</a>
+    <a class="lang" href="/zh/docs/07-ai-eng-python/">中文</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">In this series</div>
+<div class="toc-body">
+<a class="art" href="/docs/00-intro/"><span class="no">01</span>Why Those Who Know the Customer Best Are the Most Anxious</a>
+<a class="art" href="/docs/01-ai-eng-llm/"><span class="no">02</span>First, Understand Exactly Where the Model Will Always Fail</a>
+<a class="art" href="/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompts Aren't Magic — They're Code You Can Regression-Test</a>
+<a class="art" href="/docs/03-ai-eng-context/"><span class="no">04</span>Context Engineering: What the Model Can Actually See</a>
+<a class="art" href="/docs/04-ai-eng-rag/"><span class="no">05</span>When the Knowledge Base Is Wrong, the Model Usually Isn't</a>
+<a class="art" href="/docs/05-ai-eng-doc-parsing/"><span class="no">06</span>80% of RAG Problems Start in Document Parsing</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling/"><span class="no">07</span>Tool Descriptions Are Manuals Written for the Model</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling-principles/"><span class="no">08</span>How a Model Actually Uses a Tool</a>
+<a class="art cur" href="/docs/07-ai-eng-python/"><span class="no">09</span>A Python Primer: Get the Environment Right First</a>
+</div>
+<div class="toc-h">On this page</div>
+<div class="toc-body">
+<a class="h2" href="#1-Install-It-Right-First-Pick-the-Wrong-Version-and-Everything-After-Is-Wasted-Effort">1. Install It Right First: Pick the Wrong Version and Everything After Is Wasted Effort</a>
+<a class="h2" href="#2-Virtual-Environments-Hosting-Several-Projects-on-One-Machine-Without-Conflicts">2. Virtual Environments: Hosting Several Projects on One Machine Without Conflicts</a>
+<a class="h2" href="#3-Installing-packages-first-make-sure-you-can-connect-then-decide-which-version-to-install">3. Installing packages: first make sure you can connect, then decide which version to install</a>
+<a class="h2" href="#4-Different-Ways-to-Learn-Python">4. Different Ways to Learn Python</a>
+<a class="h2" href="#5-Getting-It-Running-for-the-First-Time-Editor-Command-Line-and-an-Error-Message">5. Getting It Running for the First Time: Editor, Command Line, and an Error Message</a>
+<a class="h2" href="#6-Understanding-Unfamiliar-Code-Look-at-Only-Five-Places">6. Understanding Unfamiliar Code: Look at Only Five Places</a>
+<a class="h2" href="#7-Let-AI-Change-the-Code-but-You-Must-Hold-the-Acceptance-Authority">7. Let AI Change the Code, but You Must Hold the Acceptance Authority</a>
+<a class="h2" href="#8-Pitfalls">8. Pitfalls</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/docs/">Docs</a> / The AI-FDE Transition Path</div>
+    <article>
+      <h1 class="doc-title">A Python Primer: Get the Environment Right First</h1>
+      <p class="doc-sub">The AI-FDE Transition Path · AI Engineering 07 — Building AI Systems (Python)</p>
+      <p class="doc-meta">2026-10-24</p>
+      <p>This is a simple Python beginner tutorial. It's not really a tutorial—at most a guide to learning Python. After learning Python, you can better understand the content of the following chapters. Python code can be written with AI coding, but you still need to understand some prerequisite material, which makes it easier for an FDE to do the work.</p>
+<p><img src="/media/docs/07-ai-eng-python/img-01.png" alt="" loading="lazy" decoding="async"></p>
+<h2 id="1-Install-It-Right-First-Pick-the-Wrong-Version-and-Everything-After-Is-Wasted-Effort">1. Install It Right First: Pick the Wrong Version and Everything After Is Wasted Effort</h2>
+<p>My view: <strong>of the ten people who get driven away by Python, nine aren't driven away by the syntax — they're driven away by the environment.</strong></p>
+<p><strong><img src="/media/docs/07-ai-eng-python/img-02.jpg" alt="Python, I Love You, but these pain points hurt (badly) | by ApiHarbor | Medium" loading="lazy" decoding="async"></strong></p>
+<p>Errors you can't read, libraries that won't install, a project that won't run on another machine — none of these three has anything to do with whether you can write a loop. They have to do with whether you've sorted out your environment.</p>
+<p>Xiao Lin (fictional; a new implementation engineer on our side, same below) took three days to get a model call working the first time: day one installing Python, installed it twice; day two pip wouldn't install libraries; day three it ran, but he couldn't say which step had actually made the difference.</p>
+<p>The cost of those three days could have been half an hour.</p>
+<p>Versions first. <strong>To judge whether a version is usable, don't look at how new it is — look at whether the customer and the platform can keep up with it.</strong> The table below is the official Python version status (as of October 2026, source devguide.python.org/versions):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Official status</th>
+<th>First release</th>
+<th>Supported until</th>
+<th>How I use it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>3.15</td>
+<td>bugfix (current latest)</td>
+<td>2026-10</td>
+<td>2031-10</td>
+<td>Fine to try yourself, don't take it into a customer environment</td>
+</tr>
+<tr>
+<td>3.14</td>
+<td>bugfix</td>
+<td>2025-10</td>
+<td>2030-10</td>
+<td>First choice for new projects</td>
+</tr>
+<tr>
+<td>3.13</td>
+<td>security</td>
+<td>2024-10</td>
+<td>2029-10</td>
+<td>My default when I want stability</td>
+</tr>
+<tr>
+<td><strong>3.12</strong></td>
+<td><strong>security</strong></td>
+<td><strong>2023-10</strong></td>
+<td><strong>2028-10</strong></td>
+<td><strong>Most common in platform images</strong></td>
+</tr>
+<tr>
+<td>3.11</td>
+<td>security</td>
+<td>2022-10</td>
+<td>2027-10</td>
+<td>Old projects I'm still maintaining</td>
+</tr>
+<tr>
+<td>3.10 and below</td>
+<td><strong>end-of-life</strong></td>
+<td>2021-10</td>
+<td><strong>ended 2026-10-01</strong></td>
+<td>Don't use it to start anything new</td>
+</tr>
+</tbody></table></div>
+<p>There are two traps in this table that are worth more than the version numbers themselves.</p>
+<p>First: <strong>3.10 officially went end-of-life this month.</strong> That machine at the customer site that "has always worked" is now running a version the official team no longer patches for vulnerabilities. This comes up in classified-protection (MLPS) and supply-chain reviews at financial customers — you can't just answer "it runs."</p>
+<p>Second: <strong>3.11, 3.12 and 3.13 have already entered the security phase.</strong> That phase doesn't mean "expired"; it means "security fixes only, no new installers." So the 3.13 installer you download onto a new machine today is the last version of it that ships with binaries.</p>
+<p>Two things I do myself: <strong>lock one version per project and write it on the first page of the doc; have the team standardize on the same major version instead of everyone installing their own.</strong> The latter looks crude, but it eliminates an entire class of "it works fine on my machine, it errors on yours" arguments.</p>
+<p><strong>Don't casually swap or upgrade versions — some libraries have very strict Python requirements in their dependency chains. I don't recommend using very new versions; be conservative.</strong></p>
+<p>There's only one thing you must remember during install: on the first page of the Windows installer, at the bottom, the line <strong>Add python.exe to PATH</strong> — check it. If you don't, every "command not found" later traces back to it. If you don't check it, you can also add it manually by adding it to the Windows environment variables.</p>
+<p>Once the Python environment is installed, don't rush to write code — run three checks first:</p>
+<pre><code>python --version
+python -c "import sys; print(sys.executable)"
+pip --version
+</code></pre>
+<p>The second one is the key — it prints <strong>where the python you're actually using lives</strong>. Eight out of ten problems later get located with this one command. On Windows, if <code>python</code> isn't recognized, try <code>py --version</code> (the official launcher); on macOS / Linux it's usually <code>python3</code>.</p>
+<h2 id="2-Virtual-Environments-Hosting-Several-Projects-on-One-Machine-Without-Conflicts">2. Virtual Environments: Hosting Several Projects on One Machine Without Conflicts</h2>
+<p>This is the habit I most want you to take away from this article, bar none.</p>
+<p><img src="/media/docs/07-ai-eng-python/img-03.jpg" alt="Claude vs ChatGPT long-form writing: which is better for reports, proposals, and long-form content?" loading="lazy" decoding="async"></p>
+<p>First, why. If you don't create a virtual environment, everything installed by <code>pip install</code> goes into one place, called the <strong>main environment</strong> (system-level or user-level). All projects share it. So this happens: project A needs version 1 of some library, project B needs version 2; you upgrade for B, and A breaks that same afternoon—even though you didn't touch a single line of A's code.</p>
+<p>An analogy: the main environment is the company's only shared toolbox—whoever uses it throws things in, whoever uses it takes things out. A virtual environment is <strong>giving each project its own toolbox</strong>, with however many tools and whatever models it needs, each managed separately. (Best not to use the system's built-in Python, and don't use the Python installers bundled with other applications—install your own. This reduces conflicts.)</p>
+<p>Fortunately, this is a capability built into the standard library; since Python 3.3 you don't need to install anything extra:</p>
+<pre><code># Create one in the project directory, conventionally named .venv
+python -m venv .venv
+
+# Windows activation
+.venv\Scripts\activate
+
+# macOS / Linux activation
+source .venv/bin/activate
+</code></pre>
+<p>The sign of successful activation is a <code>(.venv)</code> at the front of the command line. If you don't trust it, use the first verification command: <code>python -c "import sys; print(sys.executable)"</code>—the path should point to the <code>.venv</code> under your project directory.</p>
+<p>Four rules, all learned the hard way:</p>
+<ul>
+<li><p>• <strong>Every time you start a new project, the first thing is to create a venv, not to write code.</strong></p>
+</li>
+<li><p>• <strong>Before <code>pip install</code>, check whether <code>(.venv)</code> is there.</strong> If you forget to activate and install anyway, everything goes into the main environment—equivalent to having built nothing.</p>
+</li>
+<li><p>• <strong><code>.venv</code> does not go into version control.</strong> The hundreds of megabytes of files inside are all local paths; committing them only harms others. Put it in <code>.gitignore</code>.</p>
+</li>
+<li><p>• <strong><code>.venv</code> cannot be copied to another machine.</strong> The paths inside the directory are hard-coded. When you change machines, rebuild it—rebuild from the dependency list, not by copying the directory.</p>
+</li>
+</ul>
+<p>One field-specific pitfall: <strong>on Debian / Ubuntu, <code>python -m venv</code> reports that ensurepip is unavailable.</strong> That's not your fault—that distribution split it into a separate package; just install it with <code>apt install python3-venv</code>.</p>
+<h2 id="3-Installing-packages-first-make-sure-you-can-connect-then-decide-which-version-to-install">3. Installing packages: first make sure you can connect, then decide which version to install</h2>
+<p>On site, installing packages always falls into two cases, and the approach is completely different.</p>
+<p><strong>Case one: the machine can reach the internet.</strong> One line is enough:</p>
+<pre><code>pip install openai
+</code></pre>
+<p>Directly connecting to the official source from mainland China is often so slow that it times out, so switching to a domestic mirror is standard practice — no need to feel like you're doing something shady:</p>
+<pre><code>pip install openai -i https://pypi.tuna.tsinghua.edu.cn/simple
+</code></pre>
+<p>If typing it every time is a hassle, set it as the default (user-level config, set once per machine):</p>
+<pre><code>pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+</code></pre>
+<p><strong>Case two: the machine cannot reach the internet — this is our main battleground.</strong> Financial institution intranets don't allow external access, so you have to install the packages on a machine with internet access and then copy them in. The standard two steps:</p>
+<pre><code># On a machine with network access: download the package and all its dependencies into the wheels directory
+pip download -d ./wheels -r requirements.txt
+
+# After copying to the intranet machine: install offline
+pip install --no-index --find-links=./wheels -r requirements.txt
+</code></pre>
+<p>There's a very easy place to trip up here, and one sentence explains it: <strong><code>pip download</code> by default only downloads packages that work on "this machine, this Python version."</strong></p>
+<p>So when the packaging machine and the target machine don't match (the most typical: you package on Windows + 3.13, and the client is Linux + 3.11), you must explicitly specify the target platform and add <code>--only-binary=:all:</code>:</p>
+<pre><code>pip download -d ./wheels -r requirements.txt \
+  --platform manylinux2014_x86_64 \
+  --python-version 311 \
+  --implementation cp \
+  --abi cp311 \
+  --only-binary=:all:
+</code></pre>
+<p>That last part is not optional: if even one package has no prebuilt wheel and can only be compiled from source, it makes pip fail on the spot, rather than quietly handing you a source package that can't be compiled in the client's data center. I'd rather it fail on my machine.</p>
+<p>Where does the dependency list come from? After installing the packages you need in a clean virtual environment:</p>
+<pre><code>pip freeze &gt; requirements.txt
+</code></pre>
+<p>One reminder: <code>freeze</code> writes <strong>all</strong> packages into the list, including ones you didn't install directly but that were pulled in by other packages. So do it in a clean venv, otherwise the list will be mixed with a bunch of irrelevant stuff. Version numbers <strong>must be pinned</strong> — if you don't pin them, the same list will install a different set of things three months later.</p>
+<p>There's also a problem that only shows up on enterprise networks: <strong>SSL certificate errors.</strong> The company network does man-in-the-middle decryption, pip doesn't recognize your root certificate, and so it reports certificate verification failure. This doesn't mean the network is broken. You can have pip temporarily trust that source (<code>--trusted-host</code>), or install the enterprise root certificate into pip's trust chain — the latter is more proper, the former is faster. This needs to be resolved before work starts, not the night before delivery.</p>
+<h2 id="4-Different-Ways-to-Learn-Python">4. Different Ways to Learn Python</h2>
+<p>Systematically learning something and looking up a piece of documentation are two different things. Choosing while mixing the two together usually means doing neither well, so keep them separate.</p>
+<p><strong>First, the "learning" side.</strong> The only criterion isn't whether it's famous or not—it's <strong>whether there are exercises after each section, and whether you can check your own answers</strong>. <strong>You must learn by doing.</strong></p>
+<p>I recommend the official Python tutorial; the official source is always the first-hand learning material: <a href="https://docs.python.org/zh-cn/3.15/tutorial/index.html" target="_blank" rel="noopener noreferrer">https://docs.python.org/zh-cn/3.15/tutorial/index.html</a></p>
+<p>If you find the translation or context a bit hard to follow, you can also study these tutorials:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Course</th>
+<th>Nature</th>
+<th>Exercise format</th>
+<th>How I use it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Liao Xuefeng's Python Tutorial</strong> liaoxuefeng.com/books/python/</td>
+<td>Individual · Chinese · Free</td>
+<td>Exercises after each section, answers at the end</td>
+<td>Filling gaps, explained plainly</td>
+</tr>
+<tr>
+<td><strong>Runoob Python 3</strong> runoob.com/python3/python3-tutorial.html</td>
+<td>Commercial site · Chinese · Free</td>
+<td>Run code directly in the page</td>
+<td>When I just want to try a line immediately</td>
+</tr>
+</tbody></table></div>
+<p>Now the "lookup" side. The pages below are tools, not textbooks—flip to them only when you need them.</p>
+<p>Of course, the best problem-solving tool now is AI. When looking things up, it's best not to enable web search, because the web pollutes the data—or specify that the AI should query the official community for solutions.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Official documentation</th>
+<th>Language</th>
+<th>What to look up</th>
+<th>Corresponds to this article</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Python Official Tutorial Chapter 12 "Virtual Environments and Packages" docs.python.org/zh-cn/3/tutorial/venv.html</td>
+<td>Chinese</td>
+<td>The whole chapter, not long</td>
+<td>II, III</td>
+</tr>
+<tr>
+<td>venv library docs docs.python.org/zh-cn/3/library/venv.html</td>
+<td>Chinese</td>
+<td>"Creating virtual environments" + parameter table</td>
+<td>II</td>
+</tr>
+<tr>
+<td>Installing Python Modules docs.python.org/zh-cn/3/installing/index.html</td>
+<td>Chinese</td>
+<td>Clarifies the relationship between pip and venv</td>
+<td>III</td>
+</tr>
+<tr>
+<td>pip User Guide / pip download pip.pypa.io/en/stable/user_guide/ · cli/pip_download/</td>
+<td>English</td>
+<td>requirements, platform parameters</td>
+<td>III</td>
+</tr>
+<tr>
+<td>Tsinghua PyPI mirror help mirrors.tuna.tsinghua.edu.cn/help/pypi/</td>
+<td>Chinese</td>
+<td>Copy the config commands as-is</td>
+<td>III</td>
+</tr>
+<tr>
+<td>"Errors and Exceptions" docs.python.org/zh-cn/3/tutorial/errors.html</td>
+<td>Chinese</td>
+<td>How to read a Traceback</td>
+<td>IV</td>
+</tr>
+</tbody></table></div>
+<h2 id="5-Getting-It-Running-for-the-First-Time-Editor-Command-Line-and-an-Error-Message">5. Getting It Running for the First Time: Editor, Command Line, and an Error Message</h2>
+<p>With the environment set up, the next step is "getting it running." There's a particularly sneaky pitfall here: <strong>what you installed is fine, but the interpreter being used isn't it.</strong></p>
+<p><strong><img src="/media/docs/07-ai-eng-python/img-04.jpg" alt="Bug report. Magnifying glass for bugs in computer software program. Bug report. Computer Virus Protection. Tracker Tool on Website. Flat Cartoon Vector Illustration, icon Stylish abstract design landing page" loading="lazy" decoding="async"></strong></p>
+<p><strong>First, make the editor recognize this <code>.venv</code>.</strong> Install VS Code plus the official Python extension, press <code>Ctrl+Shift+P</code>, type <code>Python: Select Interpreter</code>, and choose the one at <code>.venv\Scripts\python.exe</code> under the project directory. The symptoms of choosing wrong are very typical: it's clearly installed in the command line, but the editor is full of red squiggles saying the import can't be found—it's not that the library isn't installed, it's that the editor is using a different Python.</p>
+<p><strong>Second, run it in one fixed way.</strong> The triangle in the top-right corner of the editor, or <code>python demo.py</code> in the terminal (provided you're in the project directory and <code>.venv</code> is activated). Don't use the double-click-the-file approach—the error window flashes and disappears, and you see nothing.</p>
+<p><strong>Relative paths in a script are relative to "which directory you typed the command in," not to where the script is located.</strong> Writing <code>open("data.csv")</code> looks for the one in the current directory. If it runs fine in directory A but reports file not found in directory B, that's almost certainly the reason. To get the script's own location, use <code>Path(__file__).parent</code>.</p>
+<p><strong>Third, read the error.</strong> This is the most time-saving skill in this article. That big blob isn't meant to be read from the first line:</p>
+<pre><code>Traceback (most recent call last):
+  File "D:\proj\demo.py", line 12, in &lt;module&gt;
+    from openai import OpenAI
+ModuleNotFoundError: No module named 'openai'
+</code></pre>
+<p>Three ways to read it:</p>
+<ol>
+<li><p><strong>Read from the last line upward.</strong> The last line says "what the error is"—here it's that there's no <code>openai</code> library, either not installed or installed in a different interpreter.</p>
+</li>
+<li><p><strong>Go upward and find the first occurrence of your own file.</strong> The <code>site-packages\...</code> lines in the middle are someone else's code, skip them for now; <code>File "D:\proj\demo.py", line 12</code> is where you need to make changes.</p>
+</li>
+<li><p><strong>Look at the location it gives.</strong> Starting with Python 3.11, it directly marks which specific part of the expression is wrong, so you don't have to count parentheses yourself.</p>
+</li>
+</ol>
+<p>The three common errors have completely different handling approaches:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Error</th>
+<th>What it means</th>
+<th>What to check first</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ModuleNotFoundError</code></td>
+<td>Can't find the library</td>
+<td>Whether the interpreter is chosen correctly, whether it's in <code>pip list</code></td>
+</tr>
+<tr>
+<td><code>UnicodeDecodeError</code></td>
+<td>Wrong encoding</td>
+<td>Add <code>encoding="utf-8"</code> when reading the file; Windows defaults to GBK</td>
+</tr>
+<tr>
+<td><code>KeyError</code> / <code>IndexError</code></td>
+<td>The thing you're getting doesn't exist</td>
+<td>Upstream data changed, not a syntax error</td>
+</tr>
+</tbody></table></div>
+<p>The first two are environment problems, the third is a data problem. This classification is useful: <strong>you can fix environment problems yourself, but data problems require going back to whoever provided the data.</strong></p>
+<h2 id="6-Understanding-Unfamiliar-Code-Look-at-Only-Five-Places">6. Understanding Unfamiliar Code: Look at Only Five Places</h2>
+<p>The first four sections got the environment and execution working. This section starts on reading code.</p>
+<p><img src="/media/docs/07-ai-eng-python/img-05.jpg" alt="Code Review for AI-Generated Code: 2026 Standards | metacto" loading="lazy" decoding="async"></p>
+<p>I'm not asking you to write from a blank file. <strong>I'm asking that, given any piece of Python, you can say within five minutes what it does and where to change it.</strong> One method: don't look at details, find five places first.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Where to look</th>
+<th>What to find</th>
+<th>What it usually looks like</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>① Entry point</td>
+<td>Where execution starts</td>
+<td><code>if __name__ == "__main__":</code> at the end of the file</td>
+</tr>
+<tr>
+<td>② Config</td>
+<td>Where addresses, keys, model names come from</td>
+<td><code>os.environ.get(...)</code>, or uppercase variables in the first few lines</td>
+</tr>
+<tr>
+<td>③ Calls</td>
+<td>Where it talks to the outside</td>
+<td>Things like <code>client.chat.completions.create(...)</code></td>
+</tr>
+<tr>
+<td>④ Errors</td>
+<td>How failures are handled</td>
+<td><code>try</code> / <code>except</code>, and how many retries</td>
+</tr>
+<tr>
+<td>⑤ Results</td>
+<td>Where the output lands</td>
+<td>Writing a file, writing a database, or just <code>print</code></td>
+</tr>
+</tbody></table></div>
+<p>Scan these five places and the backbone of a two-hundred-line script is out; the rest is branches and leaves.</p>
+<p>The following runs directly (fictional scenario: a credit material preliminary review assistant; parameters are examples, replace with your project's). I compressed it to the shortest, but all five places are present:</p>
+<pre><code>"""Credit material preliminary review assistant: minimal runnable version (example conventions, replace parameters per project)"""
+import json, os, sys, time
+from openai import OpenAI
+
+# ② Configuration: everything taken from environment variables, keys not written in code
+API_KEY = os.environ.get("DEMO_API_KEY")
+BASE_URL = os.environ.get("DEMO_BASE_URL", "https://api.deepseek.com")
+MODEL = os.environ.get("DEMO_MODEL", "deepseek-chat")
+LOG = os.environ.get("DEMO_LOG", "runs.jsonl")
+
+PROMPT = """You are a credit material preliminary review assistant. Output only JSON, no explanations.
+Fields: missing (list of missing materials), risk (list of risk points), citation (source text), confidence (0-1)
+Materials:
+{material}
+"""
+
+def parse(raw: str) -&gt; dict:
+    """The model likes to wrap JSON in Markdown fences, strip them before parsing"""
+    text = raw.strip()
+    if text.startswith("```"):
+        text = text[3:].lstrip("`")
+        if text.lstrip().lower().startswith("json"):
+            text = text.lstrip()[4:]
+        text = text.rstrip("`").strip()
+    return json.loads(text)
+
+def validate(d: dict) -&gt; dict:
+    """④ Throw immediately if non-compliant, don't pass it down"""
+    if not isinstance(d.get("citation"), str) or not d["citation"].strip():
+        raise ValueError("citation cannot be empty")
+    c = float(d.get("confidence", -1))
+    if not 0 &lt;= c &lt;= 1:
+        raise ValueError(f"confidence out of range: {c}")
+    return {"missing": d.get("missing", []), "risk": d.get("risk", []),
+            "citation": d["citation"].strip(), "confidence": c}
+
+def main() -&gt; int:
+    if not API_KEY:
+        print("Missing DEMO_API_KEY, exiting", file=sys.stderr)
+        return 2
+    client = OpenAI(api_key=API_KEY, base_url=BASE_URL)   # ③ Call
+    material = "Business license, audit reports for the past three years, copy of legal representative's ID card, power of attorney"
+    for i in range(3):                                    # ④ Retry, with a limit
+        try:
+            resp = client.chat.completions.create(
+                model=MODEL, temperature=0,
+                messages=[{"role": "user",
+                           "content": PROMPT.format(material=material)}],
+                timeout=30,
+            )
+            result = validate(parse(resp.choices[0].message.content))
+            break
+        except Exception as e:
+            print(f"Attempt {i+1} failed: {type(e).__name__}: {e}", file=sys.stderr)
+            if i == 2:
+                return 1
+            time.sleep(pow(2, i))
+    with open(LOG, "a", encoding="utf-8") as f:           # ⑤ Result: one line per call
+        f.write(json.dumps({"result": result}, ensure_ascii=False) + "\n")
+    print(result)
+    return 0
+
+if __name__ == "__main__":      # ① Entry point
+    sys.exit(main())
+</code></pre>
+<p>The design trade-offs in this snippet are exactly what the previous articles have been discussing: config externalized, parsing must be fault-tolerant, validation must blow up on the spot (the only reason <code>validate</code> exists is to turn "silent errors" into "immediate errors"), retries have a cap and backoff, and every call leaves a one-line trace.</p>
+<p><strong>Understanding these five places is enough.</strong> As for how to systematically learn syntax to a "good enough" level, that's the software engineering volume's job; this article only covers its use in the AI chain.</p>
+<p><strong>While we're at it, let's unpack the phrase "network programming."</strong> Someone asked me whether they should learn network programming. My answer: <strong>you don't need to learn network programming, but you do need to be able to send a request.</strong></p>
+<p>These two things are far apart. Sockets, protocols, concurrency are for the people writing server-side code; what you do is <strong>call interfaces someone else has provided</strong>—model APIs, in-house systems, the service from Lecture 08, the action is the same: send it out, see what comes back.</p>
+<p>On-site troubleshooting, I fix on one order: <strong>hit it with curl first, then suspect the code.</strong> If it doesn't go through, the problem is the network, the address, or the key; only once it goes through does it come down to the code.</p>
+<pre><code>curl -X POST https://api.deepseek.com/chat/completions \
+  -H "Authorization: Bearer $DEMO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"Say one sentence"}]}'
+</code></pre>
+<p>In Python that's three lines (<code>pip install requests</code>):</p>
+<pre><code>import requests
+resp = requests.post(url, headers=headers, json=body, timeout=30)
+print(resp.status_code, resp.json())
+</code></pre>
+<p>Only two things must be remembered. <strong>Always set a timeout</strong>—<code>requests</code> doesn't set one by default; if the other side says nothing, the program hangs forever, and at the client site you can't even see a log. <strong>Read the status code to assign responsibility</strong>: 2xx means success; 4xx is your problem (401 key, 403 permission, 404 address, 429 rate limit); 5xx is their problem. This sentence is especially useful for assigning responsibility in client meetings—don't say "the interface errored," say "it returned 500, that's their side's problem."</p>
+<h2 id="7-Let-AI-Change-the-Code-but-You-Must-Hold-the-Acceptance-Authority">7. Let AI Change the Code, but You Must Hold the Acceptance Authority</h2>
+<p>Now you have an environment, a dependency list, and something that runs. What happens most often day to day isn't "writing from scratch"—it's "this part needs a change."</p>
+<p>Let's be clear about scope first: this is about <strong>those few dozen lines you have in hand, changing one or two spots</strong>; handing an entire requirement to a Coding Agent is the topic of Lecture 11, and the requirements are completely different.</p>
+<p>AI is genuinely capable now. But what I want to talk about isn't what it can do—it's <strong>how you get it to make changes, and how you know it hasn't broken anything after the change.</strong></p>
+<p>First, give it enough context—four things, and if any one is missing, it starts guessing:</p>
+<ol>
+<li><p>1. What this code does (one sentence)</p>
+</li>
+<li><ol start="2">
+<li><strong>The complete error</strong>, from the first line of the <code>Traceback</code> to the last, not a screenshot</li>
+</ol>
+</li>
+<li><p>3. What you just changed (a lot of the time the problem is right here, and it needs to know)</p>
+</li>
+<li><p>4. Your environment: Python version, operating system, versions of key libraries</p>
+</li>
+</ol>
+<p>Then hold three hard rules:</p>
+<ul>
+<li><p>• <strong>Change only one thing at a time.</strong> Cram five requirements into one sentence, and it'll give you something that touched everything but that you can't confidently confirm any single part of.</p>
+</li>
+<li><p>• <strong>You must run the code it gives you yourself.</strong> If it doesn't run, ask again; if it runs, that's only the first step—then check whether the result is correct.</p>
+</li>
+<li><p>• <strong>Before installing any library it tells you to install, see clearly what it is.</strong> This is a supply-chain issue, not a technical one. When going through approval with financial clients, they'll ask "who maintains this package, and does it have vulnerabilities?"</p>
+</li>
+</ul>
+<p>When looking at the change it gives, I only ask three questions: <strong>What did it delete? What new dependencies did it add? Did it turn my configuration into hardcoded values?</strong> Only when you can answer all three does this change pass.</p>
+<p>One counterexample must be called out: <strong>AI loves to add a try / except layer to code that "swallows all exceptions."</strong> Once added, the error really does disappear, but the problem isn't solved at all—it just turns a "visible error" into an "invisible error." In an ordinary project this is called laziness; in a financial system this is called an incident: <strong>you think it's running, but the data has been wrong all along.</strong></p>
+<p>So what counts as having learned it? Five points, all verifiable on the spot:</p>
+<ol>
+<li><p>1. On a clean machine, you can set up the environment following the steps you wrote down, without relying on memory.</p>
+</li>
+<li><p>2. You can explain clearly which interpreter <code>python</code> points to, and why it must be the one in <code>.venv</code>.</p>
+</li>
+<li><p>3. The client's intranet has no external network—you can package the dependencies into a single bundle, bring it in, and get it installed.</p>
+</li>
+<li><p>4. Given someone else's code, you can point out within two minutes where the configuration, the calls, and the exception handling are.</p>
+</li>
+<li><p>5. Given a change from AI, you can say which three places it touched, and you can run it yourself with correct results.</p>
+</li>
+</ol>
+<p><strong>Hands-on task</strong>: Pick a library you'll use today (say, some model's SDK) and go through the full process—create a venv, install the library, <code>freeze</code> out the list, then switch to a new directory and rebuild once according to the list. The moment the rebuild succeeds is the moment you've truly learned it.</p>
+<h2 id="8-Pitfalls">8. Pitfalls</h2>
+<p><strong>Not creating a virtual environment and installing globally instead.</strong> This is the source of all environment problems. The cost isn't visible at the time; it comes due two weeks later on another project.</p>
+<p><strong>Starting a new project on a version that's already end-of-life.</strong> 3.10 and below are all EOL. If it's running in a customer environment, that's legacy baggage—flag it; but choosing it for a new project is planting a landmine for yourself.</p>
+<p><strong>Not specifying <code>encoding</code> when reading files on Windows.</strong> The system default is GBK, so any UTF-8 file throws <code>UnicodeDecodeError</code>. <code>open(path, encoding="utf-8")</code> is mandatory—same for reading CSV and Excel. This comes up on-site more often than all syntax errors combined.</p>
+<p><strong>Building offline packages only on your own machine.</strong> If the build machine and target machine differ in OS, Python version, or CPU architecture—even one of them—the install can fail. Use <code>--platform</code> plus <code>--only-binary=:all:</code> to surface problems early, rather than discovering them once you're in the server room.</p>
+<p><strong>Version control is a must.</strong> When you have AI write code, you absolutely must use version control—otherwise it will refactor your existing project and you'll have no way to roll back. Git is recommended.</p>
+<p><strong>Using AI's changes directly after they're made.</strong> Not running them after the change, or not checking the results after running, means handing over your acceptance authority. In this role, acceptance authority is your last remaining value.</p>
+<hr>
+<p><strong>《The AI-FDE Transition Path》</strong>: Written for IT implementation / pre-sales / operations people who don't write code, to make their existing delivery skills "AI-ified." 55 articles in the series, 53 skills across six modules.</p>
+<p>Want to see what you're missing first: AI-FDE Skills Self-Assessment Map, 53 items scored, producing a radar chart. <a href="/docs/00-intro/">The AI-FDE Transition Path · Introduction</a></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/docs/06-ai-eng-tool-calling-principles/"><span class="dir">← Previous</span><span class="ttl">How a Model Actually Uses a Tool</span></a>
+<span class="spacer"></span>
+</div>
+    <div class="doc-foot">
+      <p>Want to see where you stand? Score yourself on the map  <a href="/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>

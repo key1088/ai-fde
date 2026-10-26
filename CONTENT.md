@@ -59,7 +59,7 @@ content/
         ├── zh.md                # 中文正文（import 生成 + 人工校对）
         └── en.md                # 英文正文（人工翻译）
 
-media/docs/<slug>/img-01.png ...  # 文中图片（站内绝对路径 /media/docs/<slug>/）
+media/docs/<slug>/img-01.<ext> ...  # 文中图片（png/jpg/webp）（站内绝对路径 /media/docs/<slug>/）
 
 assets/doc.css                    # 文档站公共样式
 tools/import-wechat.mjs           # 公众号 → Markdown 抓取转换
@@ -90,5 +90,5 @@ sitemap.xml                                                 # 含全部文档页
 1. **只搬不编**：`zh.md` 是作者原文，校对只修结构（标题层级、表格、错乱的加粗/链接），不改观点和措辞。
 2. **英文要全**：`en.md` 与 `meta.json` 的 `title.en` / `subtitle.en` / `summary.en` 都要填；页面标题、列表页、SEO 都读它们。
 3. **站内互链**：文内引用同系列文章，一律用站内路径（如 `/zh/docs/00-intro/`），不留外部链接。
-4. **图片进 media**：正文引用统一写 `/media/docs/<slug>/img-XX.png`。
+4. **图片进 media**：正文引用统一写 `/media/docs/<slug>/img-XX.<ext>`。
 5. **构建幂等**：`npm run build:all` 可重复执行，输出一致。

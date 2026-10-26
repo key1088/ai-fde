@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Context-Engineering：大模型到底看得见什么 · AI-FDE 转型之路</title>
+<meta name="description" content="大模型没有记忆，它每一轮看到的只是你重新拼好的一段文字。理解 Context 的组成、上限、压缩、幻觉和成本，才知道该往里面放什么、拿掉什么。">
+<link rel="canonical" href="https://ai-fde.dev/zh/docs/03-ai-eng-context/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/03-ai-eng-context/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/03-ai-eng-context/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/03-ai-eng-context/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Context-Engineering：大模型到底看得见什么">
+<meta property="og:description" content="大模型没有记忆，它每一轮看到的只是你重新拼好的一段文字。理解 Context 的组成、上限、压缩、幻觉和成本，才知道该往里面放什么、拿掉什么。">
+<meta property="og:url" content="https://ai-fde.dev/zh/docs/03-ai-eng-context/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/03-ai-eng-context/img-01.png">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Context-Engineering：大模型到底看得见什么","description":"大模型没有记忆，它每一轮看到的只是你重新拼好的一段文字。理解 Context 的组成、上限、压缩、幻觉和成本，才知道该往里面放什么、拿掉什么。","datePublished":"2026-10-13","inLanguage":"zh-CN","image":"https://ai-fde.dev/media/docs/03-ai-eng-context/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/zh/docs/03-ai-eng-context/","isPartOf":{"@type":"CreativeWorkSeries","name":"AI-FDE 转型之路"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/zh/docs/">AI-FDE <span>· 文档</span></a>
+  <nav>
+    <a href="/zh/">自评工具</a>
+    <a href="/zh/docs/" class="on">文档</a>
+    <a class="lang" href="/docs/03-ai-eng-context/">EN</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">本系列</div>
+<div class="toc-body">
+<a class="art" href="/zh/docs/00-intro/"><span class="no">01</span>为什么最懂客户的人反而最焦虑</a>
+<a class="art" href="/zh/docs/01-ai-eng-llm/"><span class="no">02</span>先搞清楚模型一定会错在哪</a>
+<a class="art" href="/zh/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompt 不是玄学，是可以回归测试的代码</a>
+<a class="art cur" href="/zh/docs/03-ai-eng-context/"><span class="no">04</span>Context-Engineering：大模型到底看得见什么</a>
+<a class="art" href="/zh/docs/04-ai-eng-rag/"><span class="no">05</span>知识库答不准，问题通常不在模型</a>
+<a class="art" href="/zh/docs/05-ai-eng-doc-parsing/"><span class="no">06</span>80% 的 RAG 问题出在文档解析</a>
+<a class="art" href="/zh/docs/06-ai-eng-tool-calling/"><span class="no">07</span>工具描述是写给模型看的说明书</a>
+<a class="art" href="/zh/docs/06-ai-eng-tool-calling-principles/"><span class="no">08</span>大模型怎么使用工具</a>
+<a class="art" href="/zh/docs/07-ai-eng-python/"><span class="no">09</span>Python 入门指南：先搞定环境，再谈代码</a>
+</div>
+<div class="toc-h">本页目录</div>
+<div class="toc-body">
+<a class="h2" href="#一Context是什么">一、Context是什么</a>
+<a class="h2" href="#二Prompt与Context的关系">二、Prompt与Context的关系</a>
+<a class="h2" href="#三Context与大模型">三、Context与大模型</a>
+<a class="h2" href="#四会话压缩">四、会话压缩</a>
+<a class="h2" href="#五大模型的幻觉">五、大模型的幻觉</a>
+<a class="h2" href="#六大模型的记忆">六、大模型的记忆</a>
+<a class="h2" href="#七什么叫Context-Engineering上下文工程">七、什么叫Context-Engineering（上下文工程）</a>
+<a class="h2" href="#八上下文都是钱">八、上下文都是钱</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
+    <article>
+      <h1 class="doc-title">Context-Engineering：大模型到底看得见什么</h1>
+      <p class="doc-sub">AI-FDE 转型之路 · AI 工程 03-Context-Engineering</p>
+      <p class="doc-meta">2026-10-13</p>
+      <h2 id="一Context是什么">一、Context是什么</h2>
+<p>Context是上下文，上下文怎么理解呢，学过技术的人比较懂，没有学过技术人还挺难理解，也可以称为语境。</p>
+<p>这个语境又怎么理解呢。例如小王和小明在聊天，小王讲了一个笑话，小明听到后哈哈大笑。小亮看到后很好奇，然后问他们为什么笑，小王将笑话的前因后果告诉了小亮，小亮也笑起来了。他们之间聊天的内容就是Context，就是上下文。</p>
+<h2 id="二Prompt与Context的关系">二、Prompt与Context的关系</h2>
+<p>Prompt是提示词，一般说Prompt就是一次输出的内容，如果对到人类身上，就是一次交互的内容（小王给小明说了一段话）。Prompt是Context里面的一次交互内容，可以是一句话，也可以是一段话。</p>
+<p><img src="/media/docs/03-ai-eng-context/img-01.png" alt="" loading="lazy" decoding="async"></p>
+<p>Context的真正形成从②开始，就是第一句话开始，经过③和④积累增加语境，⑤结束对话，两个人离开。</p>
+<p>人类与大模型对话不同点：<strong>人有记忆，而大模型是没有记忆的，你给AI说什么话，它就只记得你现在给它说的这句话。</strong></p>
+<h2 id="三Context与大模型">三、Context与大模型</h2>
+<p>刚刚说了，大模型只记得你刚刚说的话，大模型没有自动延续的聊天记忆功能。那怎么与大模型进行多次交互呢，DeepSeek的聊天是怎么做到的呢？不能只问一句，它回答一句就完事了吧。</p>
+<p>是这样的，你说第二句的话时候，程序将“你的第一句话内容”+“大模型第一次回答的内容”+“你的第二句话内容”全部发送给大模型。</p>
+<p>那第三句话的时候呢？程序将“你的第一句话内容”+“大模型第一次回答的内容”+“你的第二句话内容”+“大模型第二次回答的内容”+“你的第三句话内容”都发送给大模型。</p>
+<p>第四、五、六、N都是这样，1到N句话和大模型回答的内容这些就是Context。看下面的图不知道是否可以更好的理解Context上下文。</p>
+<p><img src="/media/docs/03-ai-eng-context/img-02.png" alt="" loading="lazy" decoding="async"></p>
+<p>每次与大模型交互的时候，都会将之前的聊天信息发送给大模型，大模型才能知道聊天的信息，类似滚雪球似的，越滚越大。大模型的上下文有没有上限呢，这个肯定是有的。例如：DeepSeek 官方资料显示，截至 2026 年 10 月。</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>模型</th>
+<th>最大上下文窗口</th>
+<th>最大输出长度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DeepSeek-V4-Pro</td>
+<td>1,048,576 Tokens（约 1M）</td>
+<td>393,216 Tokens</td>
+</tr>
+<tr>
+<td>DeepSeek-V4-Flash</td>
+<td>1,048,576 Tokens（约 1M）</td>
+<td>393,216 Tokens</td>
+</tr>
+</tbody></table></div>
+<p>那问题来了，<strong>Token又是什么呢。</strong></p>
+<p>Token 是大模型处理文本时使用的基本单位。一个汉字可能对应一个或多个 Token；一个英文单词也可能被拆成多个 Token。 这个根据什么来拆分呢，一个英文单子也要拆分吗。这个是由大模型使用的分词器（Tokenizer）及其词表决定的。</p>
+<p>雪球越滚越大，如果超过最大上下文窗口怎么办呢。如果真的超过了，大模型就没有办法处理了，就报错歇菜了。</p>
+<h2 id="四会话压缩">四、会话压缩</h2>
+<p>在产品设计时，都会设计上下文的大小，不会超过大模型最大的上下文窗口。当交互对话将要超过产品设计的阀值时，程序会对大模型的会话进行压缩，让大模型总结之前Context的内容，提取成为摘要，这样摘要变成了Context，Context的体积就减少了。</p>
+<p>除了压缩，还有很多 减少Context 体积的方法</p>
+<p>1）截断（Truncation）</p>
+<p>超过设定的范围，就丢弃最早的对话。</p>
+<p>例子：只保留最近 200 条消息，新消息进入后，删除最早的消息。</p>
+<p><img src="/media/docs/03-ai-eng-context/img-03.png" alt="" loading="lazy" decoding="async"></p>
+<p>2）历史筛选（History Filtering）</p>
+<p>根据规则或相关性，挑选与当前问题有关的历史信息。</p>
+<p>例子：用户询问数据库选型时，只保留之前讨论数据库的内容。</p>
+<p>3）检索（Retrieval）</p>
+<p>把历史信息存储起来，需要时再查找，而不是每次都全部发送给模型。</p>
+<p>例子：用户询问“之前确定的数据库是什么？”，程序从历史记录中找出相关内容。</p>
+<p>4）摘要与状态提取（Summarization / State Extraction）</p>
+<p>将大量对话整理成简短的关键信息。</p>
+<p>例子：把多轮讨论总结为“技术栈：Spring Boot + MySQL；当前任务：优化查询性能”。</p>
+<p>5）分层记忆（Hierarchical Memory）</p>
+<p>将信息分层保存，根据需要使用不同层级的内容。</p>
+<p>例子：最近的对话放在当前上下文中，项目的重要决定单独保存，旧资料需要时再检索。</p>
+<p>6）滑动窗口（Sliding Window）</p>
+<p>只保留最近一段对话，新内容进入后，旧内容逐渐移出。</p>
+<p>例子：始终保留最近 10 轮对话。它可以看作截断的一种实现方式。</p>
+<p>7）Token 预算分配（Token Budgeting）</p>
+<p>给不同内容分配 Token 额度，避免某一部分占用过多空间。</p>
+<p>例子：限制检索资料的长度，为当前问题和模型回答预留空间。</p>
+<p>8）外部记忆与持久化存储（External Memory）</p>
+<p>将重要信息保存到数据库或文件中，需要时再取出来使用。</p>
+<p>例子：把项目的技术栈、业务规则和关键决定保存起来，后续对话中按需读取。</p>
+<h2 id="五大模型的幻觉">五、大模型的幻觉</h2>
+<p>当你的Context越来越大时，Context描述的信息越来越多，大模型读取没有规则的数据时，可能就找不到重点了。东描述一点，西描述一点，大模型就开始产生幻觉，这是大模型产生幻觉的原因之一。</p>
+<p>当你的Context越来越大时，你启动了大模型压缩会话功能，将大量的内容精简一小段会话，你感觉精简的数据能保证原来的意思吗，是不是这一块大模型有出现了幻觉，这也是大模型产生幻觉的原因之一。</p>
+<p>因此，上下文管理不当和会话压缩失真，都可能增加大模型产生错误答案或幻觉的风险。</p>
+<h2 id="六大模型的记忆">六、大模型的记忆</h2>
+<p>记忆（Memory），前面我们说了，Context 是大模型本次回答时能够看到的信息。但如果每次都把所有历史对话发送给大模型，不仅会占用大量 Token，还需要将之前每一次对话发送给大模型，这样才能记住之前的内容。</p>
+<p>那么问题来了：如果不把所有历史对话都放进 Context，大模型怎么记住以前的信息呢？</p>
+<p>这就涉及记忆（Memory）。</p>
+<p>例如，你在一次对话中告诉 AI：“我正在开发一个 Spring Boot 项目，数据库使用 MySQL，JDK 版本是 17。”</p>
+<p>过了几天，你重新开启一个会话，询问：“帮我优化一下这个项目的查询性能。”</p>
+<p>如果 AI 能够记住之前的项目背景，就可以直接基于这些信息回答，而不必让你重新介绍一遍。</p>
+<p>那么，这些信息是怎么保存的？</p>
+<p>在实际应用中，记忆通常<strong>不是大模型自动永久保存所有对话</strong>，而是由应用程序将重要信息提取出来，保存到历史记录、数据库或其他存储中。可以是一个MD文件、一个JSON文件，一些数据库数据。</p>
+<p>当后续对话需要这些信息时，再将它们取出来，放入当前的 Context，发送给大模型。</p>
+<p>例如，你使用的workbuddy就会记录你的记忆，就算打开新的任务，它都会将你的个人喜好连同问题一起发送给大模型，这样就减少时间成本。</p>
+<h2 id="七什么叫Context-Engineering上下文工程">七、什么叫Context-Engineering（上下文工程）</h2>
+<p>阅读前面的内容后，你可能会发现，上下文管理并不只是把聊天记录发送给大模型那么简单。</p>
+<p>我们需要考虑：哪些信息应该保留，哪些信息应该删除，历史对话如何压缩，记忆如何保存，以及什么时候需要从知识库中检索信息。</p>
+<p>如果这些工作没有做好，即使使用能力很强的大模型，也可能因为缺少关键信息、上下文混乱或历史信息失真，给出错误的答案。</p>
+<p>因此，我们需要把这些工作当作一项工程来设计，这就是 Context Engineering（上下文工程）。</p>
+<p>在实际应用中，上下文工程通常需要考虑以下几个方面：</p>
+<p><strong>信息来源：</strong>&nbsp;系统指令、用户输入、历史对话、记忆、知识库和工具执行结果。</p>
+<p><strong>信息筛选：</strong>&nbsp;判断哪些信息与当前任务有关，避免无关内容干扰模型。</p>
+<p><strong>信息管理：</strong>&nbsp;对历史对话进行截断、摘要和压缩，控制 Context 的体积。</p>
+<p><strong>信息检索：</strong>&nbsp;在需要时，从知识库、数据库或历史记录中获取相关信息。</p>
+<p><strong>上下文组装：</strong>&nbsp;将筛选后的信息合理组织起来，再发送给大模型。</p>
+<p>而且上下文工程在 RAG 和 Agent 产品设计中尤其重要，会直接影响产品的质量。</p>
+<p><strong>大模型决定了模型能够做什么，而上下文工程在很大程度上决定了它在具体任务中能否获得正确的信息，并把能力发挥出来。</strong></p>
+<h2 id="八上下文都是钱">八、上下文都是钱</h2>
+<p>输入和输出都按 Token 计费，而且每次请求都要把整段上下文重新带上去。一段五千 Token 的系统提示词，一万次调用就是五千万 Token。这笔钱单个阶段看不出来，等上量之后，账单的金额是最扎眼的一行。随着算力的增加，这部分开销应该会越来越便宜了，像流量一样便宜。</p>
+<hr>
+<p><strong>《AI-FDE 转型之路》</strong>：写给不写代码的 IT 实施 / 售前 / 运维，把已有的交付能力「AI 化」。全系列 55 篇，六大模块 53 项技能。</p>
+<p>想先看看自己缺什么：AI-FDE 技能自评地图，53 项打分，出一张雷达图。<a href="/zh/docs/00-intro/">AI-FDE 转型之路 · 开篇</a></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/zh/docs/02-ai-eng-prompt/"><span class="dir">← 上一篇</span><span class="ttl">Prompt 不是玄学，是可以回归测试的代码</span></a>
+<a class="next" href="/zh/docs/04-ai-eng-rag/"><span class="dir">下一篇 →</span><span class="ttl">知识库答不准，问题通常不在模型</span></a>
+</div>
+    <div class="doc-foot">
+      <p>想先看看自己缺什么？用自评地图打个分  <a href="/zh/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>

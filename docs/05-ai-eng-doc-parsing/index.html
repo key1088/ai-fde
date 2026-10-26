@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>80% of RAG Problems Start in Document Parsing · The AI-FDE Transition Path</title>
+<meta name="description" content="The dirtiest, most tedious and highest-ROI part of RAG: four killers — scans, tables, multi-column layouts and heading hierarchy — plus chunking, a health-check sheet and a Dify implementation map.">
+<link rel="canonical" href="https://ai-fde.dev/docs/05-ai-eng-doc-parsing/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/05-ai-eng-doc-parsing/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/05-ai-eng-doc-parsing/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/05-ai-eng-doc-parsing/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="80% of RAG Problems Start in Document Parsing">
+<meta property="og:description" content="The dirtiest, most tedious and highest-ROI part of RAG: four killers — scans, tables, multi-column layouts and heading hierarchy — plus chunking, a health-check sheet and a Dify implementation map.">
+<meta property="og:url" content="https://ai-fde.dev/docs/05-ai-eng-doc-parsing/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/05-ai-eng-doc-parsing/img-01.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"80% of RAG Problems Start in Document Parsing","description":"The dirtiest, most tedious and highest-ROI part of RAG: four killers — scans, tables, multi-column layouts and heading hierarchy — plus chunking, a health-check sheet and a Dify implementation map.","datePublished":"2026-10-21","inLanguage":"en","image":"https://ai-fde.dev/media/docs/05-ai-eng-doc-parsing/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/docs/05-ai-eng-doc-parsing/","isPartOf":{"@type":"CreativeWorkSeries","name":"The AI-FDE Transition Path"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/docs/">AI-FDE <span>· Docs</span></a>
+  <nav>
+    <a href="/">Self-Assessment</a>
+    <a href="/docs/" class="on">Docs</a>
+    <a class="lang" href="/zh/docs/05-ai-eng-doc-parsing/">中文</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">In this series</div>
+<div class="toc-body">
+<a class="art" href="/docs/00-intro/"><span class="no">01</span>Why Those Who Know the Customer Best Are the Most Anxious</a>
+<a class="art" href="/docs/01-ai-eng-llm/"><span class="no">02</span>First, Understand Exactly Where the Model Will Always Fail</a>
+<a class="art" href="/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompts Aren't Magic — They're Code You Can Regression-Test</a>
+<a class="art" href="/docs/03-ai-eng-context/"><span class="no">04</span>Context Engineering: What the Model Can Actually See</a>
+<a class="art" href="/docs/04-ai-eng-rag/"><span class="no">05</span>When the Knowledge Base Is Wrong, the Model Usually Isn't</a>
+<a class="art cur" href="/docs/05-ai-eng-doc-parsing/"><span class="no">06</span>80% of RAG Problems Start in Document Parsing</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling/"><span class="no">07</span>Tool Descriptions Are Manuals Written for the Model</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling-principles/"><span class="no">08</span>How a Model Actually Uses a Tool</a>
+<a class="art" href="/docs/07-ai-eng-python/"><span class="no">09</span>A Python Primer: Get the Environment Right First</a>
+</div>
+<div class="toc-h">On this page</div>
+<div class="toc-body">
+<a class="h2" href="#1-Garbage-In-Garbage-Out-No-Model-Can-Fix-It">1. Garbage In, Garbage Out — No Model Can Fix It</a>
+<a class="h2" href="#2-The-Four-Killers">2. The Four Killers</a>
+<a class="h2" href="#3-How-to-Split-Choose-the-Right-Mode-First-Then-Tune-Parameters">3. How to Split: Choose the Right Mode First, Then Tune Parameters</a>
+<a class="h2" href="#4-A-Checkup-Sheet-Half-for-Diagnosis-Half-for-Treatment">4. A Checkup Sheet: Half for Diagnosis, Half for Treatment</a>
+<a class="h2" href="#5-DifyTool-Implementation-Mapping">5. Dify/Tool Implementation Mapping</a>
+<a class="h2" href="#6-What-Counts-as-Knowing-It">6. What Counts as Knowing It</a>
+<a class="h2" href="#7-Hands-on-tasks-do-them-in-order-dont-skip-steps">7. Hands-on tasks (do them in order, don't skip steps)</a>
+<a class="h2" href="#8-Pitfalls">8. Pitfalls</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/docs/">Docs</a> / The AI-FDE Transition Path</div>
+    <article>
+      <h1 class="doc-title">80% of RAG Problems Start in Document Parsing</h1>
+      <p class="doc-sub">The AI-FDE Transition Path · AI Engineering 05 — Document Parsing</p>
+      <p class="doc-meta">2026-10-21</p>
+      <h2 id="1-Garbage-In-Garbage-Out-No-Model-Can-Fix-It">1. Garbage In, Garbage Out — No Model Can Fix It</h2>
+<blockquote>
+<p>This article is for implementation, pre-sales, and operations people working on enterprise knowledge bases and RAG over policies, contracts, and manuals. It does not discuss model selection or fine-tuning. The parameters and thresholds here are starting points, not promises — you must calibrate them by sampling on each project.</p>
+</blockquote>
+<p>My view: document parsing is the segment of the entire RAG pipeline with the highest return on effort — and the one nobody wants to do.</p>
+<p>At the end of the last lecture I said that after grouping issues by pipeline stage, most of them land in parsing and chunking. This lecture covers the first of those two.</p>
+<p>Here's the counterintuitive part: this segment has almost no technical depth, yet it sets the ceiling on final quality. It's grunt work, not clever work. That's why nobody likes doing it — and it doesn't make a good weekly report either, not like "we switched to a bigger model." But this is the segment that decides whether the project lives or dies.</p>
+<p><img src="/media/docs/05-ai-eng-doc-parsing/img-01.png" alt="" loading="lazy" decoding="async"></p>
+<h2 id="2-The-Four-Killers">2. The Four Killers</h2>
+<p>Here's an analogy. You ask a chef to cook a dish, and you supply the ingredients. He doesn't recognize this batch of vegetables, and you haven't washed or chopped them—you just throw the whole muddy head into the pot, then judge, "This chef isn't up to standard." That's unreasonable, but this exact scenario plays out at client sites every day.</p>
+<p>Before documents make it into the knowledge base, they die at the hands of these four types:</p>
+<p>Type one: Scanned files. Image-based PDFs, where each page is actually a picture and must go through recognition to produce text. This recognition step is exceptionally good at reading "Article 3.2" as "Article 3.2 Kill," "5 million" as "5 square," and the code "ZX07" as "ZX0T." The errors are extremely specific, and silent—you won't find them unless you check against the original.</p>
+<p>How to spot: Try to select a passage of text in the PDF; if you can't select it, it's an image. Then pull 3 pages and check whether codes, amounts, and dates are readable.</p>
+<p>How to fix: Run OCR on these pages separately; after recognition, use regex spot-checks on article numbers, amounts, and dates, and flag pages with many errors for manual review.</p>
+<p>What acceptance looks like: Sample 10 key fields; codes/amounts/dates are readable and match the original, and the error rate drops to an acceptable range.</p>
+<p>Type two: Tables. Tables are the things most easily "physically broken." A thirty-row table gets sliced down the middle during chunking—the top half in chunk A, the bottom half in chunk B, and the header only in A. So whenever B is retrieved, the model sees a string of numbers with no column names. It answers wrong not because it's dumb, but because it can't see the header.</p>
+<p>How to spot: Find a long table that spans pages and check whether the header follows each chunk.</p>
+<p>How to fix: Preserve table structure during parsing and convert it to table markup—don't flatten the table into rows of text; for cross-page tables, backfill the header into every chunk.</p>
+<p>What acceptance looks like: Sample a cross-page table; every chunk shows the column names, and no chunk appears with "only numbers, no header."</p>
+<p>Type three: Multi-column layout. For two-column documents, many parsers read by physical line, so a sentence from the left column and a sentence from the right column alternate—it reads like two people talking past each other. Multi-column layouts are common in policies and contracts.</p>
+<p>How to spot: Find a passage of two-column content and check whether the sentences are coherent, whether you get a crossover like "the previous sentence is about credit approval, the next about the cafeteria."</p>
+<p>How to fix: Switch to a parser with layout coordinates and reorder by reading order—left column first, then right; after the change, sample three passages and read them to check for smoothness.</p>
+<p>What acceptance looks like: Sample three passages of two-column content; they read as one continuous passage, not a left-right alternating "conversation across the void."</p>
+<p>Type four: Heading hierarchy. This one is the most hidden. A passage belongs to "Chapter 3 / Section 2 / Article 3.2 / Notes"—this hierarchical relationship is expressed in the original document through font size and indentation, and after parsing it may all become one line of flat text. Once the hierarchy is lost, the model doesn't know where the applicable boundary of this passage lies—and for policies, the applicable boundary is almost everything.</p>
+<p>How to spot: Check whether chunks carry "Chapter X, Article Y," or whether they're all bare text with no discernible sense of belonging.</p>
+<p>How to fix: Record the heading path during chunking, concatenate it into a prefix and stuff it into the chunk, or preserve the parent heading as metadata.</p>
+<p>What acceptance looks like: Sample any three chunks; each one's beginning shows "which chapter and article it belongs to."</p>
+<p>How to fix these four types—the right-hand column of the table in Section IV gives the method item by item. But before fixing, there's something more important to discuss first—chunking.</p>
+<h2 id="3-How-to-Split-Choose-the-Right-Mode-First-Then-Tune-Parameters">3. How to Split: Choose the Right Mode First, Then Tune Parameters</h2>
+<p>First, let's correct a common misconception: splitting is not an aesthetic question of "how fine to cut," but a question of "what boundary to cut along."</p>
+<p>An analogy. To break a policy document into cards, there are two approaches: one ignores content and cuts every 500 characters; the other cuts by "article," one card per article. The former is easier, but often cuts an article in half and glues two articles together; the latter is slower, but every card is a complete article.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>How to split</th>
+<th>What it suits</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Fixed length</td>
+<td>Cut by character or token count, with overlap</td>
+<td>Documents with no inherent structure (meeting minutes, emails, chat logs)</td>
+<td>Prone to cutting mid-sentence or mid-table</td>
+</tr>
+<tr>
+<td>By structure</td>
+<td>Cut along heading / clause / paragraph boundaries</td>
+<td>Policies, contracts, manuals—things with numbering and hierarchy</td>
+<td>Must be able to recognize the structure first; pure scanned images won't work</td>
+</tr>
+<tr>
+<td>By semantics</td>
+<td>Merge adjacent paragraphs with similar meaning into one block</td>
+<td>Material with no hard structure and mixed content</td>
+<td>Requires an extra model run—cost and latency</td>
+</tr>
+</tbody></table></div>
+<p>My recommendation: for financial documents, default to the "by structure" mode. Policies and contracts inherently have numbering—"Article 3.2" is a ready-made boundary, and cutting by character count actually destroys it.</p>
+<p>Once the mode is right, then it's time for parameters. Here's a set of starting points for three parameters (suggested baseline, to be calibrated per project, not a commitment):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Suggested baseline</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Chunk size</td>
+<td>300–800 characters (or 500–1000 tokens)</td>
+<td>Too small loses context; too large scatters retrieval</td>
+</tr>
+<tr>
+<td>Overlap</td>
+<td>10%–20% of chunk length</td>
+<td>Keeps sentences at boundaries from being cut off</td>
+</tr>
+<tr>
+<td>Hard cap</td>
+<td>Force re-split beyond 1500 characters</td>
+<td>Any larger exceeds the scope of "one meaning"</td>
+</tr>
+</tbody></table></div>
+<p>But more effective than tuning parameters are these two moves.</p>
+<p>Move one: give every chunk a "provenance prefix." The chunks you cut out are bare; just prepend "Chapter 3 / Section 2 / Article 3.2" to each, and it gains belonging. When a retrieval hit comes back, the model sees a passage with its source, not a sentence that appeared out of nowhere. This move costs nothing, and its effect is usually more obvious than fiddling with parameters for ages.</p>
+<p>Move two: retrieve with small chunks, feed the model large chunks. During retrieval, search by small chunk—accurate; after finding it, don't hand that small block to the model, but pass along the entire section it belongs to—complete view. The industry calls this "small-to-big retrieval." Most document-oriented scenarios should do this; this one move alone rescues many "right answer but can't state the source" problems.</p>
+<p><img src="/media/docs/05-ai-eng-doc-parsing/img-02.png" alt="" loading="lazy" decoding="async"></p>
+<h2 id="4-A-Checkup-Sheet-Half-for-Diagnosis-Half-for-Treatment">4. A Checkup Sheet: Half for Diagnosis, Half for Treatment</h2>
+<p>This is the thing I took away with me, and it's the page from this article that most deserves to be printed out. Pull twenty representative documents and go through them one by one, note down where they're bad, and the right-hand column tells you directly how to fix it (the example counts are just to illustrate the method—calibrate to your own project):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Check item</th>
+<th>How to check</th>
+<th>What failing looks like</th>
+<th>How to fix</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Is it a scanned document</td>
+<td>Try selecting a passage of text in the PDF; if you can't select it, it's an image</td>
+<td>The whole thing is selectable, but a few image pages are mixed in</td>
+<td>Run those pages through recognition separately; after recognition, spot-check with regex on clause numbers, amounts, and dates, and flag pages with a high error rate for manual review</td>
+</tr>
+<tr>
+<td>Are numbers misrecognized</td>
+<td>Sample ten clause numbers and compare them character by character against the paper/image original</td>
+<td>Letter O mixed up with digit 0, 1 mixed up with l</td>
+<td>Don't expect general-purpose recognition to be fully correct. Do targeted validation only on key fields: clause numbers, amounts, dates—these three, because errors there cause real trouble</td>
+</tr>
+<tr>
+<td>Are tables still intact</td>
+<td>Find a long table that spans pages and see whether the header follows each segment</td>
+<td>Only the first page has column names</td>
+<td>Preserve table structure during parsing (convert to table markup); don't flatten tables into rows of text; for tables spanning pages, backfill the header into every segment</td>
+</tr>
+<tr>
+<td>Are multi-column layouts mixed up</td>
+<td>Find a section of two-column content and see whether the sentences are coherent</td>
+<td>The previous sentence is about credit approval, the next is about the cafeteria</td>
+<td>Switch to parsing with layout coordinates and reorder by reading order (left column first, then right); after fixing, sample three passages and read them to check they flow</td>
+</tr>
+<tr>
+<td>Are heading levels present</td>
+<td>See whether a chunk can carry "Chapter X, Article Y"</td>
+<td>All bare text, no way to tell what it belongs to</td>
+<td>Record the heading path when chunking, assemble it into a prefix, and stuff it into the chunk (that's the first trick from the previous section)</td>
+</tr>
+<tr>
+<td>Are headers and footers cleaned out</td>
+<td>Search for a common header word and see how many hits you get</td>
+<td>Every page has the company letterhead and page number mixed in</td>
+<td>Deduplicate by position (remove repeated content at the same position on each page); don't delete by keyword—keywords will hit body text by mistake</td>
+</tr>
+<tr>
+<td>Are chunk boundaries reasonable</td>
+<td>Sample ten chunks and see whether the start is half a sentence</td>
+<td>Most chunks start mid-sentence</td>
+<td>Stop fiddling with character counts; switch to "structure-based" chunking (the second tier from the previous section)</td>
+</tr>
+</tbody></table></div>
+<p>Of the seven, I think three must be checked first: scanned documents, tables, and heading levels. If these three are broken, no amount of tuning later will save it. The other four make the results a bit better; these three make the results possible at all.</p>
+<h2 id="5-DifyTool-Implementation-Mapping">5. Dify/Tool Implementation Mapping</h2>
+<p>The tool is not the point; the point is whether every action has a corresponding acceptance checkpoint in the tool. This applies to Dify, and to any other tool as well. The table below is a mapping of "what to ask, where to configure" during implementation—not written as a tutorial:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Article Action</th>
+<th>Corresponding Entry Point in Dify</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Scanned/complex PDF parsing</td>
+<td>Knowledge Pipeline connected to parsing plugins like MinerU, LlamaParse; or external knowledge base</td>
+<td>Don't rely on the default extractor to read images</td>
+</tr>
+<tr>
+<td>Table structure preservation</td>
+<td>Parsing plugin outputs HTML/structured markup</td>
+<td>Check whether cross-page headers are backfilled</td>
+</tr>
+<tr>
+<td>Multi-column reordering</td>
+<td>Unstructured, Docling plugins, or RAGFlow external knowledge base</td>
+<td>Check whether reading order is left-to-right</td>
+</tr>
+<tr>
+<td>Structure-based chunking</td>
+<td>Custom segment identifier + regex; Markdown Header</td>
+<td>Validate regex against the original text first—don't damage body content</td>
+</tr>
+<tr>
+<td>Small retrieval, large feed</td>
+<td>Parent-child chunking mode</td>
+<td>Select at creation; cannot be changed afterward</td>
+</tr>
+<tr>
+<td>Provenance prefix</td>
+<td>Preserve parent heading metadata / Metadata Filtering</td>
+<td>Don't pollute body content</td>
+</tr>
+<tr>
+<td>Retrieval tuning</td>
+<td>Hybrid search + Rerank + TopK/threshold</td>
+<td>Change the tier first, then tune parameters</td>
+</tr>
+</tbody></table></div>
+<p>To reiterate the order: first clean up the parsing entry point, then create the knowledge base and select parent-child mode and structural anchors, then confirm metadata preservation, and only then touch TopK and thresholds. After changes, re-verify.</p>
+<h2 id="6-What-Counts-as-Knowing-It">6. What Counts as Knowing It</h2>
+<p>You can tell your own knowledge base, "Our worst category of documents is such-and-such," and back it up with evidence (the results of a twenty-document sample check).</p>
+<p>You can say which chunking approach you're currently using, and why it's that one—if you can't give a reason, it's probably just the default parameters that have been running all along.</p>
+<p>You spot-check any three chunks, and at the start of each one you can see "which chapter and which section it belongs to."</p>
+<p>When the client says "let's add some more materials," you can first ask "what format are these materials in?" instead of just taking them and parsing them right away.</p>
+<p>You know who on the team is responsible for accepting this part—if no one is, then it's you.</p>
+<p>One self-check question: in your knowledge base, what percentage is scanned documents? If you can't answer, chances are there's a batch of documents that has never been parsed correctly.</p>
+<h2 id="7-Hands-on-tasks-do-them-in-order-dont-skip-steps">7. Hands-on tasks (do them in order, don't skip steps)</h2>
+<p>Pull twenty documents from the knowledge base, run them through the checklist, and sort them into three piles: "passes / barely usable / must be redone." If the last pile exceeds 20% (an example threshold, used here only to illustrate the approach), don't move on to the later optimizations — go back and re-parse first.</p>
+<p>Output: the checklist + the three-pile list.</p>
+<p>Answer one sentence: "Which chunking approach am I currently using?" If the documents have numbering and you're using fixed-length chunking, redo it with structure-based chunking and run the same ten questions against it — change the approach first, then tune parameters.</p>
+<p>Output: a one-sentence statement + a before/after 10-question comparison table.</p>
+<p>Grab three chunks at random and check whether the beginning contains "Chapter X, Section Y." If not, prepend the heading path — this is the cheapest fix in this article.</p>
+<p>Output: screenshots or text of the 3 chunks, with "Chapter X, Section Y" added.</p>
+<p>After fixing, run the checklist again. If you don't re-check after fixing, it's as good as not fixing at all.</p>
+<p>Output: the re-check checklist, with the items that got worse marked.</p>
+<p>A change without a re-check record doesn't count as done; a checklist without an owner doesn't count as implemented.</p>
+<h2 id="8-Pitfalls">8. Pitfalls</h2>
+<p>Twisting the parameters while refusing to change the chunking mode. The most common form of spinning in place: chunk size goes from 500 to 300 and then to 800, overlap goes from 10% to 30%, and results never improve. The reason is that the mode was wrong from the start — the document has numbering but is being chunked by character count, so no matter how you tune the parameters, you're just manufacturing fragments. Pick the right mode first, then talk about parameters.</p>
+<p>Spot-checking only the electronic-version documents and assuming everything is fine. Many documents today are "semi-electronic": electronic layout at the front, a few pages of scanned signature images in the middle, electronic again at the back. Sampling must cover those scanned pages, or the health-check results will be overly optimistic.</p>
+<p>Using manual labor to re-sort everything. I've seen teams, in order to make documents "clean," assign people to re-enter hundreds of policy documents from scratch. High cost, long cycle, and any policy change means starting over. That money is usually better spent tuning the parsing script, unless the total document count is only a few dozen.</p>
+<p>(After changing the parsing, remember to re-check — rerun the health-check table and see whether those metrics actually came down. Changing without re-checking is the same as not changing.)</p>
+<p>Next lecture shifts gear, from "what to feed the model" to "how to get the model to call external systems": tool descriptions are the manual written for the model to read.</p>
+<hr>
+<p>"The AI-FDE Transition Path": written for IT implementation / pre-sales / operations people who don't write code, to turn existing delivery capabilities into "AI-ized" ones. 55 articles in the full series, 53 skills across six major modules.</p>
+<p>Want to first see what you're missing: the AI-FDE Skills Self-Assessment Map, 53 items scored, producing a radar chart. <a href="/docs/00-intro/">The AI-FDE Transition Path · Introduction</a></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/docs/04-ai-eng-rag/"><span class="dir">← Previous</span><span class="ttl">When the Knowledge Base Is Wrong, the Model Usually Isn't</span></a>
+<a class="next" href="/docs/06-ai-eng-tool-calling/"><span class="dir">Next →</span><span class="ttl">Tool Descriptions Are Manuals Written for the Model</span></a>
+</div>
+    <div class="doc-foot">
+      <p>Want to see where you stand? Score yourself on the map  <a href="/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>

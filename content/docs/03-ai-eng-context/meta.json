@@ -1,0 +1,38 @@
+{
+  "slug": "03-ai-eng-context",
+  "series": "ai-fde-roadmap",
+  "order": 3,
+  "source": "https://mp.weixin.qq.com/s/6ZUkfI-f8eEAsyDoLntXHg",
+  "date": "2026-10-13",
+  "images": [
+    {
+      "name": "img-01.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR80YHttXe2bEuKK8XLsRrYDL1G4icYATRqKWf8zdonWJHOO0mYibyNRZsIQZ02edbUE1E5NFOSV6SCqPAjiaUdpeq0N0sysE4wnkAY/640?wx_fmt=png&from=appmsg"
+    },
+    {
+      "name": "img-02.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR83WsIXKSfiaBhBhBtYmv1Eruvb76PLTvU7ibjHh8tHkcbdqWhfygJ1xHSMl5TicibAAtxA2rnRCkrvkCEpu0iclgqkhUQ3786rym6V4/640?wx_fmt=png&from=appmsg"
+    },
+    {
+      "name": "img-03.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR82KFVNVY2yJsF4AffhBGRjxF7WrjDQD0HQgl4ibo0lumibkVMy2EOzegBUuPsrvAXc20KoWibjeO3O22Ho1WUgZ9HGXKqZbqR8JhI/640?wx_fmt=png&from=appmsg"
+    }
+  ],
+  "title": {
+    "zh": "Context-Engineering：大模型到底看得见什么",
+    "en": "Context Engineering: What the Model Can Actually See"
+  },
+  "subtitle": {
+    "zh": "AI-FDE 转型之路 · AI 工程 03-Context-Engineering",
+    "en": "The AI-FDE Transition Path · AI Engineering 03 — Context Engineering"
+  },
+  "summary": {
+    "zh": "大模型没有记忆，它每一轮看到的只是你重新拼好的一段文字。理解 Context 的组成、上限、压缩、幻觉和成本，才知道该往里面放什么、拿掉什么。",
+    "en": "A model has no memory: every turn it sees only the text you reassemble and send. Understand what context contains, how it is capped, compressed and billed — and you know what to put in and what to leave out."
+  },
+  "tags": [
+    "AI工程",
+    "Context",
+    "大模型原理"
+  ]
+}
