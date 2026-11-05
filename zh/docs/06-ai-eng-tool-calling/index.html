@@ -31,7 +31,7 @@
   </nav>
 </header>
 <div class="wrap">
-  <nav class="toc">
+  <nav class="toc" id="series-nav">
 <div class="toc-h">本系列</div>
 <div class="toc-body">
 <button type="button" class="toc-grp" data-g="intro" aria-expanded="true" aria-controls="grp-intro">
@@ -59,6 +59,10 @@
 </div>
 </div>
   </nav>
+<button id="series-btn" type="button" aria-controls="series-nav" aria-expanded="true" title="展开 / 收起系列目录">
+  <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M7.5 2.5 L3.5 6 L7.5 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span class="lb">本系列</span>
+</button>
   <main>
     <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
     <article>
@@ -148,7 +152,7 @@
 <p><strong>工作流当工具</strong>：把一串步骤（先查、再判断、再去查）包成一个工具给上一层调用。这是我们最常用的办法，复杂度收在里面，外面只露一个干净的出口。</p>
 <p><strong>MCP</strong>：把一整套能力打包成一个服务，多个应用共用。这条第 07 讲专门说。</p>
 <p>最后一条我自己的红线：同一个决策层上，工具不要超过十个。超过十个，模型挑错工具的次数会明显往上走。这时候该做的不是继续打磨描述，而是把同类工具合并，或者按场景分组做二级路由——先让一道粗分类器选场景，再进场景里的工具集。</p>
-<p>最后答一个高频问题：<strong>那 Agent 算哪一类？</strong>&nbsp;它不在清单里——<strong>它是拿工具的那一层，不是手里的工具</strong>。工具一次调用、一次结果；Agent 把"再想想下一步"这个循环跑起来，自己决定调什么、什么时候收工。两者是包含关系不是并列关系：<strong>没有工具的 Agent，只是个聊得漂亮却什么都办不了的聊天机器人。</strong></p>
+<p>最后答一个高频问题：<strong>那 Agent 算哪一类？</strong> 它不在清单里——<strong>它是拿工具的那一层，不是手里的工具</strong>。工具一次调用、一次结果；Agent 把"再想想下一步"这个循环跑起来，自己决定调什么、什么时候收工。两者是包含关系不是并列关系：<strong>没有工具的 Agent，只是个聊得漂亮却什么都办不了的聊天机器人。</strong></p>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -173,7 +177,7 @@
 <td>可能自我纠错，也可能一路自我确认到错到底（第 09 讲那场事故）</td>
 </tr>
 </tbody></table></div>
-<p>有一种情况会让你觉得清单里也有 Agent：把一个专门的小循环包成工具交给上层调用（子循环当工具用）。这不矛盾——<strong>对调用它的那一层它是个工具，对它自己那层它是完整循环</strong>。界线只有一条：<strong>它有没有"再想想下一步"这一步。</strong>&nbsp;有的，按第 09 讲那套给它画停止线；没有的，把这段描述写好就够了。</p>
+<p>有一种情况会让你觉得清单里也有 Agent：把一个专门的小循环包成工具交给上层调用（子循环当工具用）。这不矛盾——<strong>对调用它的那一层它是个工具，对它自己那层它是完整循环</strong>。界线只有一条：<strong>它有没有"再想想下一步"这一步。</strong> 有的，按第 09 讲那套给它画停止线；没有的，把这段描述写好就够了。</p>
 <h2 id="三工具接上了不等于模型会用">三、工具接上了，不等于模型会用</h2>
 <p>恒信银行的制度问答做到第三个月，我们给系统挂了三个工具：查制度生效日期、查某份文档的适用范围、查条款修订记录。上线后发现问题：明明该查生效日期的，系统偏要自己去材料里翻，翻不到就编一个。</p>
 <p>我们一开始以为是模型的推理能力不够。后来把工具描述调出来看，那个工具的说明只有一行：「查询制度的生效日期」。</p>
@@ -295,22 +299,35 @@
 (function(){
   var toc=document.querySelector('nav.toc');
   if(!toc)return;
-  var h=toc.querySelector('.toc-h');
-  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
-  // 分组折叠：点组标题收起 / 展开；当前文章所在组锁定展开；其余组记住上次状态
+  var head=toc.querySelector('.toc-h');
+  if(head){head.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  // 左侧抽屉：默认展开；点左箭头收起，正文区随之铺满
+  var sb=document.getElementById('series-btn');
+  function paintNav(open){
+    document.body.classList.toggle('nav-closed',!open);
+    if(sb)sb.setAttribute('aria-expanded',open?'true':'false');
+  }
+  var sSaved=null;
+  try{sSaved=localStorage.getItem('aifde-series-open');}catch(e){}
+  paintNav(sSaved!=='0');
+  if(sb){sb.addEventListener('click',function(){
+    var willOpen=document.body.classList.contains('nav-closed');
+    paintNav(willOpen);
+    try{localStorage.setItem('aifde-series-open',willOpen?'1':'0');}catch(e){}
+  });}
+  // 分组折叠：当前文章所在组锁定展开，其余组记住上次状态
   var KEY='aifde-toc-collapsed',saved={};
   try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
   toc.querySelectorAll('button.toc-grp').forEach(function(btn){
     var k=btn.getAttribute('data-g');
     var body=toc.querySelector('.toc-grp-body[data-g="'+k+'"]');
     if(!body)return;
-    var lock=btn.getAttribute('data-lock')==='1';
     function paint(closed){
       btn.classList.toggle('collapsed',closed);
       body.classList.toggle('collapsed',closed);
       btn.setAttribute('aria-expanded',closed?'false':'true');
     }
-    if(lock){paint(false);}else if(saved[k]){paint(true);}
+    if(btn.getAttribute('data-lock')==='1'){paint(false);}else if(saved[k]){paint(true);}
     btn.addEventListener('click',function(){
       var closed=!body.classList.contains('collapsed');
       paint(closed);
@@ -318,6 +335,10 @@
       try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
     });
   });
+})();
+</script>
+<script>
+(function(){
   var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');

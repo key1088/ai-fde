@@ -35,6 +35,8 @@ const UI = {
     docs: '文档',
     otherLang: 'EN',
     series: '本系列',
+    seriesShort: '本系列',
+    seriesToggle: '展开 / 收起系列目录',
     onThisPage: '本页目录',
     close: '关闭',
     prev: '上一篇',
@@ -51,6 +53,8 @@ const UI = {
     docs: 'Docs',
     otherLang: '中文',
     series: 'In this series',
+    seriesShort: 'Series',
+    seriesToggle: 'Show / hide the series menu',
     onThisPage: 'On this page',
     close: 'Close',
     prev: 'Previous',
@@ -65,6 +69,57 @@ const UI = {
 };
 
 marked.setOptions({ gfm: true, breaks: false });
+
+// 左侧系列目录的通用脚本（文章页与列表页共用）：抽屉开关 + 移动端 ☰ + 分组折叠
+const NAV_JS = `
+(function(){
+  var toc=document.querySelector('nav.toc');
+  if(!toc)return;
+  var head=toc.querySelector('.toc-h');
+  if(head){head.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  // 左侧抽屉：默认展开；点左箭头收起，正文区随之铺满
+  var sb=document.getElementById('series-btn');
+  function paintNav(open){
+    document.body.classList.toggle('nav-closed',!open);
+    if(sb)sb.setAttribute('aria-expanded',open?'true':'false');
+  }
+  var sSaved=null;
+  try{sSaved=localStorage.getItem('aifde-series-open');}catch(e){}
+  paintNav(sSaved!=='0');
+  if(sb){sb.addEventListener('click',function(){
+    var willOpen=document.body.classList.contains('nav-closed');
+    paintNav(willOpen);
+    try{localStorage.setItem('aifde-series-open',willOpen?'1':'0');}catch(e){}
+  });}
+  // 分组折叠：当前文章所在组锁定展开，其余组记住上次状态
+  var KEY='aifde-toc-collapsed',saved={};
+  try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
+  toc.querySelectorAll('button.toc-grp').forEach(function(btn){
+    var k=btn.getAttribute('data-g');
+    var body=toc.querySelector('.toc-grp-body[data-g="'+k+'"]');
+    if(!body)return;
+    function paint(closed){
+      btn.classList.toggle('collapsed',closed);
+      body.classList.toggle('collapsed',closed);
+      btn.setAttribute('aria-expanded',closed?'false':'true');
+    }
+    if(btn.getAttribute('data-lock')==='1'){paint(false);}else if(saved[k]){paint(true);}
+    btn.addEventListener('click',function(){
+      var closed=!body.classList.contains('collapsed');
+      paint(closed);
+      saved[k]=closed;
+      try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
+    });
+  });
+})();
+`;
+
+function seriesBtn(t) {
+  return `<button id="series-btn" type="button" aria-controls="series-nav" aria-expanded="true" title="${esc(t.seriesToggle)}">
+  <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M7.5 2.5 L3.5 6 L7.5 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span class="lb">${esc(t.seriesShort)}</span>
+</button>`;
+}
 
 const problems = [];
 
@@ -117,6 +172,16 @@ function renderBody(md) {
     a.setAttribute('target', '_blank');
     a.setAttribute('rel', 'noopener noreferrer');
   });
+  // 公众号原文常带 NBSP（&nbsp;），会把中文行里的长串锁死不换行 → 统一成普通空格（pre 内保留）
+  {
+    const walker = doc.createTreeWalker(c, dom.window.NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const n of nodes) {
+      if (n.parentElement && n.parentElement.closest('pre')) continue;
+      if (n.nodeValue.includes('\u00a0')) n.nodeValue = n.nodeValue.replace(/\u00a0/g, ' ');
+    }
+  }
   // 自检：中文标点紧贴 ** 时 CommonMark 不认，会漏成字面星号。
   // 代码块里的 **（如 Python 的 dict 展开）不是 Markdown 残留，检查前先排除。
   const textOnly = c.cloneNode(true);
@@ -229,9 +294,10 @@ ${ADSENSE}
   </nav>
 </header>
 <div class="wrap">
-  <nav class="toc">
+  <nav class="toc" id="series-nav">
 ${seriesNav}
   </nav>
+${seriesBtn(t)}
   <main>
     <div class="crumb"><a href="/${L.dir}/">${esc(t.home)}</a> / ${esc(series.title[lang] || series.title.zh)}</div>
     <article>
@@ -248,33 +314,9 @@ ${pager}
 ${pageToc ? `  <nav class="page-toc" id="page-toc" aria-hidden="true">\n${pageToc}\n  </nav>\n` : ''}</div>
 ${pageToc ? `<button id="pagetoc-btn" type="button" aria-controls="page-toc" aria-expanded="false">${esc(t.onThisPage)}</button>` : ''}
 <button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>${NAV_JS}</script>
 <script>
 (function(){
-  var toc=document.querySelector('nav.toc');
-  if(!toc)return;
-  var h=toc.querySelector('.toc-h');
-  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
-  // 分组折叠：点组标题收起 / 展开；当前文章所在组锁定展开；其余组记住上次状态
-  var KEY='aifde-toc-collapsed',saved={};
-  try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
-  toc.querySelectorAll('button.toc-grp').forEach(function(btn){
-    var k=btn.getAttribute('data-g');
-    var body=toc.querySelector('.toc-grp-body[data-g="'+k+'"]');
-    if(!body)return;
-    var lock=btn.getAttribute('data-lock')==='1';
-    function paint(closed){
-      btn.classList.toggle('collapsed',closed);
-      body.classList.toggle('collapsed',closed);
-      btn.setAttribute('aria-expanded',closed?'false':'true');
-    }
-    if(lock){paint(false);}else if(saved[k]){paint(true);}
-    btn.addEventListener('click',function(){
-      var closed=!body.classList.contains('collapsed');
-      paint(closed);
-      saved[k]=closed;
-      try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
-    });
-  });
   var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');
@@ -384,13 +426,14 @@ ${ADSENSE}
   </nav>
 </header>
 <div class="wrap">
-  <nav class="toc">
+  <nav class="toc" id="series-nav">
     <div class="toc-h">${esc(t.series)}</div>
     <div class="toc-body">
       <a class="art cur" href="/${L.dir}/">${esc(series.title[lang] || series.title.zh)}</a>
 ${tocGroups({ lang, dir: L.dir, currentSlug: '' })}
     </div>
   </nav>
+${seriesBtn(t)}
   <main>
     <div class="hero">
       <h1>${esc(series.title[lang] || series.title.zh)}</h1>
@@ -403,32 +446,7 @@ ${cards}
     </div>
   </main>
 </div>
-<script>
-(function(){
-  var toc=document.querySelector('nav.toc');
-  if(!toc)return;
-  var h=toc.querySelector('.toc-h');
-  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
-  var KEY='aifde-toc-collapsed',saved={};
-  try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
-  toc.querySelectorAll('button.toc-grp').forEach(function(btn){
-    var k=btn.getAttribute('data-g');
-    var body=toc.querySelector('.toc-grp-body[data-g="'+k+'"]');
-    if(!body)return;
-    function paint(closed){
-      btn.classList.toggle('collapsed',closed);
-      body.classList.toggle('collapsed',closed);
-      btn.setAttribute('aria-expanded',closed?'false':'true');
-    }
-    if(saved[k]){paint(true);}
-    btn.addEventListener('click',function(){
-      var closed=!body.classList.contains('collapsed');
-      paint(closed);
-      saved[k]=closed;
-      try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
-    });
-  });
-})();
+<script>${NAV_JS}</script>
 </script>
 </body>
 </html>

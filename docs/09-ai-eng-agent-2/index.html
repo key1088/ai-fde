@@ -31,7 +31,7 @@
   </nav>
 </header>
 <div class="wrap">
-  <nav class="toc">
+  <nav class="toc" id="series-nav">
 <div class="toc-h">In this series</div>
 <div class="toc-body">
 <button type="button" class="toc-grp" data-g="intro" aria-expanded="true" aria-controls="grp-intro">
@@ -59,6 +59,10 @@
 </div>
 </div>
   </nav>
+<button id="series-btn" type="button" aria-controls="series-nav" aria-expanded="true" title="Show / hide the series menu">
+  <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M7.5 2.5 L3.5 6 L7.5 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span class="lb">Series</span>
+</button>
   <main>
     <div class="crumb"><a href="/docs/">Docs</a> / The AI-FDE Transition Path</div>
     <article>
@@ -479,22 +483,35 @@ def read_key():
 (function(){
   var toc=document.querySelector('nav.toc');
   if(!toc)return;
-  var h=toc.querySelector('.toc-h');
-  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
-  // 分组折叠：点组标题收起 / 展开；当前文章所在组锁定展开；其余组记住上次状态
+  var head=toc.querySelector('.toc-h');
+  if(head){head.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  // 左侧抽屉：默认展开；点左箭头收起，正文区随之铺满
+  var sb=document.getElementById('series-btn');
+  function paintNav(open){
+    document.body.classList.toggle('nav-closed',!open);
+    if(sb)sb.setAttribute('aria-expanded',open?'true':'false');
+  }
+  var sSaved=null;
+  try{sSaved=localStorage.getItem('aifde-series-open');}catch(e){}
+  paintNav(sSaved!=='0');
+  if(sb){sb.addEventListener('click',function(){
+    var willOpen=document.body.classList.contains('nav-closed');
+    paintNav(willOpen);
+    try{localStorage.setItem('aifde-series-open',willOpen?'1':'0');}catch(e){}
+  });}
+  // 分组折叠：当前文章所在组锁定展开，其余组记住上次状态
   var KEY='aifde-toc-collapsed',saved={};
   try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
   toc.querySelectorAll('button.toc-grp').forEach(function(btn){
     var k=btn.getAttribute('data-g');
     var body=toc.querySelector('.toc-grp-body[data-g="'+k+'"]');
     if(!body)return;
-    var lock=btn.getAttribute('data-lock')==='1';
     function paint(closed){
       btn.classList.toggle('collapsed',closed);
       body.classList.toggle('collapsed',closed);
       btn.setAttribute('aria-expanded',closed?'false':'true');
     }
-    if(lock){paint(false);}else if(saved[k]){paint(true);}
+    if(btn.getAttribute('data-lock')==='1'){paint(false);}else if(saved[k]){paint(true);}
     btn.addEventListener('click',function(){
       var closed=!body.classList.contains('collapsed');
       paint(closed);
@@ -502,6 +519,10 @@ def read_key():
       try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
     });
   });
+})();
+</script>
+<script>
+(function(){
   var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');

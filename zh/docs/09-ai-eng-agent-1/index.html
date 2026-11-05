@@ -31,7 +31,7 @@
   </nav>
 </header>
 <div class="wrap">
-  <nav class="toc">
+  <nav class="toc" id="series-nav">
 <div class="toc-h">本系列</div>
 <div class="toc-body">
 <button type="button" class="toc-grp" data-g="intro" aria-expanded="true" aria-controls="grp-intro">
@@ -59,6 +59,10 @@
 </div>
 </div>
   </nav>
+<button id="series-btn" type="button" aria-controls="series-nav" aria-expanded="true" title="展开 / 收起系列目录">
+  <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M7.5 2.5 L3.5 6 L7.5 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span class="lb">本系列</span>
+</button>
   <main>
     <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
     <article>
@@ -110,11 +114,11 @@
 </ul>
 <p>也要说清它干不了什么，这三条比能干更要紧：</p>
 <ol>
-<li><p><strong>它不会更懂业务。</strong>&nbsp;业务规则在你的制度文件、接口约定、审批口径里，不在模型里。Agent 只是把规则用起来，不是替你想规则。</p>
+<li><p><strong>它不会更懂业务。</strong> 业务规则在你的制度文件、接口约定、审批口径里，不在模型里。Agent 只是把规则用起来，不是替你想规则。</p>
 </li>
-<li><p><strong>它不保证正确，只保证可查。</strong>&nbsp;它能给的确定性是“每一步都留了痕”，不是“结论一定对”。</p>
+<li><p><strong>它不保证正确，只保证可查。</strong> 它能给的确定性是“每一步都留了痕”，不是“结论一定对”。</p>
 </li>
-<li><p><strong>它不该碰要求百分之百确定的动作。</strong>&nbsp;转账、扣款、批量删除这类，写成固定的代码分支，不要交给它现场判断。</p>
+<li><p><strong>它不该碰要求百分之百确定的动作。</strong> 转账、扣款、批量删除这类，写成固定的代码分支，不要交给它现场判断。</p>
 </li>
 </ol>
 <h2 id="二Agent-与智能体应用的区别">二、Agent 与智能体应用的区别</h2>
@@ -149,7 +153,7 @@
 <tr>
 <td>长什么样</td>
 <td>有界面、有入口、有发布按钮</td>
-<td>一个函数&nbsp;<code>run_agent_turn(messages)</code></td>
+<td>一个函数 <code>run_agent_turn(messages)</code></td>
 </tr>
 <tr>
 <td>主要风险</td>
@@ -168,7 +172,7 @@
 </tr>
 </tbody></table></div>
 <p>所以这一篇设计的是什么，说具体：</p>
-<p><strong>我们设计的是那个循环，以及循环外面的三层刹车。</strong>&nbsp;循环一句话就写完了——调模型，模型说要调工具，执行工具，把结果塞回历史，再调模型，直到它不再要工具，或者撞上上限。</p>
+<p><strong>我们设计的是那个循环，以及循环外面的三层刹车。</strong> 循环一句话就写完了——调模型，模型说要调工具，执行工具，把结果塞回历史，再调模型，直到它不再要工具，或者撞上上限。</p>
 <p>这个循环几十行就能写出来。难的是让它能在生产里待住，后面十几节，全在补这个循环的漏洞。</p>
 <h2 id="三先看全貌一个循环三层刹车">三、先看全貌：一个循环，三层刹车</h2>
 <p>在拆代码之前，先看现在这个版本的整体结构。</p>
@@ -209,7 +213,7 @@
 <tr>
 <td>验收层</td>
 <td>怎么知道它真干完了</td>
-<td><code>facts</code>&nbsp;/&nbsp;<code>check_before_answer</code>、jsonl 日志、<code>AGENT.md</code></td>
+<td><code>facts</code> / <code>check_before_answer</code>、jsonl 日志、<code>AGENT.md</code></td>
 </tr>
 </tbody></table></div>
 <p>六层里，真正能挡住事故的是三层刹车：</p>
@@ -237,9 +241,9 @@
 <td>程序记账、客观检查、逐次日志、长期记忆</td>
 </tr>
 </tbody></table></div>
-<p><strong>写在系统提示词里的“不要删除文件”是请求，不是刹车。</strong>&nbsp;模型可以不听，而且它经常不听——不是它坏，是它每次都在重新理解这句话。真正拦得住的东西，必须写在模型看不见、也改不了的地方。</p>
+<p><strong>写在系统提示词里的“不要删除文件”是请求，不是刹车。</strong> 模型可以不听，而且它经常不听——不是它坏，是它每次都在重新理解这句话。真正拦得住的东西，必须写在模型看不见、也改不了的地方。</p>
 <h2 id="四最小闭环一个-run_agent_turn">四、最小闭环：一个 run_agent_turn</h2>
-<p>先把循环跑通。当前版本的核心函数叫&nbsp;<code>run_agent_turn</code>，去掉日志、记账、子 Agent 分支之后，骨架是这样：</p>
+<p>先把循环跑通。当前版本的核心函数叫 <code>run_agent_turn</code>，去掉日志、记账、子 Agent 分支之后，骨架是这样：</p>
 <pre><code class="language-python">def run_agent_turn(client, model, messages, state, max_steps=8, verbose=True):
     for step in range(1, max_steps + 1):
         stream = client.chat.completions.create(
@@ -291,12 +295,12 @@
     return "（达到最大步数，未完成任务）"
 </code></pre>
 <p>这段代码里有四个不能省的东西：</p>
-<p><strong>第一，assistant 的&nbsp;<code>tool_calls</code>&nbsp;必须原样写回历史。</strong>&nbsp;不能只写&nbsp;<code>content</code>。下一轮模型要靠这个知道自己刚才要调什么。</p>
-<p><strong>第二，每个&nbsp;<code>tool_call</code>&nbsp;必须有一条对应的&nbsp;<code>tool</code>&nbsp;消息。</strong><code>tool_call_id</code>&nbsp;要对上。少一条、错一个 id，接口直接 400。这个约束在后面裁剪历史时还会再咬一次。</p>
-<p><strong>第三，退出条件是“不再要工具”。</strong>&nbsp;模型不再返回&nbsp;<code>tool_calls</code>，就认为它说完了。这个判断很简单，但它把“什么时候停”交给了模型——所以外面必须有&nbsp;<code>max_steps</code>。</p>
-<p><strong>第四，<code>max_steps</code>&nbsp;是保险丝，不是刹车。</strong>&nbsp;它只保证电路烧了之后会断，不保证不烧。八步挡得住死循环，挡不住“在错误方向上有条不紊地跑八步”。</p>
+<p><strong>第一，assistant 的 <code>tool_calls</code> 必须原样写回历史。</strong> 不能只写 <code>content</code>。下一轮模型要靠这个知道自己刚才要调什么。</p>
+<p><strong>第二，每个 <code>tool_call</code> 必须有一条对应的 <code>tool</code> 消息。</strong><code>tool_call_id</code> 要对上。少一条、错一个 id，接口直接 400。这个约束在后面裁剪历史时还会再咬一次。</p>
+<p><strong>第三，退出条件是“不再要工具”。</strong> 模型不再返回 <code>tool_calls</code>，就认为它说完了。这个判断很简单，但它把“什么时候停”交给了模型——所以外面必须有 <code>max_steps</code>。</p>
+<p><strong>第四，<code>max_steps</code> 是保险丝，不是刹车。</strong> 它只保证电路烧了之后会断，不保证不烧。八步挡得住死循环，挡不住“在错误方向上有条不紊地跑八步”。</p>
 <p>为什么必须有循环</p>
-<p>如果只调两次模型：第一次让它决定调什么工具，执行完，第二次直接要答案——第二次请求里没有&nbsp;<code>tools</code>，它就没法根据第一次的结果再要工具。</p>
+<p>如果只调两次模型：第一次让它决定调什么工具，执行完，第二次直接要答案——第二次请求里没有 <code>tools</code>，它就没法根据第一次的结果再要工具。</p>
 <p>任务只要依赖上一步的结果，就会断在那里。循环不是重复，是<strong>再决定一次的机会</strong>。</p>
 <h2 id="五停止线别只装一个步数上限">五、停止线：别只装一个步数上限</h2>
 <p>“会停”比“会做”难。</p>
@@ -311,12 +315,12 @@
 </thead>
 <tbody><tr>
 <td>步数</td>
-<td><code>max_steps=8</code>；子 Agent&nbsp;<code>SUB_AGENT_MAX_STEPS=6</code></td>
+<td><code>max_steps=8</code>；子 Agent <code>SUB_AGENT_MAX_STEPS=6</code></td>
 <td>有</td>
 </tr>
 <tr>
 <td>工具超时</td>
-<td><code>run_shell</code>&nbsp;默认 30s；MCP 调用 60s</td>
+<td><code>run_shell</code> 默认 30s；MCP 调用 60s</td>
 <td>有</td>
 </tr>
 <tr>
@@ -356,12 +360,12 @@ for step in range(1, max_steps + 1):
         return "（超过本轮时限，已停止）"
     ...
 </code></pre>
-<p>重复检测也一样，在工具执行前记一张&nbsp;<code>(name, arguments)</code>&nbsp;的表，连续命中两次就拒绝，第三次就结束本轮。</p>
+<p>重复检测也一样，在工具执行前记一张 <code>(name, arguments)</code> 的表，连续命中两次就拒绝，第三次就结束本轮。</p>
 <h2 id="六观察先让自己看得见">六、观察：先让自己看得见</h2>
 <p>Agent 出问题的时候，百分之八十的时间是花在“不知道它刚才干了什么”上。</p>
 <p>当前版本有三层观察：</p>
 <p><strong>第一层是流式。</strong><code>stream=True</code>，模型每吐一个字就打印。它不是为了看着像打字机，是为了区分“网络慢”“模型在思考”“工具卡住”这三种完全不同的情况。</p>
-<p><strong>第二层是&nbsp;<code>verbose</code>。</strong>&nbsp;每次工具调用打印一行：</p>
+<p><strong>第二层是 <code>verbose</code>。</strong> 每次工具调用打印一行：</p>
 <pre><code class="language-text">[step 1] 调用工具: ['list_dir', 'read_file']
 [step 1] list_dir → [FILE] add.py  (67 bytes) ...
 [step 1] read_file → print("Hello China")
@@ -370,11 +374,11 @@ for step in range(1, max_steps + 1):
 [step 2] write_file → 已写入 sandbox/note.md（5 字符）
 </code></pre>
 <p>这四行比“已完成”三个字有用得多。它告诉你：它先看了目录，再读了文件，然后同时改了文件、写了新文件。</p>
-<p><strong>第三层是&nbsp;<code>/log</code>&nbsp;和&nbsp;<code>/stats</code>。</strong><code>/log</code>&nbsp;把 jsonl 日志按时间倒着列出来，<code>/stats</code>&nbsp;看本次会话的 Token、耗时、工具调用次数。日志那一节会展开。</p>
+<p><strong>第三层是 <code>/log</code> 和 <code>/stats</code>。</strong><code>/log</code> 把 jsonl 日志按时间倒着列出来，<code>/stats</code> 看本次会话的 Token、耗时、工具调用次数。日志那一节会展开。</p>
 <p>单步：一个没有进主线的调试开关</p>
 <p>早期我做过一个单步模式：每跑完一步停下来，等人敲回车，可以继续、中止、关闭单步。</p>
 <p>它有用，但没进主线。原因是它只影响调试，不影响能力；而把它塞进子 Agent、并行、日志这些循环里，会让主流程复杂很多。</p>
-<p>当前版本用&nbsp;<code>verbose</code>&nbsp;+&nbsp;<code>/log</code>&nbsp;代替它。如果你确实需要一步一步看，可以把&nbsp;<code>_step_pause</code>&nbsp;从 v2.3 那个旁支搬过来——它不复杂，核心就是一次&nbsp;<code>input()</code>，加一个中止时补齐&nbsp;<code>tool</code>&nbsp;消息的处理。</p>
+<p>当前版本用 <code>verbose</code> + <code>/log</code> 代替它。如果你确实需要一步一步看，可以把 <code>_step_pause</code> 从 v2.3 那个旁支搬过来——它不复杂，核心就是一次 <code>input()</code>，加一个中止时补齐 <code>tool</code> 消息的处理。</p>
 <h2 id="七文件四件套read_file-write_file-edit_file-list_dir">七、文件四件套：read_file / write_file / edit_file / list_dir</h2>
 <p>Agent 一旦能碰文件，风险就从“说错话”变成“改坏了”。</p>
 <p>所以这一节的第一件事不是加工具，是<strong>先画圈，圈住唐长老</strong>：</p>
@@ -387,8 +391,8 @@ def _safe_path(path: str) -&gt; str:
         raise ValueError(f"路径越界，只能在 {WORKSPACE} 内操作: {path}")
     return full
 </code></pre>
-<p><code>../../</code>&nbsp;走不出去，<code>/etc/passwd</code>&nbsp;也走不出去。四个文件工具全部先过这一道。</p>
-<p><strong>给工具之前先给它画边界，顺序不能反。</strong>&nbsp;先给工具、后加限制，中间那段窗口就是事故窗口。</p>
+<p><code>../../</code> 走不出去，<code>/etc/passwd</code> 也走不出去。四个文件工具全部先过这一道。</p>
+<p><strong>给工具之前先给它画边界，顺序不能反。</strong> 先给工具、后加限制，中间那段窗口就是事故窗口。</p>
 <p>四个工具，各管一件事</p>
 <div class="tw"><table>
 <thead>
@@ -426,7 +430,7 @@ def _safe_path(path: str) -&gt; str:
 <td><code>path="."</code></td>
 <td>列目录，带类型和大小</td>
 <td>先看目录结构</td>
-<td><code>.venv</code>&nbsp;这类目录会刷屏</td>
+<td><code>.venv</code> 这类目录会刷屏</td>
 </tr>
 </tbody></table></div>
 <p>四个工具的实现都不长，但每个都藏着一个设计决定：</p>
@@ -484,13 +488,13 @@ def list_dir(path="."):
         return f"列目录失败: {e}"
 </code></pre>
 <p>每个工具的关键点</p>
-<p><strong><code>read_file</code>&nbsp;只负责读，不负责判断该不该读。</strong>&nbsp;它把整个文件原样返回。文件小的时候很好用，文件大的时候会直接把上下文吃掉。当前版本还没有做截断，这是债；生产里应该加&nbsp;<code>max_bytes</code>&nbsp;或按行截断，并在返回里明确写“已截断”。</p>
-<p><strong><code>write_file</code>&nbsp;是覆盖，不是追加。</strong>&nbsp;它会把原文件整个替换掉，只在“新建文件”或“整段重写”时用。改已有文件的一小段，必须用&nbsp;<code>edit_file</code>。这个区分不是洁癖——<code>write_file</code>&nbsp;一旦被模型用来“改一行”，它很可能把整个文件写成它记得的样子，原来的内容就没了。</p>
-<p><strong><code>edit_file</code>&nbsp;的核心是“唯一匹配”。</strong>&nbsp;找不到&nbsp;<code>old_text</code>，拒绝；找到多处，也拒绝。它宁可让模型重试，也不猜“你想改哪一处”。这是四件套里最重要的一个刹车。</p>
-<p><strong><code>list_dir</code>&nbsp;只给结构，不给内容。</strong>&nbsp;它返回&nbsp;<code>[DIR]</code>&nbsp;/&nbsp;<code>[FILE]</code>&nbsp;和文件大小，让模型先知道“有什么”，再决定“读哪个”。当前版本没有跳过&nbsp;<code>.venv</code>、<code>__pycache__</code>，目录一大就会刷屏；这是下一个要补的洞。</p>
+<p><strong><code>read_file</code> 只负责读，不负责判断该不该读。</strong> 它把整个文件原样返回。文件小的时候很好用，文件大的时候会直接把上下文吃掉。当前版本还没有做截断，这是债；生产里应该加 <code>max_bytes</code> 或按行截断，并在返回里明确写“已截断”。</p>
+<p><strong><code>write_file</code> 是覆盖，不是追加。</strong> 它会把原文件整个替换掉，只在“新建文件”或“整段重写”时用。改已有文件的一小段，必须用 <code>edit_file</code>。这个区分不是洁癖——<code>write_file</code> 一旦被模型用来“改一行”，它很可能把整个文件写成它记得的样子，原来的内容就没了。</p>
+<p><strong><code>edit_file</code> 的核心是“唯一匹配”。</strong> 找不到 <code>old_text</code>，拒绝；找到多处，也拒绝。它宁可让模型重试，也不猜“你想改哪一处”。这是四件套里最重要的一个刹车。</p>
+<p><strong><code>list_dir</code> 只给结构，不给内容。</strong> 它返回 <code>[DIR]</code> / <code>[FILE]</code> 和文件大小，让模型先知道“有什么”，再决定“读哪个”。当前版本没有跳过 <code>.venv</code>、<code>__pycache__</code>，目录一大就会刷屏；这是下一个要补的洞。</p>
 <p>什么时候用哪个</p>
 <ul>
-<li><p>不知道文件在哪：先&nbsp;<code>grep</code>&nbsp;或&nbsp;<code>find_files</code></p>
+<li><p>不知道文件在哪：先 <code>grep</code> 或 <code>find_files</code></p>
 </li>
 <li><p>知道路径，先看内容：<code>read_file</code></p>
 </li>
@@ -519,22 +523,22 @@ def list_dir(path="."):
 [step 3] read_file → print("Hello Agent")
 [step 4] read_file → done
 </code></pre>
-<p>四个动作，四次工具调用，日志里每一步都能对上。改完它还自己读回确认了一遍——这不是提示词让它做的，是&nbsp;<code>read_file</code>&nbsp;这个工具让“确认”变得便宜。</p>
-<p>日志原文在&nbsp;<code>logs/samples/files_rerun_20261028_223517.jsonl</code>。</p>
+<p>四个动作，四次工具调用，日志里每一步都能对上。改完它还自己读回确认了一遍——这不是提示词让它做的，是 <code>read_file</code> 这个工具让“确认”变得便宜。</p>
+<p>日志原文在 <code>logs/samples/files_rerun_20261028_223517.jsonl</code>。</p>
 <p>这一节留下的债</p>
 <ul>
-<li><p><code>read_file</code>&nbsp;没有大小上限，遇到大文件会吃上下文</p>
+<li><p><code>read_file</code> 没有大小上限，遇到大文件会吃上下文</p>
 </li>
-<li><p><code>list_dir</code>&nbsp;没有跳过&nbsp;<code>.venv</code>&nbsp;/&nbsp;<code>__pycache__</code>，目录一大就刷屏</p>
+<li><p><code>list_dir</code> 没有跳过 <code>.venv</code> / <code>__pycache__</code>，目录一大就刷屏</p>
 </li>
-<li><p><code>write_file</code>&nbsp;的覆盖风险靠提示词约束，没有程序层的“改前备份”</p>
+<li><p><code>write_file</code> 的覆盖风险靠提示词约束，没有程序层的“改前备份”</p>
 </li>
-<li><p><code>edit_file</code>&nbsp;对空白字符敏感，模型改缩进时容易匹配失败</p>
+<li><p><code>edit_file</code> 对空白字符敏感，模型改缩进时容易匹配失败</p>
 </li>
 </ul>
 <p>这四条都不是“再加一个工具”能解决的，得在实现里补参数和边界。</p>
 <hr>
-<p><strong>上篇到这里。</strong>&nbsp;中篇从 shell 开始：白名单、脚本审计、人工确认、超时；然后是检索与上下文、运行时控制、子 Agent 权限。</p>
+<p><strong>上篇到这里。</strong> 中篇从 shell 开始：白名单、脚本审计、人工确认、超时；然后是检索与上下文、运行时控制、子 Agent 权限。</p>
 <hr>
 <p><strong>《AI-FDE 转型之路》</strong>：写给不写代码的 IT 实施 / 售前 / 运维，把已有的交付能力「AI 化」。全系列 55 篇，六大模块 53 项技能。</p>
 <p>想先看看自己缺什么：AI-FDE 技能自评地图，53 项打分，出一张雷达图。<a href="/zh/docs/00-intro/">AI-FDE 转型之路 · 开篇</a></p>
@@ -568,22 +572,35 @@ def list_dir(path="."):
 (function(){
   var toc=document.querySelector('nav.toc');
   if(!toc)return;
-  var h=toc.querySelector('.toc-h');
-  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
-  // 分组折叠：点组标题收起 / 展开；当前文章所在组锁定展开；其余组记住上次状态
+  var head=toc.querySelector('.toc-h');
+  if(head){head.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  // 左侧抽屉：默认展开；点左箭头收起，正文区随之铺满
+  var sb=document.getElementById('series-btn');
+  function paintNav(open){
+    document.body.classList.toggle('nav-closed',!open);
+    if(sb)sb.setAttribute('aria-expanded',open?'true':'false');
+  }
+  var sSaved=null;
+  try{sSaved=localStorage.getItem('aifde-series-open');}catch(e){}
+  paintNav(sSaved!=='0');
+  if(sb){sb.addEventListener('click',function(){
+    var willOpen=document.body.classList.contains('nav-closed');
+    paintNav(willOpen);
+    try{localStorage.setItem('aifde-series-open',willOpen?'1':'0');}catch(e){}
+  });}
+  // 分组折叠：当前文章所在组锁定展开，其余组记住上次状态
   var KEY='aifde-toc-collapsed',saved={};
   try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
   toc.querySelectorAll('button.toc-grp').forEach(function(btn){
     var k=btn.getAttribute('data-g');
     var body=toc.querySelector('.toc-grp-body[data-g="'+k+'"]');
     if(!body)return;
-    var lock=btn.getAttribute('data-lock')==='1';
     function paint(closed){
       btn.classList.toggle('collapsed',closed);
       body.classList.toggle('collapsed',closed);
       btn.setAttribute('aria-expanded',closed?'false':'true');
     }
-    if(lock){paint(false);}else if(saved[k]){paint(true);}
+    if(btn.getAttribute('data-lock')==='1'){paint(false);}else if(saved[k]){paint(true);}
     btn.addEventListener('click',function(){
       var closed=!body.classList.contains('collapsed');
       paint(closed);
@@ -591,6 +608,10 @@ def list_dir(path="."):
       try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
     });
   });
+})();
+</script>
+<script>
+(function(){
   var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');

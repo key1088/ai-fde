@@ -31,7 +31,7 @@
   </nav>
 </header>
 <div class="wrap">
-  <nav class="toc">
+  <nav class="toc" id="series-nav">
 <div class="toc-h">本系列</div>
 <div class="toc-body">
 <button type="button" class="toc-grp" data-g="intro" aria-expanded="true" aria-controls="grp-intro">
@@ -59,6 +59,10 @@
 </div>
 </div>
   </nav>
+<button id="series-btn" type="button" aria-controls="series-nav" aria-expanded="true" title="展开 / 收起系列目录">
+  <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M7.5 2.5 L3.5 6 L7.5 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span class="lb">本系列</span>
+</button>
   <main>
     <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
     <article>
@@ -381,7 +385,7 @@
 </code></pre>
 <p>先停一下，看这一段报文教了什么：</p>
 <ul>
-<li><p><strong>模型收到的全部东西就是这个 JSON</strong>。它不知道你的报销系统长什么样，不知道"职级 P6"对应哪个表、不知道&nbsp;<code>job_level</code>&nbsp;该从哪来——它只知道&nbsp;<code>job_level</code>&nbsp;是个字符串、枚举里有哪些值、以及你告诉它"形如 P6、P7"。</p>
+<li><p><strong>模型收到的全部东西就是这个 JSON</strong>。它不知道你的报销系统长什么样，不知道"职级 P6"对应哪个表、不知道 <code>job_level</code> 该从哪来——它只知道 <code>job_level</code> 是个字符串、枚举里有哪些值、以及你告诉它"形如 P6、P7"。</p>
 </li>
 <li><p><strong><code>description</code> 里的两句话不是装饰</strong>："当用户问…时调用"是给模型判断要不要调用的依据，"查历史多笔或他人报销时不要用这个工具"是边界。这两条就是第 06 篇讲的四个问题里的第一和第二个。</p>
 </li>
@@ -450,12 +454,12 @@
 </tr>
 <tr>
 <td><code>message.content</code></td>
-<td>人话。这一轮是&nbsp;<code>null</code>——它没打算说话</td>
+<td>人话。这一轮是 <code>null</code>——它没打算说话</td>
 <td>会，但常常是空的</td>
 </tr>
 <tr>
 <td><code>finish_reason</code></td>
-<td>这一轮为什么停：<code>tool_calls</code>（要调工具）/&nbsp;<code>stop</code>（说完了）</td>
+<td>这一轮为什么停：<code>tool_calls</code>（要调工具）/ <code>stop</code>（说完了）</td>
 <td>会，程序靠它判断该不该去执行工具</td>
 </tr>
 <tr>
@@ -546,7 +550,7 @@
 <p>上面这个报文里，有 5 条标着"同前"——它们的内容跟第 2 轮那份一模一样，所以我没重复贴。但它们每一轮都真的在你的请求里，这就是"每轮整个重发"的意思。你自己写代码时也是这么写的：维护一个 messages 数组，每轮往后追加，绝不删前面。</p>
 <p>这就是第 03 讲讲的滚雪球——你每多调一个工具，Context 就多长一截（模型的条子 + 工具结果，两条一起长）。而这份数组，每一轮都要整个重发一遍。</p>
 <p><strong>【第 3 轮 · 下半】模型 → 你的程序</strong></p>
-<p>（模型看到 is_over: true，决定提单。注意这是模型第一次发出"干动作"的调用意图——第 4 轮里那张单子能被创建，源头是这一段。）&nbsp;<code>   </code></p>
+<p>（模型看到 is_over: true，决定提单。注意这是模型第一次发出"干动作"的调用意图——第 4 轮里那张单子能被创建，源头是这一段。） <code>   </code></p>
 <pre><code>{
   "role": "assistant",
   "content": null,
@@ -661,7 +665,7 @@ is_over = over &gt; 0            # = True   ← 说超标了，金额却是 0
 <p><strong>误解二："参数是传过去的，不是模型填的"</strong></p>
 <p>模型填的。</p>
 <p>你给模型一个 Schema，告诉它参数 doc_id 是个字符串、必填。模型在生成的时候，是根据训练中学到的模式，编出一个它认为像doc_id的字符串。它没有查过你的编号规则，它只是在模仿它见过的形状。</p>
-<p><strong>OpenAI 生态提供</strong>&nbsp;<strong>strict: true（结构化输出）</strong> 能保证生成的参数严格符合你给的 Schema——类型对、必填项在、枚举值不越界。这是有用的。但请注意它保证的是什么：</p>
+<p><strong>OpenAI 生态提供</strong> <strong>strict: true（结构化输出）</strong> 能保证生成的参数严格符合你给的 Schema——类型对、必填项在、枚举值不越界。这是有用的。但请注意它保证的是什么：</p>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -675,7 +679,7 @@ is_over = over &gt; 0            # = True   ← 说超标了，金额却是 0
 </tr>
 <tr>
 <td>必填参数不缺失</td>
-<td><code>doc_id</code>&nbsp;对应的文件真实存在</td>
+<td><code>doc_id</code> 对应的文件真实存在</td>
 </tr>
 <tr>
 <td>枚举值在范围内</td>
@@ -744,15 +748,15 @@ is_over = over &gt; 0            # = True   ← 说超标了，金额却是 0
 <p>所以对非技术的人来说，一句话总结 MCP：它不是给模型加能力，是给你的工具插了一个通用插头。模型那一侧的原理，和第 06 篇讲的一模一样。</p>
 <h2 id="十什么算会了">十、什么算会了</h2>
 <ul>
-<li><p>你能对着一条完整的调用日志，说出"这五步分别发生了什么"。&nbsp;不是"知道有工具调用这回事"，是能指着日志指出：哪一步是模型出的条子，哪一步是你的程序去跑的，中间那次重试在哪。</p>
+<li><p>你能对着一条完整的调用日志，说出"这五步分别发生了什么"。 不是"知道有工具调用这回事"，是能指着日志指出：哪一步是模型出的条子，哪一步是你的程序去跑的，中间那次重试在哪。</p>
 </li>
-<li><p>你能说清模型到底看见了什么、没看见什么。&nbsp;尤其是"没看见"的那部分——超时、重试、权限、限流、脱敏，这些模型统统不知道，所以它们必须由你的程序兜住。</p>
+<li><p>你能说清模型到底看见了什么、没看见什么。 尤其是"没看见"的那部分——超时、重试、权限、限流、脱敏，这些模型统统不知道，所以它们必须由你的程序兜住。</p>
 </li>
-<li><p>你能解释一次幻觉是怎么从"工具返回空"开始的。&nbsp;这不是理论题，这是实际最容易踩的坑：工具返回了空或者 null，模型不会说"没查到"，它会顺着往下编。</p>
+<li><p>你能解释一次幻觉是怎么从"工具返回空"开始的。 这不是理论题，这是实际最容易踩的坑：工具返回了空或者 null，模型不会说"没查到"，它会顺着往下编。</p>
 </li>
-<li><p>你知道 strict 能干什么、不能干什么。&nbsp;能保证格式，不能保证内容。</p>
+<li><p>你知道 strict 能干什么、不能干什么。 能保证格式，不能保证内容。</p>
 </li>
-<li><p>你能指出一份请求里，哪些字是给模型看的、哪些字是你的程序自己该覆盖的。&nbsp;比如第四节那份报文里的&nbsp;<code>job_level</code>&nbsp;和&nbsp;<code>city_tier</code>——那俩是模型填的，不能信。</p>
+<li><p>你能指出一份请求里，哪些字是给模型看的、哪些字是你的程序自己该覆盖的。 比如第四节那份报文里的 <code>job_level</code> 和 <code>city_tier</code>——那俩是模型填的，不能信。</p>
 </li>
 </ul>
 <p>动手任务：让你手上任意一个已经接了工具的系统，把一次工具调用的原始报文打出来——请求体、模型的回复体、你的程序回填的那段结果，三段都看。然后拿笔在这三段上标：第一步、第二步、第三步、第四步、第五步各对应哪一段。</p>
@@ -802,22 +806,35 @@ is_over = over &gt; 0            # = True   ← 说超标了，金额却是 0
 (function(){
   var toc=document.querySelector('nav.toc');
   if(!toc)return;
-  var h=toc.querySelector('.toc-h');
-  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
-  // 分组折叠：点组标题收起 / 展开；当前文章所在组锁定展开；其余组记住上次状态
+  var head=toc.querySelector('.toc-h');
+  if(head){head.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  // 左侧抽屉：默认展开；点左箭头收起，正文区随之铺满
+  var sb=document.getElementById('series-btn');
+  function paintNav(open){
+    document.body.classList.toggle('nav-closed',!open);
+    if(sb)sb.setAttribute('aria-expanded',open?'true':'false');
+  }
+  var sSaved=null;
+  try{sSaved=localStorage.getItem('aifde-series-open');}catch(e){}
+  paintNav(sSaved!=='0');
+  if(sb){sb.addEventListener('click',function(){
+    var willOpen=document.body.classList.contains('nav-closed');
+    paintNav(willOpen);
+    try{localStorage.setItem('aifde-series-open',willOpen?'1':'0');}catch(e){}
+  });}
+  // 分组折叠：当前文章所在组锁定展开，其余组记住上次状态
   var KEY='aifde-toc-collapsed',saved={};
   try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
   toc.querySelectorAll('button.toc-grp').forEach(function(btn){
     var k=btn.getAttribute('data-g');
     var body=toc.querySelector('.toc-grp-body[data-g="'+k+'"]');
     if(!body)return;
-    var lock=btn.getAttribute('data-lock')==='1';
     function paint(closed){
       btn.classList.toggle('collapsed',closed);
       body.classList.toggle('collapsed',closed);
       btn.setAttribute('aria-expanded',closed?'false':'true');
     }
-    if(lock){paint(false);}else if(saved[k]){paint(true);}
+    if(btn.getAttribute('data-lock')==='1'){paint(false);}else if(saved[k]){paint(true);}
     btn.addEventListener('click',function(){
       var closed=!body.classList.contains('collapsed');
       paint(closed);
@@ -825,6 +842,10 @@ is_over = over &gt; 0            # = True   ← 说超标了，金额却是 0
       try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
     });
   });
+})();
+</script>
+<script>
+(function(){
   var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');

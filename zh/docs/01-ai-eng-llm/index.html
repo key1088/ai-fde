@@ -31,7 +31,7 @@
   </nav>
 </header>
 <div class="wrap">
-  <nav class="toc">
+  <nav class="toc" id="series-nav">
 <div class="toc-h">本系列</div>
 <div class="toc-body">
 <button type="button" class="toc-grp" data-g="intro" aria-expanded="true" aria-controls="grp-intro">
@@ -59,6 +59,10 @@
 </div>
 </div>
   </nav>
+<button id="series-btn" type="button" aria-controls="series-nav" aria-expanded="true" title="展开 / 收起系列目录">
+  <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M7.5 2.5 L3.5 6 L7.5 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span class="lb">本系列</span>
+</button>
   <main>
     <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
     <article>
@@ -122,7 +126,7 @@
 <p>它在干的事，更像<strong>让一个读过很多书的人凭记忆回答你</strong>：你问一句，他根据前面那些字，按概率觉得下一个字最可能是什么，接着往下写。他确实读过很多东西，所以他经常是对的；但他是在"补全"，不是在"查找"。</p>
 <p>差别在哪？查找找不着会说"没有"，补全不会说“没有”。<strong>他记不清的时候会顺着语气编一个，编得很顺，标点都对，读起来比真话还像真话</strong>。这就是幻觉的来源，不是模型坏了，是它的工作方式本来就这样。</p>
 <p><img src="/media/docs/01-ai-eng-llm/img-02.png" alt="" loading="lazy" decoding="async"></p>
-<p>理解这一点之后，有一个判断就顺理成章了：<strong>凡是依赖"精确事实"的场景，都不能裸用模型。</strong>&nbsp;要么给它材料（后面讲检索），要么给它在答不出来时闭嘴的路径（拒答），要么承认这个场景不该做。</p>
+<p>理解这一点之后，有一个判断就顺理成章了：<strong>凡是依赖"精确事实"的场景，都不能裸用模型。</strong> 要么给它材料（后面讲检索），要么给它在答不出来时闭嘴的路径（拒答），要么承认这个场景不该做。</p>
 <p>这些就需要通过工具来解决，需要通过Agent、skills、MCP接口。</p>
 <h2 id="五四类必错场景">五、四类必错场景</h2>
 <p>我把它归成四类。这四类不是我拍的，是从制度问答项目里几百条错误答案倒推出来的，命中率很高。</p>
@@ -183,8 +187,8 @@
 <p>这个动作花不了半小时，但它是后面所有优化的地基。你连错在哪都分不清，改 Prompt、换模型、加检索都是蒙的。做完你会发现，分类结果往往跟你凭印象猜的差很远——我当时以为主要是时效性问题，实际排第一的是专有长尾。</p>
 <h2 id="八坑">八、坑</h2>
 <p><strong>别用"语气自不自信"判断对不对。</strong> 模型的流畅度和准确率基本无关,越顺的答案越危险,因为人不会去核查。我现在的习惯是:凡是答案里带具体数字、日期、条款编号的,一律要看引用来源。</p>
-<p><strong>别问模型"你有把握吗"。</strong>&nbsp;让它自评置信度，得到的多半是礼貌性的谦虚或者莫名其妙的自信，都不靠谱。真正的把握来自检索命中、格式校验、规则校验这些外部手段，不是它自己说的。</p>
-<p><strong>别把四类当成"要消灭的问题"。</strong>&nbsp;消灭不掉。你要做的是让每一类都有确定的处理方式：能补材料的补材料，该拒答的拒答，该转人工的转人工。承认它会错，然后设计错了之后怎么办——这才是交付。</p>
+<p><strong>别问模型"你有把握吗"。</strong> 让它自评置信度，得到的多半是礼貌性的谦虚或者莫名其妙的自信，都不靠谱。真正的把握来自检索命中、格式校验、规则校验这些外部手段，不是它自己说的。</p>
+<p><strong>别把四类当成"要消灭的问题"。</strong> 消灭不掉。你要做的是让每一类都有确定的处理方式：能补材料的补材料，该拒答的拒答，该转人工的转人工。承认它会错，然后设计错了之后怎么办——这才是交付。</p>
 <hr>
 <p><strong>《AI-FDE 转型之路》</strong>：写给不写代码的 IT 实施 / 售前 / 运维 /普通人，把已有的交付能力「AI 化」。全系列至少55 篇，六大模块 53 项技能。</p>
 <p>想先看看自己缺什么:AI-FDE 技能自评地图,53 项打分,出一张雷达图。<a href="/zh/docs/00-intro/">AI-FDE 转型之路 · 开篇</a></p>
@@ -218,22 +222,35 @@
 (function(){
   var toc=document.querySelector('nav.toc');
   if(!toc)return;
-  var h=toc.querySelector('.toc-h');
-  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
-  // 分组折叠：点组标题收起 / 展开；当前文章所在组锁定展开；其余组记住上次状态
+  var head=toc.querySelector('.toc-h');
+  if(head){head.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  // 左侧抽屉：默认展开；点左箭头收起，正文区随之铺满
+  var sb=document.getElementById('series-btn');
+  function paintNav(open){
+    document.body.classList.toggle('nav-closed',!open);
+    if(sb)sb.setAttribute('aria-expanded',open?'true':'false');
+  }
+  var sSaved=null;
+  try{sSaved=localStorage.getItem('aifde-series-open');}catch(e){}
+  paintNav(sSaved!=='0');
+  if(sb){sb.addEventListener('click',function(){
+    var willOpen=document.body.classList.contains('nav-closed');
+    paintNav(willOpen);
+    try{localStorage.setItem('aifde-series-open',willOpen?'1':'0');}catch(e){}
+  });}
+  // 分组折叠：当前文章所在组锁定展开，其余组记住上次状态
   var KEY='aifde-toc-collapsed',saved={};
   try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
   toc.querySelectorAll('button.toc-grp').forEach(function(btn){
     var k=btn.getAttribute('data-g');
     var body=toc.querySelector('.toc-grp-body[data-g="'+k+'"]');
     if(!body)return;
-    var lock=btn.getAttribute('data-lock')==='1';
     function paint(closed){
       btn.classList.toggle('collapsed',closed);
       body.classList.toggle('collapsed',closed);
       btn.setAttribute('aria-expanded',closed?'false':'true');
     }
-    if(lock){paint(false);}else if(saved[k]){paint(true);}
+    if(btn.getAttribute('data-lock')==='1'){paint(false);}else if(saved[k]){paint(true);}
     btn.addEventListener('click',function(){
       var closed=!body.classList.contains('collapsed');
       paint(closed);
@@ -241,6 +258,10 @@
       try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
     });
   });
+})();
+</script>
+<script>
+(function(){
   var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');

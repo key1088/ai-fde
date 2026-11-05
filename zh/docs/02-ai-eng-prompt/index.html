@@ -31,7 +31,7 @@
   </nav>
 </header>
 <div class="wrap">
-  <nav class="toc">
+  <nav class="toc" id="series-nav">
 <div class="toc-h">本系列</div>
 <div class="toc-body">
 <button type="button" class="toc-grp" data-g="intro" aria-expanded="true" aria-controls="grp-intro">
@@ -59,6 +59,10 @@
 </div>
 </div>
   </nav>
+<button id="series-btn" type="button" aria-controls="series-nav" aria-expanded="true" title="展开 / 收起系列目录">
+  <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M7.5 2.5 L3.5 6 L7.5 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span class="lb">本系列</span>
+</button>
   <main>
     <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
     <article>
@@ -112,10 +116,10 @@
 <td>格式随机，拒答靠它心情</td>
 </tr>
 </tbody></table></div>
-<p>这四件事里，最后一条最容易被漏，也最值钱。给大模型强调<strong>不知道就说不知道</strong>，拒答条件是 Prompt 的核心。&nbsp;上一讲说的四类必错场景，兜底动作大多就是写在这里的。</p>
+<p>这四件事里，最后一条最容易被漏，也最值钱。给大模型强调<strong>不知道就说不知道</strong>，拒答条件是 Prompt 的核心。 上一讲说的四类必错场景，兜底动作大多就是写在这里的。</p>
 <h2 id="五再说怎么管Prompt">五、再说怎么管Prompt</h2>
-<p><strong>1、Prompt 存成文件，不要只存在平台输入框里。</strong>&nbsp;平台里改完就覆盖了，谁改的、什么时候改的，查不出来。存文件、进版本库，跟代码一样。每次交互的Prompt自己记录下来，反复的雕琢。</p>
-<p><strong>2、每次改动写一行记录。</strong>&nbsp;不用长，四个字段就够：</p>
+<p><strong>1、Prompt 存成文件，不要只存在平台输入框里。</strong> 平台里改完就覆盖了，谁改的、什么时候改的，查不出来。存文件、进版本库，跟代码一样。每次交互的Prompt自己记录下来，反复的雕琢。</p>
+<p><strong>2、每次改动写一行记录。</strong> 不用长，四个字段就够：</p>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -140,7 +144,7 @@
 <td>拒答率上升，编造类投诉下降</td>
 </tr>
 </tbody></table></div>
-<p><strong>3、准备一组回归题，二十到三十条。</strong>&nbsp;不用多，但必须覆盖四类必错场景，还要有几条"业务上最常见"的普通题。流程是：改之前跑一遍存下来，改之后跑一遍，只看结果变了的题——变好了几条、变坏了几条、哪几条。</p>
+<p><strong>3、准备一组回归题，二十到三十条。</strong> 不用多，但必须覆盖四类必错场景，还要有几条"业务上最常见"的普通题。流程是：改之前跑一遍存下来，改之后跑一遍，只看结果变了的题——变好了几条、变坏了几条、哪几条。</p>
 <p><strong>测试Prompt的时候，一定要清空之前的会话，不然容易污染大模型的解析，为什么会污染大模型呢，这一块再下一章会详细讲解其原理。</strong></p>
 <p>我自己的经验是，二十条题里通常有三到五条会动，其中总有一两条是变坏的。看到变坏的，要么改回去，要么接受这个取舍并记下来。<strong>能说出"这次改动让 A 类变好、B 类变差，我选前者"，这就叫专业；说"感觉好点了"，不叫。</strong></p>
 <h2 id="六什么算会了">六、什么算会了</h2>
@@ -156,9 +160,9 @@
 <p><strong>动手任务</strong>（就放在这一节里，别等"以后有空"）：把你现在项目里的主 Prompt 从平台里导出来，存成文件，建上面那张四字段的变更记录表，然后攒二十条回归题（四类必错场景各四条，加四条最常见的普通题）。</p>
 <p>这件事一下午能做完，做完之后这个项目才第一次具备"可维护"的属性。</p>
 <h2 id="七坑">七、坑</h2>
-<p><strong>示例不是越多越好。</strong>&nbsp;示例会把模型拉向示例的形状。我干过一次蠢事：为了让输出格式稳定，我塞了四条示例，四条都是同一种问法，结果它学会了只认那一种问法，换个问法格式就散。示例要覆盖不同的问法，两三条足矣。不然让大模型不知道怎么选择，不要让它猜你的意思。</p>
-<p><strong>别把一堆业务规则写进 Prompt。</strong>&nbsp;规则写到第五条你就改不动了，改一条怕影响另外四条。规则多的场景应该走检索——把规则放进知识库，让它按需取。这是后面 RAG 那两篇的事。</p>
-<p><strong>"你是一个专业的资深专家"这类话，基本没用。</strong>&nbsp;它不改变模型的概率分布，只占字数（因为现在大模型已经很聪明了）。而字数是真的要花钱的，这就是下一讲的内容：上下文是稀缺资源，我们得算着用。</p>
+<p><strong>示例不是越多越好。</strong> 示例会把模型拉向示例的形状。我干过一次蠢事：为了让输出格式稳定，我塞了四条示例，四条都是同一种问法，结果它学会了只认那一种问法，换个问法格式就散。示例要覆盖不同的问法，两三条足矣。不然让大模型不知道怎么选择，不要让它猜你的意思。</p>
+<p><strong>别把一堆业务规则写进 Prompt。</strong> 规则写到第五条你就改不动了，改一条怕影响另外四条。规则多的场景应该走检索——把规则放进知识库，让它按需取。这是后面 RAG 那两篇的事。</p>
+<p><strong>"你是一个专业的资深专家"这类话，基本没用。</strong> 它不改变模型的概率分布，只占字数（因为现在大模型已经很聪明了）。而字数是真的要花钱的，这就是下一讲的内容：上下文是稀缺资源，我们得算着用。</p>
 <hr>
 <p><strong>《AI-FDE 转型之路》</strong>：写给不写代码的 IT 实施 / 售前 / 运维，把已有的交付能力「AI 化」。全系列 55 篇，六大模块 53 项技能。</p>
 <p>想先看看自己缺什么：AI-FDE 技能自评地图，53 项打分，出一张雷达图。<a href="/zh/docs/00-intro/">AI-FDE 转型之路 · 开篇</a></p>
@@ -191,22 +195,35 @@
 (function(){
   var toc=document.querySelector('nav.toc');
   if(!toc)return;
-  var h=toc.querySelector('.toc-h');
-  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
-  // 分组折叠：点组标题收起 / 展开；当前文章所在组锁定展开；其余组记住上次状态
+  var head=toc.querySelector('.toc-h');
+  if(head){head.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  // 左侧抽屉：默认展开；点左箭头收起，正文区随之铺满
+  var sb=document.getElementById('series-btn');
+  function paintNav(open){
+    document.body.classList.toggle('nav-closed',!open);
+    if(sb)sb.setAttribute('aria-expanded',open?'true':'false');
+  }
+  var sSaved=null;
+  try{sSaved=localStorage.getItem('aifde-series-open');}catch(e){}
+  paintNav(sSaved!=='0');
+  if(sb){sb.addEventListener('click',function(){
+    var willOpen=document.body.classList.contains('nav-closed');
+    paintNav(willOpen);
+    try{localStorage.setItem('aifde-series-open',willOpen?'1':'0');}catch(e){}
+  });}
+  // 分组折叠：当前文章所在组锁定展开，其余组记住上次状态
   var KEY='aifde-toc-collapsed',saved={};
   try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
   toc.querySelectorAll('button.toc-grp').forEach(function(btn){
     var k=btn.getAttribute('data-g');
     var body=toc.querySelector('.toc-grp-body[data-g="'+k+'"]');
     if(!body)return;
-    var lock=btn.getAttribute('data-lock')==='1';
     function paint(closed){
       btn.classList.toggle('collapsed',closed);
       body.classList.toggle('collapsed',closed);
       btn.setAttribute('aria-expanded',closed?'false':'true');
     }
-    if(lock){paint(false);}else if(saved[k]){paint(true);}
+    if(btn.getAttribute('data-lock')==='1'){paint(false);}else if(saved[k]){paint(true);}
     btn.addEventListener('click',function(){
       var closed=!body.classList.contains('collapsed');
       paint(closed);
@@ -214,6 +231,10 @@
       try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
     });
   });
+})();
+</script>
+<script>
+(function(){
   var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');
