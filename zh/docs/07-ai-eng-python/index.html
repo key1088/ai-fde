@@ -58,17 +58,6 @@
 <a class="art" href="/zh/docs/09-ai-eng-agent-3/"><span class="no">12</span>从零开始设计一个 Agent（下篇）</a>
 </div>
 </div>
-<div class="toc-h">本页目录</div>
-<div class="toc-body">
-<a class="h2" href="#一先装对版本选错后面全是白折腾">一、先装对：版本选错，后面全是白折腾</a>
-<a class="h2" href="#二虚拟环境一台机器上养好几个项目互不打架">二、虚拟环境：一台机器上养好几个项目，互不打架</a>
-<a class="h2" href="#三装库先解决连不连得上再解决装哪个版本">三、装库：先解决连不连得上，再解决装哪个版本</a>
-<a class="h2" href="#四学习python的不同方式">四、学习python的不同方式</a>
-<a class="h2" href="#五第一次跑起来编辑器命令行一段报错">五、第一次跑起来：编辑器、命令行、一段报错</a>
-<a class="h2" href="#六看懂一段陌生代码只看五处">六、看懂一段陌生代码，只看五处</a>
-<a class="h2" href="#七让-AI-改代码但验收权必须在你手里">七、让 AI 改代码，但验收权必须在你手里</a>
-<a class="h2" href="#八坑">八、坑</a>
-</div>
   </nav>
   <main>
     <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
@@ -514,7 +503,21 @@ print(resp.status_code, resp.json())
       <p>想先看看自己缺什么？用自评地图打个分  <a href="/zh/">→</a></p>
     </div>
   </main>
+  <nav class="page-toc" id="page-toc">
+<div class="pt-h">本页目录</div>
+<div class="pt-body">
+<a class="h2" href="#一先装对版本选错后面全是白折腾">一、先装对：版本选错，后面全是白折腾</a>
+<a class="h2" href="#二虚拟环境一台机器上养好几个项目互不打架">二、虚拟环境：一台机器上养好几个项目，互不打架</a>
+<a class="h2" href="#三装库先解决连不连得上再解决装哪个版本">三、装库：先解决连不连得上，再解决装哪个版本</a>
+<a class="h2" href="#四学习python的不同方式">四、学习python的不同方式</a>
+<a class="h2" href="#五第一次跑起来编辑器命令行一段报错">五、第一次跑起来：编辑器、命令行、一段报错</a>
+<a class="h2" href="#六看懂一段陌生代码只看五处">六、看懂一段陌生代码，只看五处</a>
+<a class="h2" href="#七让-AI-改代码但验收权必须在你手里">七、让 AI 改代码，但验收权必须在你手里</a>
+<a class="h2" href="#八坑">八、坑</a>
 </div>
+  </nav>
+</div>
+<button id="pagetoc-btn" type="button" aria-controls="page-toc" aria-expanded="false">≡ 本页目录</button>
 <button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
 <script>
 (function(){
@@ -543,9 +546,20 @@ print(resp.status_code, resp.json())
       try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
     });
   });
-  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');
+  // 本页目录：宽屏右侧一栏，窄屏浮层
+  var pt=document.getElementById('page-toc'),ptb=document.getElementById('pagetoc-btn');
+  if(pt&&ptb){
+    ptb.addEventListener('click',function(){
+      var open=pt.classList.toggle('open');
+      ptb.setAttribute('aria-expanded',open?'true':'false');
+    });
+    pt.addEventListener('click',function(e){
+      if(e.target.closest('a')){pt.classList.remove('open');ptb.setAttribute('aria-expanded','false');}
+    });
+  }
   function onScroll(){
     var y=window.scrollY+90,cur=0;
     for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}

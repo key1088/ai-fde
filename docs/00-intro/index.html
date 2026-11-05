@@ -58,16 +58,6 @@
 <a class="art" href="/docs/09-ai-eng-agent-3/"><span class="no">12</span>Designing an Agent from Scratch (Part 3)</a>
 </div>
 </div>
-<div class="toc-h">On this page</div>
-<div class="toc-body">
-<a class="h2" href="#1-Lets-Start-with-the-Conclusion">1. Let's Start with the Conclusion</a>
-<a class="h2" href="#2-What-Is-an-FDE">2. What Is an FDE</a>
-<a class="h2" href="#3-What-Skills-Does-an-AI-FDE-Need">3. What Skills Does an AI-FDE Need</a>
-<a class="h2" href="#4-How-to-Become-an-AI-FDE">4. How to Become an AI-FDE</a>
-<a class="h2" href="#5-What-the-Docs-Look-Like">5. What the Docs Look Like</a>
-<a class="h2" href="#6-Who-This-Series-Is-For-and-How-Its-Written">6. Who This Series Is For, and How It's Written</a>
-<a class="h2" href="#7-A-Few-Honest-Words-to-Finish">7. A Few Honest Words to Finish</a>
-</div>
   </nav>
   <main>
     <div class="crumb"><a href="/docs/">Docs</a> / The AI-FDE Transition Path</div>
@@ -217,7 +207,20 @@
       <p>Want to see where you stand? Score yourself on the map  <a href="/">→</a></p>
     </div>
   </main>
+  <nav class="page-toc" id="page-toc">
+<div class="pt-h">On this page</div>
+<div class="pt-body">
+<a class="h2" href="#1-Lets-Start-with-the-Conclusion">1. Let's Start with the Conclusion</a>
+<a class="h2" href="#2-What-Is-an-FDE">2. What Is an FDE</a>
+<a class="h2" href="#3-What-Skills-Does-an-AI-FDE-Need">3. What Skills Does an AI-FDE Need</a>
+<a class="h2" href="#4-How-to-Become-an-AI-FDE">4. How to Become an AI-FDE</a>
+<a class="h2" href="#5-What-the-Docs-Look-Like">5. What the Docs Look Like</a>
+<a class="h2" href="#6-Who-This-Series-Is-For-and-How-Its-Written">6. Who This Series Is For, and How It's Written</a>
+<a class="h2" href="#7-A-Few-Honest-Words-to-Finish">7. A Few Honest Words to Finish</a>
 </div>
+  </nav>
+</div>
+<button id="pagetoc-btn" type="button" aria-controls="page-toc" aria-expanded="false">≡ On this page</button>
 <button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
 <script>
 (function(){
@@ -246,9 +249,20 @@
       try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
     });
   });
-  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');
+  // 本页目录：宽屏右侧一栏，窄屏浮层
+  var pt=document.getElementById('page-toc'),ptb=document.getElementById('pagetoc-btn');
+  if(pt&&ptb){
+    ptb.addEventListener('click',function(){
+      var open=pt.classList.toggle('open');
+      ptb.setAttribute('aria-expanded',open?'true':'false');
+    });
+    pt.addEventListener('click',function(e){
+      if(e.target.closest('a')){pt.classList.remove('open');ptb.setAttribute('aria-expanded','false');}
+    });
+  }
   function onScroll(){
     var y=window.scrollY+90,cur=0;
     for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}

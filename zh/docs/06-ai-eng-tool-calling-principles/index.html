@@ -58,21 +58,6 @@
 <a class="art" href="/zh/docs/09-ai-eng-agent-3/"><span class="no">12</span>从零开始设计一个 Agent（下篇）</a>
 </div>
 </div>
-<div class="toc-h">本页目录</div>
-<div class="toc-body">
-<a class="h2" href="#一先把一句话说清楚模型不会直接调用工具">一、先把一句话说清楚：模型不会直接调用工具</a>
-<a class="h2" href="#二模型每一轮看到的东西叫-Context">二、模型每一轮看到的东西，叫 Context</a>
-<a class="h2" href="#三一轮工具调用的完整五步">三、一轮工具调用的完整五步</a>
-<a class="h2" href="#四把五步摊开一次完整的交互报文">四、把五步摊开：一次完整的交互报文</a>
-<a class="h2" href="#五那个工具在你的程序里长什么样">五、那个工具在你的程序里，长什么样？</a>
-<a class="h3" href="#把这条链路摊平看-Context-涨成什么样">把这条链路摊平，看 Context 涨成什么样</a>
-<a class="h2" href="#六三个最常见的误解">六、三个最常见的误解</a>
-<a class="h2" href="#七为什么工具描述成了最要紧的一件事">七、为什么&quot;工具描述&quot;成了最要紧的一件事</a>
-<a class="h2" href="#八工具不是免费的链路和成本">八、工具不是免费的：链路和成本</a>
-<a class="h2" href="#九MCP-到底改变了什么">九、MCP 到底改变了什么</a>
-<a class="h2" href="#十什么算会了">十、什么算会了</a>
-<a class="h2" href="#十一坑">十一、坑</a>
-</div>
   </nav>
   <main>
     <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
@@ -793,7 +778,25 @@ is_over = over &gt; 0            # = True   ← 说超标了，金额却是 0
       <p>想先看看自己缺什么？用自评地图打个分  <a href="/zh/">→</a></p>
     </div>
   </main>
+  <nav class="page-toc" id="page-toc">
+<div class="pt-h">本页目录</div>
+<div class="pt-body">
+<a class="h2" href="#一先把一句话说清楚模型不会直接调用工具">一、先把一句话说清楚：模型不会直接调用工具</a>
+<a class="h2" href="#二模型每一轮看到的东西叫-Context">二、模型每一轮看到的东西，叫 Context</a>
+<a class="h2" href="#三一轮工具调用的完整五步">三、一轮工具调用的完整五步</a>
+<a class="h2" href="#四把五步摊开一次完整的交互报文">四、把五步摊开：一次完整的交互报文</a>
+<a class="h2" href="#五那个工具在你的程序里长什么样">五、那个工具在你的程序里，长什么样？</a>
+<a class="h3" href="#把这条链路摊平看-Context-涨成什么样">把这条链路摊平，看 Context 涨成什么样</a>
+<a class="h2" href="#六三个最常见的误解">六、三个最常见的误解</a>
+<a class="h2" href="#七为什么工具描述成了最要紧的一件事">七、为什么&quot;工具描述&quot;成了最要紧的一件事</a>
+<a class="h2" href="#八工具不是免费的链路和成本">八、工具不是免费的：链路和成本</a>
+<a class="h2" href="#九MCP-到底改变了什么">九、MCP 到底改变了什么</a>
+<a class="h2" href="#十什么算会了">十、什么算会了</a>
+<a class="h2" href="#十一坑">十一、坑</a>
 </div>
+  </nav>
+</div>
+<button id="pagetoc-btn" type="button" aria-controls="page-toc" aria-expanded="false">≡ 本页目录</button>
 <button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
 <script>
 (function(){
@@ -822,9 +825,20 @@ is_over = over &gt; 0            # = True   ← 说超标了，金额却是 0
       try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
     });
   });
-  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');
+  // 本页目录：宽屏右侧一栏，窄屏浮层
+  var pt=document.getElementById('page-toc'),ptb=document.getElementById('pagetoc-btn');
+  if(pt&&ptb){
+    ptb.addEventListener('click',function(){
+      var open=pt.classList.toggle('open');
+      ptb.setAttribute('aria-expanded',open?'true':'false');
+    });
+    pt.addEventListener('click',function(e){
+      if(e.target.closest('a')){pt.classList.remove('open');ptb.setAttribute('aria-expanded','false');}
+    });
+  }
   function onScroll(){
     var y=window.scrollY+90,cur=0;
     for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}

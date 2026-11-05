@@ -58,16 +58,6 @@
 <a class="art" href="/zh/docs/09-ai-eng-agent-3/"><span class="no">12</span>从零开始设计一个 Agent（下篇）</a>
 </div>
 </div>
-<div class="toc-h">本页目录</div>
-<div class="toc-body">
-<a class="h2" href="#一MCP-不是模型多了个本事是增加了一个USB扩展">一、MCP 不是模型多了个本事，是增加了一个USB扩展</a>
-<a class="h2" href="#二MCP有三个角色三样东西">二、MCP有三个角色、三样东西</a>
-<a class="h2" href="#三MCP-和工具调用不是一回事也不是替代关系">三、MCP 和工具调用不是一回事，也不是替代关系</a>
-<a class="h2" href="#四值得包和不该包差在三个问句上">四、值得包和不该包，差在三个问句上</a>
-<a class="h2" href="#五包完不算完四道关过不了就不叫交付">五、包完不算完，四道关过不了就不叫交付</a>
-<a class="h2" href="#六真家伙就二十几行你要看得懂四件事">六、真家伙就二十几行，你要看得懂四件事</a>
-<a class="h2" href="#七坑">七、坑</a>
-</div>
   </nav>
   <main>
     <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
@@ -338,7 +328,20 @@ if __name__ == "__main__":
       <p>想先看看自己缺什么？用自评地图打个分  <a href="/zh/">→</a></p>
     </div>
   </main>
+  <nav class="page-toc" id="page-toc">
+<div class="pt-h">本页目录</div>
+<div class="pt-body">
+<a class="h2" href="#一MCP-不是模型多了个本事是增加了一个USB扩展">一、MCP 不是模型多了个本事，是增加了一个USB扩展</a>
+<a class="h2" href="#二MCP有三个角色三样东西">二、MCP有三个角色、三样东西</a>
+<a class="h2" href="#三MCP-和工具调用不是一回事也不是替代关系">三、MCP 和工具调用不是一回事，也不是替代关系</a>
+<a class="h2" href="#四值得包和不该包差在三个问句上">四、值得包和不该包，差在三个问句上</a>
+<a class="h2" href="#五包完不算完四道关过不了就不叫交付">五、包完不算完，四道关过不了就不叫交付</a>
+<a class="h2" href="#六真家伙就二十几行你要看得懂四件事">六、真家伙就二十几行，你要看得懂四件事</a>
+<a class="h2" href="#七坑">七、坑</a>
 </div>
+  </nav>
+</div>
+<button id="pagetoc-btn" type="button" aria-controls="page-toc" aria-expanded="false">≡ 本页目录</button>
 <button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
 <script>
 (function(){
@@ -367,9 +370,20 @@ if __name__ == "__main__":
       try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
     });
   });
-  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');
+  // 本页目录：宽屏右侧一栏，窄屏浮层
+  var pt=document.getElementById('page-toc'),ptb=document.getElementById('pagetoc-btn');
+  if(pt&&ptb){
+    ptb.addEventListener('click',function(){
+      var open=pt.classList.toggle('open');
+      ptb.setAttribute('aria-expanded',open?'true':'false');
+    });
+    pt.addEventListener('click',function(e){
+      if(e.target.closest('a')){pt.classList.remove('open');ptb.setAttribute('aria-expanded','false');}
+    });
+  }
   function onScroll(){
     var y=window.scrollY+90,cur=0;
     for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}

@@ -36,6 +36,7 @@ const UI = {
     otherLang: 'EN',
     series: '本系列',
     onThisPage: '本页目录',
+    tocBtn: '≡ 本页目录',
     prev: '上一篇',
     next: '下一篇',
     home: '文档',
@@ -51,6 +52,7 @@ const UI = {
     otherLang: '中文',
     series: 'In this series',
     onThisPage: 'On this page',
+    tocBtn: '≡ On this page',
     prev: 'Previous',
     next: 'Next',
     home: 'Docs',
@@ -170,16 +172,22 @@ function docPage({ lang, art, series, articles, body, toc }) {
     isPartOf: { '@type': 'CreativeWorkSeries', name: series.title[lang] || series.title.zh },
   });
 
-  const tocHtml = [
+  const seriesNav = [
     `<div class="toc-h">${esc(t.series)}</div>`,
     `<div class="toc-body">`,
     tocGroups({ lang, dir: L.dir, currentSlug: art.slug }),
     `</div>`,
-    `<div class="toc-h">${esc(t.onThisPage)}</div>`,
-    `<div class="toc-body">`,
-    ...toc.map((h) => `<a class="h${h.level}" href="#${h.id}">${esc(h.text)}</a>`),
-    `</div>`,
   ].join('\n');
+
+  // 本页目录独立成一列（≥1240px）；窄屏由右下角按钮弹成浮层
+  const pageToc = toc.length
+    ? [
+        `<div class="pt-h">${esc(t.onThisPage)}</div>`,
+        `<div class="pt-body">`,
+        ...toc.map((h) => `<a class="h${h.level}" href="#${h.id}">${esc(h.text)}</a>`),
+        `</div>`,
+      ].join('\n')
+    : '';
 
   const pager = (prev || next)
     ? `<div class="pager">
@@ -222,7 +230,7 @@ ${ADSENSE}
 </header>
 <div class="wrap">
   <nav class="toc">
-${tocHtml}
+${seriesNav}
   </nav>
   <main>
     <div class="crumb"><a href="/${L.dir}/">${esc(t.home)}</a> / ${esc(series.title[lang] || series.title.zh)}</div>
@@ -237,7 +245,8 @@ ${pager}
       <p>${esc(t.cta.replace('→', ''))} <a href="${L.tool}">→</a></p>
     </div>
   </main>
-</div>
+${pageToc ? `  <nav class="page-toc" id="page-toc">\n${pageToc}\n  </nav>\n` : ''}</div>
+${pageToc ? `<button id="pagetoc-btn" type="button" aria-controls="page-toc" aria-expanded="false">${esc(t.tocBtn)}</button>` : ''}
 <button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
 <script>
 (function(){
@@ -266,9 +275,20 @@ ${pager}
       try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
     });
   });
-  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');
+  // 本页目录：宽屏右侧一栏，窄屏浮层
+  var pt=document.getElementById('page-toc'),ptb=document.getElementById('pagetoc-btn');
+  if(pt&&ptb){
+    ptb.addEventListener('click',function(){
+      var open=pt.classList.toggle('open');
+      ptb.setAttribute('aria-expanded',open?'true':'false');
+    });
+    pt.addEventListener('click',function(e){
+      if(e.target.closest('a')){pt.classList.remove('open');ptb.setAttribute('aria-expanded','false');}
+    });
+  }
   function onScroll(){
     var y=window.scrollY+90,cur=0;
     for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}

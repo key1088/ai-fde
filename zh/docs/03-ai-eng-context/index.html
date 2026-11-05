@@ -58,17 +58,6 @@
 <a class="art" href="/zh/docs/09-ai-eng-agent-3/"><span class="no">12</span>从零开始设计一个 Agent（下篇）</a>
 </div>
 </div>
-<div class="toc-h">本页目录</div>
-<div class="toc-body">
-<a class="h2" href="#一Context是什么">一、Context是什么</a>
-<a class="h2" href="#二Prompt与Context的关系">二、Prompt与Context的关系</a>
-<a class="h2" href="#三Context与大模型">三、Context与大模型</a>
-<a class="h2" href="#四会话压缩">四、会话压缩</a>
-<a class="h2" href="#五大模型的幻觉">五、大模型的幻觉</a>
-<a class="h2" href="#六大模型的记忆">六、大模型的记忆</a>
-<a class="h2" href="#七什么叫Context-Engineering上下文工程">七、什么叫Context-Engineering（上下文工程）</a>
-<a class="h2" href="#八上下文都是钱">八、上下文都是钱</a>
-</div>
   </nav>
   <main>
     <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
@@ -184,7 +173,21 @@
       <p>想先看看自己缺什么？用自评地图打个分  <a href="/zh/">→</a></p>
     </div>
   </main>
+  <nav class="page-toc" id="page-toc">
+<div class="pt-h">本页目录</div>
+<div class="pt-body">
+<a class="h2" href="#一Context是什么">一、Context是什么</a>
+<a class="h2" href="#二Prompt与Context的关系">二、Prompt与Context的关系</a>
+<a class="h2" href="#三Context与大模型">三、Context与大模型</a>
+<a class="h2" href="#四会话压缩">四、会话压缩</a>
+<a class="h2" href="#五大模型的幻觉">五、大模型的幻觉</a>
+<a class="h2" href="#六大模型的记忆">六、大模型的记忆</a>
+<a class="h2" href="#七什么叫Context-Engineering上下文工程">七、什么叫Context-Engineering（上下文工程）</a>
+<a class="h2" href="#八上下文都是钱">八、上下文都是钱</a>
 </div>
+  </nav>
+</div>
+<button id="pagetoc-btn" type="button" aria-controls="page-toc" aria-expanded="false">≡ 本页目录</button>
 <button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
 <script>
 (function(){
@@ -213,9 +216,20 @@
       try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
     });
   });
-  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');
+  // 本页目录：宽屏右侧一栏，窄屏浮层
+  var pt=document.getElementById('page-toc'),ptb=document.getElementById('pagetoc-btn');
+  if(pt&&ptb){
+    ptb.addEventListener('click',function(){
+      var open=pt.classList.toggle('open');
+      ptb.setAttribute('aria-expanded',open?'true':'false');
+    });
+    pt.addEventListener('click',function(e){
+      if(e.target.closest('a')){pt.classList.remove('open');ptb.setAttribute('aria-expanded','false');}
+    });
+  }
   function onScroll(){
     var y=window.scrollY+90,cur=0;
     for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}

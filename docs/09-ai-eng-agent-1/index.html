@@ -58,16 +58,6 @@
 <a class="art" href="/docs/09-ai-eng-agent-3/"><span class="no">12</span>Designing an Agent from Scratch (Part 3)</a>
 </div>
 </div>
-<div class="toc-h">On this page</div>
-<div class="toc-body">
-<a class="h2" href="#1-An-Agent-is-a-piece-of-software-that-lets-the-model-act">1. An Agent is a piece of software that lets the model act</a>
-<a class="h2" href="#2-The-difference-between-an-Agent-and-an-agent-application">2. The difference between an Agent and an agent application</a>
-<a class="h2" href="#3-The-big-picture-first-one-loop-three-layers-of-brakes">3. The big picture first: one loop, three layers of brakes</a>
-<a class="h2" href="#4-The-minimal-loop-one-run_agent_turn">4. The minimal loop: one run_agent_turn</a>
-<a class="h2" href="#5-Stop-lines-dont-install-only-a-step-limit">5. Stop lines: don't install only a step limit</a>
-<a class="h2" href="#6-Observability-make-sure-you-can-see-it-first">6. Observability: make sure you can see it first</a>
-<a class="h2" href="#7-The-four-file-tools-read_file-write_file-edit_file-list_dir">7. The four file tools: read_file / write_file / edit_file / list_dir</a>
-</div>
   </nav>
   <main>
     <div class="crumb"><a href="/docs/">Docs</a> / The AI-FDE Transition Path</div>
@@ -559,7 +549,20 @@ def list_dir(path="."):
       <p>Want to see where you stand? Score yourself on the map  <a href="/">→</a></p>
     </div>
   </main>
+  <nav class="page-toc" id="page-toc">
+<div class="pt-h">On this page</div>
+<div class="pt-body">
+<a class="h2" href="#1-An-Agent-is-a-piece-of-software-that-lets-the-model-act">1. An Agent is a piece of software that lets the model act</a>
+<a class="h2" href="#2-The-difference-between-an-Agent-and-an-agent-application">2. The difference between an Agent and an agent application</a>
+<a class="h2" href="#3-The-big-picture-first-one-loop-three-layers-of-brakes">3. The big picture first: one loop, three layers of brakes</a>
+<a class="h2" href="#4-The-minimal-loop-one-run_agent_turn">4. The minimal loop: one run_agent_turn</a>
+<a class="h2" href="#5-Stop-lines-dont-install-only-a-step-limit">5. Stop lines: don't install only a step limit</a>
+<a class="h2" href="#6-Observability-make-sure-you-can-see-it-first">6. Observability: make sure you can see it first</a>
+<a class="h2" href="#7-The-four-file-tools-read_file-write_file-edit_file-list_dir">7. The four file tools: read_file / write_file / edit_file / list_dir</a>
 </div>
+  </nav>
+</div>
+<button id="pagetoc-btn" type="button" aria-controls="page-toc" aria-expanded="false">≡ On this page</button>
 <button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
 <script>
 (function(){
@@ -588,9 +591,20 @@ def list_dir(path="."):
       try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
     });
   });
-  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');
+  // 本页目录：宽屏右侧一栏，窄屏浮层
+  var pt=document.getElementById('page-toc'),ptb=document.getElementById('pagetoc-btn');
+  if(pt&&ptb){
+    ptb.addEventListener('click',function(){
+      var open=pt.classList.toggle('open');
+      ptb.setAttribute('aria-expanded',open?'true':'false');
+    });
+    pt.addEventListener('click',function(e){
+      if(e.target.closest('a')){pt.classList.remove('open');ptb.setAttribute('aria-expanded','false');}
+    });
+  }
   function onScroll(){
     var y=window.scrollY+90,cur=0;
     for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
