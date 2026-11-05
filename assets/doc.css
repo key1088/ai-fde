@@ -68,9 +68,16 @@ nav.toc a.art { padding-left: 8px; }
 nav.toc a.art.cur { color: var(--navy); font-weight: 700; background: #eef3f8; }
 nav.toc a.art .no { display: inline-block; min-width: 20px; color: #9aa4b2; font-variant-numeric: tabular-nums; }
 nav.toc .toc-grp {
-  font-size: 11.5px; font-weight: 700; color: #7a8697; letter-spacing: .3px;
-  margin: 14px 0 4px; padding-left: 8px; border-top: 1px dashed var(--line); padding-top: 10px;
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  width: 100%; margin: 14px 0 4px; padding: 10px 8px 4px;
+  border: 0; border-top: 1px dashed var(--line); background: none; font-family: inherit; text-align: left;
+  font-size: 11.5px; font-weight: 700; color: #7a8697; letter-spacing: .3px; cursor: pointer;
 }
+nav.toc .toc-grp:hover { color: var(--navy); }
+nav.toc .toc-grp.cur { color: var(--navy); }
+nav.toc .toc-grp .caret { font-size: 10px; opacity: .65; transition: transform .18s; }
+nav.toc .toc-grp.collapsed .caret { transform: rotate(-90deg); }
+nav.toc .toc-grp-body.collapsed { display: none; }
 nav.toc .toc-grp:first-child { margin-top: 4px; border-top: none; }
 nav.toc a.h3 { padding-left: 22px; font-size: 12.5px; }
 

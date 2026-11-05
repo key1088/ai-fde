@@ -35,21 +35,29 @@
     <div class="toc-h">本系列</div>
     <div class="toc-body">
       <a class="art cur" href="/zh/docs/">AI-FDE 转型之路</a>
-      <div class="toc-grp">AI-FDE 转型之路 · 开篇</div>
-      <a class="art" href="/zh/docs/00-intro/">为什么最懂客户的人反而最焦虑</a>
-      <div class="toc-grp">AI-FDE 转型之路 · AI 工程</div>
-      <a class="art" href="/zh/docs/01-ai-eng-llm/">先搞清楚模型一定会错在哪</a>
-      <a class="art" href="/zh/docs/02-ai-eng-prompt/">Prompt 不是玄学，是可以回归测试的代码</a>
-      <a class="art" href="/zh/docs/03-ai-eng-context/">Context-Engineering：大模型到底看得见什么</a>
-      <a class="art" href="/zh/docs/04-ai-eng-rag/">知识库答不准，问题通常不在模型</a>
-      <a class="art" href="/zh/docs/05-ai-eng-doc-parsing/">80% 的 RAG 问题出在文档解析</a>
-      <a class="art" href="/zh/docs/06-ai-eng-tool-calling/">工具描述是写给模型看的说明书</a>
-      <a class="art" href="/zh/docs/06-ai-eng-tool-calling-principles/">大模型怎么使用工具</a>
-      <a class="art" href="/zh/docs/07-ai-eng-python/">Python 入门指南：先搞定环境，再谈代码</a>
-      <a class="art" href="/zh/docs/08-ai-eng-mcp/">把内部系统包成 MCP Server</a>
-      <a class="art" href="/zh/docs/09-ai-eng-agent-1/">从零开始设计一个 Agent（上篇）</a>
-      <a class="art" href="/zh/docs/09-ai-eng-agent-2/">从零开始设计一个 Agent（中篇）</a>
-      <a class="art" href="/zh/docs/09-ai-eng-agent-3/">从零开始设计一个 Agent（下篇）</a>
+<button type="button" class="toc-grp" data-g="intro" aria-expanded="true" aria-controls="grp-intro">
+<span>AI-FDE 转型之路 · 开篇</span><span class="caret">▾</span>
+</button>
+<div class="toc-grp-body" id="grp-intro" data-g="intro">
+<a class="art" href="/zh/docs/00-intro/"><span class="no">01</span>为什么最懂客户的人反而最焦虑</a>
+</div>
+<button type="button" class="toc-grp" data-g="ai-eng" aria-expanded="true" aria-controls="grp-ai-eng">
+<span>AI-FDE 转型之路 · AI 工程</span><span class="caret">▾</span>
+</button>
+<div class="toc-grp-body" id="grp-ai-eng" data-g="ai-eng">
+<a class="art" href="/zh/docs/01-ai-eng-llm/"><span class="no">01</span>先搞清楚模型一定会错在哪</a>
+<a class="art" href="/zh/docs/02-ai-eng-prompt/"><span class="no">02</span>Prompt 不是玄学，是可以回归测试的代码</a>
+<a class="art" href="/zh/docs/03-ai-eng-context/"><span class="no">03</span>Context-Engineering：大模型到底看得见什么</a>
+<a class="art" href="/zh/docs/04-ai-eng-rag/"><span class="no">04</span>知识库答不准，问题通常不在模型</a>
+<a class="art" href="/zh/docs/05-ai-eng-doc-parsing/"><span class="no">05</span>80% 的 RAG 问题出在文档解析</a>
+<a class="art" href="/zh/docs/06-ai-eng-tool-calling/"><span class="no">06</span>工具描述是写给模型看的说明书</a>
+<a class="art" href="/zh/docs/06-ai-eng-tool-calling-principles/"><span class="no">07</span>大模型怎么使用工具</a>
+<a class="art" href="/zh/docs/07-ai-eng-python/"><span class="no">08</span>Python 入门指南：先搞定环境，再谈代码</a>
+<a class="art" href="/zh/docs/08-ai-eng-mcp/"><span class="no">09</span>把内部系统包成 MCP Server</a>
+<a class="art" href="/zh/docs/09-ai-eng-agent-1/"><span class="no">10</span>从零开始设计一个 Agent（上篇）</a>
+<a class="art" href="/zh/docs/09-ai-eng-agent-2/"><span class="no">11</span>从零开始设计一个 Agent（中篇）</a>
+<a class="art" href="/zh/docs/09-ai-eng-agent-3/"><span class="no">12</span>从零开始设计一个 Agent（下篇）</a>
+</div>
     </div>
   </nav>
   <main>
@@ -138,5 +146,32 @@
     </div>
   </main>
 </div>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  if(!toc)return;
+  var h=toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var KEY='aifde-toc-collapsed',saved={};
+  try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
+  toc.querySelectorAll('button.toc-grp').forEach(function(btn){
+    var k=btn.getAttribute('data-g');
+    var body=toc.querySelector('.toc-grp-body[data-g="'+k+'"]');
+    if(!body)return;
+    function paint(closed){
+      btn.classList.toggle('collapsed',closed);
+      body.classList.toggle('collapsed',closed);
+      btn.setAttribute('aria-expanded',closed?'false':'true');
+    }
+    if(saved[k]){paint(true);}
+    btn.addEventListener('click',function(){
+      var closed=!body.classList.contains('collapsed');
+      paint(closed);
+      saved[k]=closed;
+      try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
+    });
+  });
+})();
+</script>
 </body>
 </html>

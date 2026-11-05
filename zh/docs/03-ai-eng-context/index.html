@@ -34,9 +34,16 @@
   <nav class="toc">
 <div class="toc-h">本系列</div>
 <div class="toc-body">
-<div class="toc-grp">AI-FDE 转型之路 · 开篇</div>
+<button type="button" class="toc-grp" data-g="intro" aria-expanded="true" aria-controls="grp-intro">
+<span>AI-FDE 转型之路 · 开篇</span><span class="caret">▾</span>
+</button>
+<div class="toc-grp-body" id="grp-intro" data-g="intro">
 <a class="art" href="/zh/docs/00-intro/"><span class="no">01</span>为什么最懂客户的人反而最焦虑</a>
-<div class="toc-grp">AI-FDE 转型之路 · AI 工程</div>
+</div>
+<button type="button" class="toc-grp" data-g="ai-eng" data-lock="1" aria-expanded="true" aria-controls="grp-ai-eng">
+<span>AI-FDE 转型之路 · AI 工程</span><span class="caret">▾</span>
+</button>
+<div class="toc-grp-body" id="grp-ai-eng" data-g="ai-eng">
 <a class="art" href="/zh/docs/01-ai-eng-llm/"><span class="no">01</span>先搞清楚模型一定会错在哪</a>
 <a class="art" href="/zh/docs/02-ai-eng-prompt/"><span class="no">02</span>Prompt 不是玄学，是可以回归测试的代码</a>
 <a class="art cur" href="/zh/docs/03-ai-eng-context/"><span class="no">03</span>Context-Engineering：大模型到底看得见什么</a>
@@ -49,6 +56,7 @@
 <a class="art" href="/zh/docs/09-ai-eng-agent-1/"><span class="no">10</span>从零开始设计一个 Agent（上篇）</a>
 <a class="art" href="/zh/docs/09-ai-eng-agent-2/"><span class="no">11</span>从零开始设计一个 Agent（中篇）</a>
 <a class="art" href="/zh/docs/09-ai-eng-agent-3/"><span class="no">12</span>从零开始设计一个 Agent（下篇）</a>
+</div>
 </div>
 <div class="toc-h">本页目录</div>
 <div class="toc-body">
@@ -181,8 +189,30 @@
 <script>
 (function(){
   var toc=document.querySelector('nav.toc');
-  var h=toc&&toc.querySelector('.toc-h');
+  if(!toc)return;
+  var h=toc.querySelector('.toc-h');
   if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  // 分组折叠：点组标题收起 / 展开；当前文章所在组锁定展开；其余组记住上次状态
+  var KEY='aifde-toc-collapsed',saved={};
+  try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
+  toc.querySelectorAll('button.toc-grp').forEach(function(btn){
+    var k=btn.getAttribute('data-g');
+    var body=toc.querySelector('.toc-grp-body[data-g="'+k+'"]');
+    if(!body)return;
+    var lock=btn.getAttribute('data-lock')==='1';
+    function paint(closed){
+      btn.classList.toggle('collapsed',closed);
+      body.classList.toggle('collapsed',closed);
+      btn.setAttribute('aria-expanded',closed?'false':'true');
+    }
+    if(lock){paint(false);}else if(saved[k]){paint(true);}
+    btn.addEventListener('click',function(){
+      var closed=!body.classList.contains('collapsed');
+      paint(closed);
+      saved[k]=closed;
+      try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
+    });
+  });
   var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');

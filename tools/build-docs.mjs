@@ -173,13 +173,7 @@ function docPage({ lang, art, series, articles, body, toc }) {
   const tocHtml = [
     `<div class="toc-h">${esc(t.series)}</div>`,
     `<div class="toc-body">`,
-    ...grouped.flatMap((g) => [
-      g.key ? `<div class="toc-grp">${esc(groupLabel(g.key, lang))}</div>` : '',
-      ...g.items.map(
-        (a, i) =>
-          `<a class="art${a.slug === art.slug ? ' cur' : ''}" href="/${L.dir}/${a.slug}/"><span class="no">${String(i + 1).padStart(2, '0')}</span>${esc(a.meta.title[lang] || a.meta.title.zh)}</a>`
-      ),
-    ]),
+    tocGroups({ lang, dir: L.dir, currentSlug: art.slug }),
     `</div>`,
     `<div class="toc-h">${esc(t.onThisPage)}</div>`,
     `<div class="toc-body">`,
@@ -248,8 +242,30 @@ ${pager}
 <script>
 (function(){
   var toc=document.querySelector('nav.toc');
-  var h=toc&&toc.querySelector('.toc-h');
+  if(!toc)return;
+  var h=toc.querySelector('.toc-h');
   if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  // 分组折叠：点组标题收起 / 展开；当前文章所在组锁定展开；其余组记住上次状态
+  var KEY='aifde-toc-collapsed',saved={};
+  try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
+  toc.querySelectorAll('button.toc-grp').forEach(function(btn){
+    var k=btn.getAttribute('data-g');
+    var body=toc.querySelector('.toc-grp-body[data-g="'+k+'"]');
+    if(!body)return;
+    var lock=btn.getAttribute('data-lock')==='1';
+    function paint(closed){
+      btn.classList.toggle('collapsed',closed);
+      body.classList.toggle('collapsed',closed);
+      btn.setAttribute('aria-expanded',closed?'false':'true');
+    }
+    if(lock){paint(false);}else if(saved[k]){paint(true);}
+    btn.addEventListener('click',function(){
+      var closed=!body.classList.contains('collapsed');
+      paint(closed);
+      saved[k]=closed;
+      try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
+    });
+  });
   var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');
@@ -346,12 +362,7 @@ ${ADSENSE}
     <div class="toc-h">${esc(t.series)}</div>
     <div class="toc-body">
       <a class="art cur" href="/${L.dir}/">${esc(series.title[lang] || series.title.zh)}</a>
-${grouped
-  .flatMap((g) => [
-    g.key ? `      <div class="toc-grp">${esc(groupLabel(g.key, lang))}</div>` : '',
-    ...g.items.map((a) => `      <a class="art" href="/${L.dir}/${a.slug}/">${esc(a.meta.title[lang] || a.meta.title.zh)}</a>`),
-  ])
-  .join('\n')}
+${tocGroups({ lang, dir: L.dir, currentSlug: '' })}
     </div>
   </nav>
   <main>
@@ -366,6 +377,33 @@ ${cards}
     </div>
   </main>
 </div>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  if(!toc)return;
+  var h=toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var KEY='aifde-toc-collapsed',saved={};
+  try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
+  toc.querySelectorAll('button.toc-grp').forEach(function(btn){
+    var k=btn.getAttribute('data-g');
+    var body=toc.querySelector('.toc-grp-body[data-g="'+k+'"]');
+    if(!body)return;
+    function paint(closed){
+      btn.classList.toggle('collapsed',closed);
+      body.classList.toggle('collapsed',closed);
+      btn.setAttribute('aria-expanded',closed?'false':'true');
+    }
+    if(saved[k]){paint(true);}
+    btn.addEventListener('click',function(){
+      var closed=!body.classList.contains('collapsed');
+      paint(closed);
+      saved[k]=closed;
+      try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
+    });
+  });
+})();
+</script>
 </body>
 </html>
 `;
@@ -389,6 +427,30 @@ function groupLabel(key, lang) {
   const g = groupDefs[key];
   if (!g) return base;
   return `${base} · ${g.title[lang] || g.title.zh}`;
+}
+// 侧边栏分组列表：分组标题可点击折叠；currentSlug 所在的组默认锁定展开
+function tocGroups({ lang, dir, currentSlug }) {
+  return grouped
+    .map((g) => {
+      const items = g.items
+        .map((a, i) => {
+          const at = a.meta.title[lang] || a.meta.title.zh;
+          const cur = a.slug === currentSlug;
+          return `<a class="art${cur ? ' cur' : ''}" href="/${dir}/${a.slug}/"><span class="no">${String(i + 1).padStart(2, '0')}</span>${esc(at)}</a>`;
+        })
+        .join('\n');
+      if (!g.key) return items; // 没配分组：直接平铺，不出现折叠标题
+      const hasCur = g.items.some((a) => a.slug === currentSlug);
+      return [
+        `<button type="button" class="toc-grp" data-g="${esc(g.key)}"${hasCur ? ' data-lock="1"' : ''} aria-expanded="true" aria-controls="grp-${esc(g.key)}">`,
+        `<span>${esc(groupLabel(g.key, lang))}</span><span class="caret">▾</span>`,
+        `</button>`,
+        `<div class="toc-grp-body" id="grp-${esc(g.key)}" data-g="${esc(g.key)}">`,
+        items,
+        `</div>`,
+      ].join('\n');
+    })
+    .join('\n');
 }
 for (const a of articles) {
   if (a.group && !groupDefs[a.group]) problems.push(`${a.slug} 的 group「${a.group}」未在 series.groups 里定义`);
