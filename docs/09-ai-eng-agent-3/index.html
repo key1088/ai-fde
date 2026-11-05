@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Designing an Agent from Scratch (Part 3) · The AI-FDE Transition Path</title>
+<meta name="description" content="Three extension paths (plugins, MCP, Skills), program-level bookkeeping and pre-answer checks, per-call logs and long-term memory, plus an honest acceptance checklist.">
+<link rel="canonical" href="https://ai-fde.dev/docs/09-ai-eng-agent-3/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/09-ai-eng-agent-3/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/09-ai-eng-agent-3/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/09-ai-eng-agent-3/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Designing an Agent from Scratch (Part 3)">
+<meta property="og:description" content="Three extension paths (plugins, MCP, Skills), program-level bookkeeping and pre-answer checks, per-call logs and long-term memory, plus an honest acceptance checklist.">
+<meta property="og:url" content="https://ai-fde.dev/docs/09-ai-eng-agent-3/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/09-ai-eng-agent-3/img-01.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Designing an Agent from Scratch (Part 3)","description":"Three extension paths (plugins, MCP, Skills), program-level bookkeeping and pre-answer checks, per-call logs and long-term memory, plus an honest acceptance checklist.","datePublished":"2026-10-31","inLanguage":"en","image":"https://ai-fde.dev/media/docs/09-ai-eng-agent-3/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/docs/09-ai-eng-agent-3/","isPartOf":{"@type":"CreativeWorkSeries","name":"The AI-FDE Transition Path"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/docs/">AI-FDE <span>· Docs</span></a>
+  <nav>
+    <a href="/">Self-Assessment</a>
+    <a href="/docs/" class="on">Docs</a>
+    <a class="lang" href="/zh/docs/09-ai-eng-agent-3/">中文</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">In this series</div>
+<div class="toc-body">
+<a class="art" href="/docs/00-intro/"><span class="no">01</span>Why Those Who Know the Customer Best Are the Most Anxious</a>
+<a class="art" href="/docs/01-ai-eng-llm/"><span class="no">02</span>First, Understand Exactly Where the Model Will Always Fail</a>
+<a class="art" href="/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompts Aren't Magic — They're Code You Can Regression-Test</a>
+<a class="art" href="/docs/03-ai-eng-context/"><span class="no">04</span>Context Engineering: What the Model Can Actually See</a>
+<a class="art" href="/docs/04-ai-eng-rag/"><span class="no">05</span>When the Knowledge Base Is Wrong, the Model Usually Isn't</a>
+<a class="art" href="/docs/05-ai-eng-doc-parsing/"><span class="no">06</span>80% of RAG Problems Start in Document Parsing</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling/"><span class="no">07</span>Tool Descriptions Are Manuals Written for the Model</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling-principles/"><span class="no">08</span>How a Model Actually Uses a Tool</a>
+<a class="art" href="/docs/07-ai-eng-python/"><span class="no">09</span>A Python Primer: Get the Environment Right First</a>
+<a class="art" href="/docs/08-ai-eng-mcp/"><span class="no">10</span>Turning an Internal System into an MCP Server</a>
+<a class="art" href="/docs/09-ai-eng-agent-1/"><span class="no">11</span>Designing an Agent from Scratch (Part 1)</a>
+<a class="art" href="/docs/09-ai-eng-agent-2/"><span class="no">12</span>Designing an Agent from Scratch (Part 2)</a>
+<a class="art cur" href="/docs/09-ai-eng-agent-3/"><span class="no">13</span>Designing an Agent from Scratch (Part 3)</a>
+</div>
+<div class="toc-h">On this page</div>
+<div class="toc-body">
+<a class="h2" href="#12-Extensions-plugins-MCP-Skills">12. Extensions: plugins, MCP, Skills</a>
+<a class="h2" href="#13-Program-bookkeeping-turn-it-says-it-is-done-into-the-program-can-prove-it">13. Program bookkeeping: turn &quot;it says it is done&quot; into &quot;the program can prove it&quot;</a>
+<a class="h2" href="#14-Logs-and-memory-investigate-incidents-remember-for-next-time">14. Logs and memory: investigate incidents, remember for next time</a>
+<a class="h2" href="#15-Acceptance-criteria-and-pitfalls">15. Acceptance criteria and pitfalls</a>
+<a class="h2" href="#Links-to-all-three-parts">Links to all three parts:</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/docs/">Docs</a> / The AI-FDE Transition Path</div>
+    <article>
+      <h1 class="doc-title">Designing an Agent from Scratch (Part 3)</h1>
+      <p class="doc-sub">The AI-FDE Transition Path · AI Engineering 09 — Agent Design and Implementation</p>
+      <p class="doc-meta">2026-10-31</p>
+      <blockquote>
+<p>This is <strong>Part 3</strong> of the three-part series "Designing an Agent from Scratch".
+The route: extensions → program bookkeeping → logs and memory → acceptance criteria and pitfalls → version appendix.
+Part 1 got the loop and the four file tools working. Part 2 added commands, context, controls and permissions. Part 3 solves the last three things: how to extend tools, how to prove it actually finished, and how to investigate after an incident.</p>
+</blockquote>
+<h2 id="12-Extensions-plugins-MCP-Skills">12. Extensions: plugins, MCP, Skills</h2>
+<p>The tools are not enough, but you should not keep piling them into the main program. The current version provides three extension paths, each answering a different "who maintains it" question.</p>
+<p>Plugins: one <code>.py</code> file on the local machine</p>
+<p>Scan the <code>tools/</code> directory. Every <code>.py</code> file that provides <code>TOOL_DEF</code> and <code>run</code> is automatically mounted as a tool:</p>
+<pre><code class="language-python">def scan_and_load_plugins(verbose=True):
+    # Excerpt: TOOL_DEF type, duplicate-name and run-callable checks omitted
+    result = {}
+    if not os.path.isdir(PLUGINS_DIR):
+        return result
+    files = sorted(f for f in os.listdir(PLUGINS_DIR)
+                   if f.endswith(".py") and not f.startswith("_"))
+    for fn in files:
+        path = os.path.join(PLUGINS_DIR, fn)
+        try:
+            spec = importlib.util.spec_from_file_location(f"_plugin_{fn[:-3]}", path)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+        except Exception as e:
+            print(f"  [plugin] failed to load {fn}: {e}")
+            continue
+        if not hasattr(mod, "TOOL_DEF") or not hasattr(mod, "run"):
+            continue
+        name = mod.TOOL_DEF.get("name")
+        if not name or name in BUILTIN_TOOL_MAP:
+            continue
+        result[name] = {"def": mod.TOOL_DEF, "run": mod.run, "file": fn}
+    return result
+</code></pre>
+<p>A load failure does not crash anything; print the reason and skip. One broken plugin should not take down the whole Agent.</p>
+<p>MCP: another process, speaking a standard protocol</p>
+<p>The MCP background thread runs an asyncio event loop. The main thread submits work through <code>run_coroutine_threadsafe</code> and waits for the result:</p>
+<pre><code class="language-python">MCP_LOOP = None
+MCP_THREAD = None
+
+def _start_mcp_loop():
+    global MCP_LOOP, MCP_THREAD
+    MCP_LOOP = asyncio.new_event_loop()
+
+    def run():
+        asyncio.set_event_loop(MCP_LOOP)
+        MCP_LOOP.run_forever()
+
+    MCP_THREAD = threading.Thread(target=run, daemon=True)
+    MCP_THREAD.start()
+
+def _mcp_call_tool_sync(server_name, tool_name, args):
+    session = MCP_SESSIONS[server_name]["session"]
+
+    async def _call():
+        return await session.call_tool(tool_name, args)
+
+    fut = asyncio.run_coroutine_threadsafe(_call(), MCP_LOOP)
+    return fut.result(timeout=60)
+</code></pre>
+<p>Why not call <code>asyncio.run</code> directly on the main thread? Because the main thread already has a synchronous conversation loop. Two sides fighting over the event loop will deadlock.</p>
+<p>In a real log, one MCP query looks like this:</p>
+<pre><code class="language-json">{"ts": 1793194714.657, "kind": "mcp_call", "server": "sqlite", "tool": "list_tables", "elapsed": 0.007, "result_preview": "users"}
+{"ts": 1793194715.738, "kind": "mcp_call", "server": "sqlite", "tool": "query", "elapsed": 0.018, "result_preview": "(2,)"}
+{"ts": 1793194717.515, "kind": "mcp_call", "server": "sqlite", "tool": "query", "elapsed": 0.004, "result_preview": "(1, 'Alice', 30)\n(2, 'Bob', 25)"}
+</code></pre>
+<p>Three calls, three steps. The log shows exactly what the MCP process returned: first list the tables, then count the rows, then pull the full table to verify.</p>
+<p>Skills: a <code>SKILL.md</code> file that is essentially a prompt</p>
+<p>Scan <code>SKILL.md</code> under <code>skills/</code>, parse the <code>---</code> front matter, and use the body as a prompt:</p>
+<pre><code class="language-python">def _parse_frontmatter(text):
+    if not text.startswith("---"):
+        return {}, text
+    end = text.find("\n---", 3)
+    if end == -1:
+        return {}, text
+    fm_text = text[3:end].strip()
+    body = text[end + 4:].lstrip("\n")
+    meta = {}
+    for line in fm_text.split("\n"):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if ":" in line:
+            k, v = line.split(":", 1)
+            meta[k.strip()] = v.strip().strip('"').strip("'")
+    return meta, body
+</code></pre>
+<p><code>use_skill</code> returns the body and the list of attached files to the model, and the model follows the steps itself. It does not change code; it only changes the prompt.</p>
+<p>How to choose among the three</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it is</th>
+<th>Who maintains it</th>
+<th>When to use it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Plugin</td>
+<td>A local <code>.py</code> file with <code>TOOL_DEF</code> and <code>run()</code></td>
+<td>You</td>
+<td>A tool only you need</td>
+</tr>
+<tr>
+<td>MCP</td>
+<td>Another process speaking a standard protocol</td>
+<td>Someone else</td>
+<td>An existing system must be exposed to multiple applications</td>
+</tr>
+<tr>
+<td>Skills</td>
+<td>A <code>SKILL.md</code>, essentially a prompt</td>
+<td>Operations / business</td>
+<td>A multi-step process that does not change code</td>
+</tr>
+</tbody></table></div>
+<p>This order is not by sophistication; it is by <strong>cost of change</strong>. A plugin change requires a restart. An MCP change requires changing the other side. A Skills change is a text edit. If Skills can solve it, don't write a plugin.</p>
+<h2 id="13-Program-bookkeeping-turn-it-says-it-is-done-into-the-program-can-prove-it">13. Program bookkeeping: turn "it says it is done" into "the program can prove it"</h2>
+<p>All previous brakes say "you may not". This section changes direction: <strong>the program keeps its own books, and checks them before answering.</strong></p>
+<pre><code class="language-python">def check_before_answer(facts):
+    warnings = []
+
+    # Check 1: .py files changed but nothing verified
+    if facts["modified_py"] and not facts["ran_test"]:
+        files = sorted(facts["modified_py"])[:3]
+        more = " etc." if len(facts["modified_py"]) &gt; 3 else ""
+        warnings.append(
+            f"You modified Python files {files}{more}, but did not run any tests or import checks. "
+            f"Consider using run_shell to run pytest or a python -c check."
+        )
+
+    # Check 2: shell failures were ignored
+    if facts["shell_failures"]:
+        fails = facts["shell_failures"][:2]
+        warnings.append(
+            f"These commands failed but were not handled: {fails}. Handle the errors or explain why."
+        )
+
+    return warnings
+</code></pre>
+<p><code>facts</code> has only three fields: which <code>.py</code> files were modified, whether any test ran, and which commands returned a nonzero exit code. These are not reported by the model; they are recorded by the tool executor as a side effect:</p>
+<pre><code class="language-python">def update_facts_from_tool(tool_name, tool_args_str, result, facts):
+    try:
+        args = json.loads(tool_args_str or "{}")
+    except json.JSONDecodeError:
+        args = {}
+
+    if tool_name in ("write_file", "edit_file"):
+        path = args.get("path", "")
+        if path.endswith(".py"):
+            facts["modified_py"].add(path)
+
+    if tool_name == "run_shell":
+        cmd = args.get("command", "")
+        cmd_lower = cmd.lower()
+        if ("pytest" in cmd_lower or
+            ("python" in cmd_lower and ".py" in cmd_lower) or
+            "python3 -c" in cmd_lower or "python -c" in cmd_lower):
+            facts["ran_test"] = True
+
+        r = str(result)
+        if "[exit code " in r:
+            try:
+                tag = r.split("[exit code ")[-1].split("]")[0].strip()
+                if int(tag) != 0:
+                    facts["shell_failures"].append(cmd[:60])
+            except Exception:
+                pass
+</code></pre>
+<p>Why is this more important than all the interception above? Because most of those failures can still be caught by limits and interception. Only one cannot — <strong>it finished, and it believes it did the right thing</strong>. It changed five files, ran nothing, and then said "done". That kind of delivery explodes in the customer's hands, and when it does, you cannot say which step was wrong.</p>
+<p>A real run: the check really does block</p>
+<p>On 2026-10-28 I reran the current version and asked it to change <code>Hello Agent</code> to <code>Hello Pi</code> in <code>sandbox/hello.py</code>, and explicitly said "do not run any commands".</p>
+<p>It made the change, read it back to confirm, and was about to wrap up when the objective check stopped it. Here is an excerpt:</p>
+<pre><code class="language-text">Done: `print("Hello Agent")` in `sandbox/hello.py` has been changed to `print("Hello Pi")`. Only this one place was modified; no commands were run.
+
+  [verification check] issue found; asking the Agent to continue fixing (attempt 1/2):
+    - You modified Python files ['sandbox/hello.py'], but did not run any tests or import checks.
+
+My conclusion has not changed; you need to make a decision here.
+You explicitly said "do not run any commands", so I did not execute run_shell...
+</code></pre>
+<p>This is a good example of two things:</p>
+<ol>
+<li><p><strong>The check is triggered by facts, not by the model's self-report.</strong> The model saying "done" does not help. If <code>modified_py</code> is nonempty and <code>ran_test</code> is false, it triggers.</p>
+</li>
+<li><p><strong>The check can conflict with an explicit human instruction.</strong> The user says "do not run commands"; the check says "you must run tests". The current version leaves this conflict to the model to explain; there is no program-level "skip for this run" mechanism. That is debt.</p>
+</li>
+</ol>
+<p>The check is still crude</p>
+<p><code>ran_test</code> is judged from the command string, not from the result. Worse: <strong>if the user denies the command, it is still recorded as "ran"</strong>.</p>
+<p>In another run of the four file tools, it tried to verify with <code>python sandbox/hello.py</code>, but the confirmation step was denied. <code>ran_test</code> was still set to true, so the check did not block again.</p>
+<p>So the value of this check is "better than nothing", not "reliable". The next step needs at least three fixes:</p>
+<ul>
+<li><p>Count only commands with exit code 0 as verification.</p>
+</li>
+<li><p>Distinguish "ran tests" from "ran a script".</p>
+</li>
+<li><p>Give the user an explicit "skip verification for this run" switch.</p>
+</li>
+</ul>
+<p>The original log is at <code>logs/samples/verify_rerun_20261028_224113.jsonl</code>.</p>
+<h2 id="14-Logs-and-memory-investigate-incidents-remember-for-next-time">14. Logs and memory: investigate incidents, remember for next time</h2>
+<p>The smallest unit of a log is one tool call</p>
+<p>The current log is jsonl: write one line for every event.</p>
+<pre><code class="language-python">LOG_DIR = os.path.join(WORKSPACE, "logs")
+SESSION_ID = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+LOG_FILE = os.path.join(LOG_DIR, f"session_{SESSION_ID}.jsonl")
+_LOG_FH = None
+
+def log_event(kind, **fields):
+    if _LOG_FH is None:
+        return
+    rec = {"ts": round(time.time(), 3), "kind": kind, **fields}
+    try:
+        _LOG_FH.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+</code></pre>
+<p>There are not many event types:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>kind</th>
+<th>When it is written</th>
+<th>Key fields</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>session_start</code></td>
+<td>Session starts</td>
+<td><code>model</code>, <code>base_url</code>, <code>workdir</code></td>
+</tr>
+<tr>
+<td><code>llm_call</code></td>
+<td>Every model call</td>
+<td><code>step</code>, <code>prompt_tokens</code>, <code>completion_tokens</code>, <code>elapsed</code></td>
+</tr>
+<tr>
+<td><code>tool_call</code></td>
+<td>Every tool execution</td>
+<td><code>name</code>, <code>args_preview</code>, <code>result_preview</code>, <code>elapsed</code></td>
+</tr>
+<tr>
+<td><code>mcp_call</code></td>
+<td>Every MCP call</td>
+<td><code>server</code>, <code>tool</code>, <code>elapsed</code>, <code>result_preview</code></td>
+</tr>
+<tr>
+<td><code>sub_agent_start</code> / <code>sub_agent_end</code></td>
+<td>Start and end of a sub-agent</td>
+<td><code>profile</code>, <code>task</code>, <code>elapsed</code></td>
+</tr>
+<tr>
+<td><code>assistant_final</code></td>
+<td>Final answer</td>
+<td><code>text</code></td>
+</tr>
+<tr>
+<td><code>session_end</code></td>
+<td>Session ends</td>
+<td><code>llm_calls</code>, <code>tool_calls</code>, <code>mcp_calls</code>, token totals</td>
+</tr>
+</tbody></table></div>
+<p><strong>The smallest unit of a log is one tool call, not one session.</strong> If you don't do this, after an incident you only see "the end was wrong" with a blank in the middle. That kind of log is as good as none.</p>
+<p>In a real log, a five-step counting task restored as a terminal view looks like this:</p>
+<pre><code class="language-text">[step 1] run_shell → 3657
+ 27469 total
+[exit code 0]
+
+[step 2] run_shell → 3631 ./.venv
+...
+[step 3] run_shell → 12918
+[exit code 0]
+
+[step 4] run_shell → 12918 total
+  1766 ./Tiny-Agent-v8.0.py
+  1560 ./Tiny-Agent-v7.0.py
+  ...
+
+[step 5] final answer: 26 files, 12,918 lines total
+</code></pre>
+<p>That session wrote 19 log lines. Without logs, you see only the last line. With logs, all five steps are there.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Without logs</th>
+<th>With logs</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Only the last sentence: "26 files, 12,918 lines total"</td>
+<td>Five steps, six tool calls, tokens and elapsed time per step</td>
+</tr>
+<tr>
+<td>No idea why it looked at <code>.venv</code></td>
+<td>You can see step 2 counted directories first, and step 3 excluded them</td>
+</tr>
+<tr>
+<td>After an incident, rerun from scratch</td>
+<td>Jump directly to the failing step</td>
+</tr>
+</tbody></table></div>
+<p>Memory: remember conventions, not conclusions</p>
+<p>The <code>remember</code> tool writes content into <code>AGENT.md</code>. The next time a new session starts, it is automatically appended to the system prompt:</p>
+<pre><code class="language-python">MEMORY_FILE = os.path.join(WORKSPACE, "AGENT.md")
+
+def load_memory():
+    if not os.path.isfile(MEMORY_FILE):
+        return ""
+    with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+        return f.read().strip()
+
+def append_memory(content):
+    try:
+        is_new = not os.path.isfile(MEMORY_FILE)
+        with open(MEMORY_FILE, "a", encoding="utf-8") as f:
+            if is_new:
+                f.write("# Project memory\n")
+            ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            f.write(f"\n## {ts}\n{content.strip()}\n")
+        return f"remembered in {os.path.basename(MEMORY_FILE)}"
+    except Exception as e:
+        return f"failed to write memory: {e}"
+</code></pre>
+<p>At startup:</p>
+<pre><code class="language-python">memory = load_memory()
+if memory:
+    base += "\n\n## Project memory (from AGENT.md)\n" + memory
+</code></pre>
+<p>On 2026-10-28 I reran the current version and asked it to remember two new conventions:</p>
+<pre><code class="language-text">&gt; Remember: this project deploys with docker compose and logs with loguru
+[step 1] calling tools: ['remember', 'remember']
+[step 1] remember → remembered in AGENT.md
+[step 1] remember → remembered in AGENT.md
+AI: Remembered two project conventions: 1. deployment uses docker compose 2. logging uses loguru
+</code></pre>
+<p>The corresponding two raw <code>tool_call</code> lines:</p>
+<pre><code class="language-json">{"ts": 1793194732.658, "kind": "tool_call", "name": "remember", "args_preview": "{\"content\": \"deployment uses docker compose\"}", "result_preview": "remembered in AGENT.md", "elapsed": 0.0}
+{"ts": 1793194732.658, "kind": "tool_call", "name": "remember", "args_preview": "{\"content\": \"logging uses loguru\"}", "result_preview": "remembered in AGENT.md", "elapsed": 0.0}
+</code></pre>
+<p>In another session, the same conventions were already in <code>AGENT.md</code>. It first used <code>read_file</code> to confirm and did not write them again — you can see that step in the log.</p>
+<p>Memory should only store two kinds of things: <strong>conventions</strong> and <strong>preferences</strong> — this project uses pytest; code style uses black. Do not store conclusions. Data from the previous run or a temporary judgment, once stored, becomes a landmine for the next run. It will answer today's question with a three-day-old conclusion, and it will sound completely confident.</p>
+<p>The original logs are at <code>logs/samples/logging_20260929_190304.jsonl</code> (five-step count) and <code>logs/samples/memory_rerun_20261028_213850.jsonl</code> (remember).</p>
+<h2 id="15-Acceptance-criteria-and-pitfalls">15. Acceptance criteria and pitfalls</h2>
+<p>Three criteria, each testable on the spot:</p>
+<ol>
+<li><p><strong>Name the three limits:</strong> steps, wall clock and cost. If you cannot name them, they do not exist.</p>
+</li>
+<li><p><strong>Demonstrate "it stopped"</strong>, not a successful run. Succeeding is not a skill.</p>
+</li>
+<li><p><strong>Point to why it stopped last time:</strong> find that step in the log. If you cannot, you are keeping a pet in a black box.</p>
+</li>
+</ol>
+<p>The current version's self-check table</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Current state</th>
+<th>Risk</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Step limit</td>
+<td><code>max_steps=8</code>, sub-agent 6</td>
+<td>Present, but only stops infinite loops</td>
+</tr>
+<tr>
+<td>Wall clock</td>
+<td>No per-turn deadline</td>
+<td>It can run for a long time and never stop</td>
+</tr>
+<tr>
+<td>Cost</td>
+<td>No token or money budget</td>
+<td>One session can burn through the budget</td>
+</tr>
+<tr>
+<td>Repetition detection</td>
+<td>None</td>
+<td>The same tool and arguments can loop forever</td>
+</tr>
+<tr>
+<td><code>read_file</code> truncation</td>
+<td>None</td>
+<td>Large files eat context</td>
+</tr>
+<tr>
+<td><code>list_dir</code> filtering</td>
+<td>Does not skip <code>.venv</code> / <code>__pycache__</code></td>
+<td>Large directories flood the output</td>
+</tr>
+<tr>
+<td>Parallelism criterion</td>
+<td>Only excludes <code>run_shell</code></td>
+<td><code>code</code> sub-agents can also modify files in parallel</td>
+</tr>
+<tr>
+<td><code>ran_test</code></td>
+<td>Judged from the command string</td>
+<td>A denied command is still recorded as "ran"</td>
+</tr>
+<tr>
+<td>Platform</td>
+<td><code>termios</code> / <code>tty</code></td>
+<td>Does not run on Windows from v4.2</td>
+</tr>
+<tr>
+<td>MCP</td>
+<td>Depends on <code>python3</code> and the <code>mcp</code> package</td>
+<td>Cannot connect when the venv is not active</td>
+</tr>
+</tbody></table></div>
+<p>This table is not self-flagellation; it is how you prioritize the next step. <strong>Being able to say clearly what is not done is better than pretending everything is done.</strong></p>
+<p>Four pitfalls</p>
+<p><strong>Pitfall 1: looking only at demos, not failures.</strong> Vendor demos always take the smoothest path. Ask three questions during acceptance: what does it do when the task is unclear, what does it do when a tool fails, and does it have a way to know when the answer is wrong? If the third answer is missing, the first two are probably luck.</p>
+<p><strong>Pitfall 2: treating "free planning" as a capability metric.</strong> At a bank customer, <strong>predictability is worth more than intelligence</strong>. A customer can accept a system that is inflexible but behaves consistently. They cannot accept one that is occasionally brilliant and occasionally insane.</p>
+<p><strong>Pitfall 3: logging only the final result.</strong> After an incident you see only "the end was wrong" with a blank in the middle. The smallest unit of a log is one tool call, not one session.</p>
+<p><strong>Pitfall 4: thinking a step limit makes it safe.</strong> This whole article has been about this. The limit controls "how long it runs", not "which direction it runs in".</p>
+<p><strong>Pitfall 5: writing the rule in the function name but not in the criterion.</strong> <code>profile_can_parallel</code> reads like "only read-only roles may run in parallel", but the actual criterion is only "does not contain <code>run_shell</code>". <code>code</code> sub-agents can still modify files in parallel. A name is not a brake; the criterion is.</p>
+<p>Appendix: version evolution</p>
+<p>The article is not organized by version, but the version chain is evidence. It answers "in which version did this capability first appear", not "the reader must write it twenty times".</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Version</th>
+<th>File</th>
+<th>What it added</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td><code>v1.0_loop.py</code></td>
+<td>Two tools + loop + step limit</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td><code>v1.1_no_loop.py</code></td>
+<td>Removed the loop as a control</td>
+</tr>
+<tr>
+<td>v2.0</td>
+<td><code>v2.0_loop_back.py</code></td>
+<td>Loop restored; exit condition written into code</td>
+</tr>
+<tr>
+<td>v2.1</td>
+<td><code>v2.1_multi_turn.py</code></td>
+<td>Session state moved outside the function</td>
+</tr>
+<tr>
+<td>v2.2</td>
+<td><code>v2.2_single_exec_stream.py</code></td>
+<td>One tool execution at a time + streaming</td>
+</tr>
+<tr>
+<td>v2.3</td>
+<td><code>v2.3_step_mode.py</code></td>
+<td>Single-step pause (side branch, never in the main line)</td>
+</tr>
+<tr>
+<td>v3.0</td>
+<td><code>v3.0_file_tools.py</code></td>
+<td>Four file tools + workspace boundary</td>
+</tr>
+<tr>
+<td>v3.1</td>
+<td><code>v3.1_shell_guard.py</code></td>
+<td>Shell allowlist / audit / confirmation / timeout</td>
+</tr>
+<tr>
+<td>v3.2</td>
+<td><code>v3.2_search.py</code></td>
+<td><code>grep</code> / <code>find_files</code></td>
+</tr>
+<tr>
+<td>v4.0</td>
+<td><code>v4.0_context_trim.py</code></td>
+<td>Trim history by turn</td>
+</tr>
+<tr>
+<td>v4.1</td>
+<td><code>v4.1_slash_commands.py</code></td>
+<td>Slash commands; constants moved into state</td>
+</tr>
+<tr>
+<td>v4.2</td>
+<td><code>v4.2_model_wizard.py</code></td>
+<td>Model selection wizard; introduced termios</td>
+</tr>
+<tr>
+<td>v5.0</td>
+<td><code>v5.0_sub_agent.py</code></td>
+<td>Sub-agents; profile as permission</td>
+</tr>
+<tr>
+<td>v5.1</td>
+<td><code>v5.1_sub_agent_parallel.py</code></td>
+<td>Parallel read-only tasks (criterion written incorrectly)</td>
+</tr>
+<tr>
+<td>v6.0</td>
+<td><code>v6.0_plugins.py</code></td>
+<td>Plugins: auto-mount from <code>tools/</code></td>
+</tr>
+<tr>
+<td>v6.1</td>
+<td><code>v6.1_mcp.py</code></td>
+<td>MCP: background event loop + synchronous calls</td>
+</tr>
+<tr>
+<td>v6.2</td>
+<td><code>v6.2_skills.py</code></td>
+<td>Skills: <code>SKILL.md</code> as a prompt</td>
+</tr>
+<tr>
+<td>v7.0</td>
+<td><code>v7.0_verify_facts.py</code></td>
+<td>Program bookkeeping + pre-answer checks</td>
+</tr>
+<tr>
+<td>v8.0</td>
+<td><code>v8.0_logging.py</code></td>
+<td>jsonl logs + <code>/stats</code> <code>/log</code></td>
+</tr>
+<tr>
+<td>v9.0</td>
+<td><code>v9.0_memory.py</code></td>
+<td>Long-term memory in <code>AGENT.md</code></td>
+</tr>
+</tbody></table></div>
+<p>The complete code, nine real logs, and plugin / Skills / MCP examples are in the Gitee repository:</p>
+<pre><code class="language-text">https://gitee.com/key1088/tiny-agent
+</code></pre>
+<p>That is the end of the "Designing an Agent from Scratch" tutorial. There is quite a lot of material. I originally intended to explain the principles of Agents briefly, but Agents have become too important, and before I knew it I had written a lot.</p>
+<p>These articles are enough for an FDE engineer to understand Agents. But if you want to do Agent development, you will need to go deeper. I may summarize that separately when I have a chance.</p>
+<hr>
+<h2 id="Links-to-all-three-parts">Links to all three parts:</h2>
+<p><strong>Part 1:</strong> <a href="/docs/09-ai-eng-agent-1/"><strong>Designing an Agent from Scratch (Part 1)</strong></a></p>
+<p><strong>Part 2:</strong> <a href="/docs/09-ai-eng-agent-2/"><strong>Designing an Agent from Scratch (Part 2)</strong></a></p>
+<hr>
+<p><strong>The AI-FDE Transition Path</strong>: for IT implementation, pre-sales and operations people who don't write code, turning existing delivery skills into AI skills. The full series has 55 articles across six modules and 53 skills.</p>
+<p>Want to see what you're missing first? The AI-FDE skill self-assessment map scores 53 items and produces a radar chart. <a href="/docs/00-intro/">The AI-FDE Transition Path · Introduction</a></p>
+<p><img src="/media/docs/09-ai-eng-agent-3/img-01.png" alt="" loading="lazy" decoding="async"></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/docs/09-ai-eng-agent-2/"><span class="dir">← Previous</span><span class="ttl">Designing an Agent from Scratch (Part 2)</span></a>
+<span class="spacer"></span>
+</div>
+    <div class="doc-foot">
+      <p>Want to see where you stand? Score yourself on the map  <a href="/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "slug": "08-ai-eng-mcp",
+  "series": "ai-fde-roadmap",
+  "order": 8,
+  "source": "https://mp.weixin.qq.com/s/JgZB1sm88PUQWTdSjIUzcw",
+  "date": "2026-10-27",
+  "images": [
+    {
+      "name": "img-01.png",
+      "originalName": "img-01.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR81Mnw8oibA3YQ0FRtfMlOibjU5qJNHSCvMl6U44nEZE1aUXSlbyJLrK89bJjUQS9DmeJsZy1g78LibXkqbXPRibkXqd3DwJSjfrVac/640?wx_fmt=png&from=appmsg"
+    },
+    {
+      "name": "img-02.png",
+      "originalName": "img-02.png",
+      "src": "https://mmbiz.qpic.cn/mmbiz_png/B5MbN9tHR822m6Axv2lr9IvLObXpeuQfE8UMOiaey4icqKRe12h3pgo8icTKnA9GlzkZ31IumszVibjP7f5elVGkmJtKDiatsqVdEs9gHWTbnKDQ/640?wx_fmt=png&from=appmsg"
+    },
+    {
+      "name": "img-03.png",
+      "originalName": "img-03.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR83UIfXF8lhfpYP4icfHKc9cWZkTa0QTyONR4lO4ta14icXZfAEicbPYTBkXWCRUZeoQNbYnJKkRMkP6paxPicuATd7Ch2hNZXJp9ic0/640?wx_fmt=png&from=appmsg"
+    }
+  ],
+  "title": {
+    "zh": "把内部系统包成 MCP Server",
+    "en": "Turning an Internal System into an MCP Server"
+  },
+  "subtitle": {
+    "zh": "AI-FDE 转型之路 · AI 工程 08-MCP开发",
+    "en": "The AI-FDE Transition Path · AI Engineering 08 — MCP Development"
+  },
+  "summary": {
+    "zh": "从角色分工、工具调用与 MCP 的边界，到值不值得包、四道验收关和二十几行可运行代码：把内部系统包成 MCP Server 的现场判断。",
+    "en": "From roles and the boundary between tool calling and MCP, to whether wrapping is worth it, four acceptance gates, and twenty-odd lines of working code."
+  },
+  "tags": [
+    "AI工程",
+    "MCP",
+    "系统集成"
+  ]
+}

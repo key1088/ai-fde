@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>从零开始设计一个 Agent（下篇） · AI-FDE 转型之路</title>
+<meta name="description" content="插件、MCP、Skills 三种扩展方式，程序记账与回答前检查，逐次日志与长期记忆，以及一张诚实的验收清单。">
+<link rel="canonical" href="https://ai-fde.dev/zh/docs/09-ai-eng-agent-3/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/09-ai-eng-agent-3/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/09-ai-eng-agent-3/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/09-ai-eng-agent-3/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零开始设计一个 Agent（下篇）">
+<meta property="og:description" content="插件、MCP、Skills 三种扩展方式，程序记账与回答前检查，逐次日志与长期记忆，以及一张诚实的验收清单。">
+<meta property="og:url" content="https://ai-fde.dev/zh/docs/09-ai-eng-agent-3/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/09-ai-eng-agent-3/img-01.png">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"从零开始设计一个 Agent（下篇）","description":"插件、MCP、Skills 三种扩展方式，程序记账与回答前检查，逐次日志与长期记忆，以及一张诚实的验收清单。","datePublished":"2026-10-31","inLanguage":"zh-CN","image":"https://ai-fde.dev/media/docs/09-ai-eng-agent-3/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/zh/docs/09-ai-eng-agent-3/","isPartOf":{"@type":"CreativeWorkSeries","name":"AI-FDE 转型之路"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/zh/docs/">AI-FDE <span>· 文档</span></a>
+  <nav>
+    <a href="/zh/">自评工具</a>
+    <a href="/zh/docs/" class="on">文档</a>
+    <a class="lang" href="/docs/09-ai-eng-agent-3/">EN</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">本系列</div>
+<div class="toc-body">
+<a class="art" href="/zh/docs/00-intro/"><span class="no">01</span>为什么最懂客户的人反而最焦虑</a>
+<a class="art" href="/zh/docs/01-ai-eng-llm/"><span class="no">02</span>先搞清楚模型一定会错在哪</a>
+<a class="art" href="/zh/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompt 不是玄学，是可以回归测试的代码</a>
+<a class="art" href="/zh/docs/03-ai-eng-context/"><span class="no">04</span>Context-Engineering：大模型到底看得见什么</a>
+<a class="art" href="/zh/docs/04-ai-eng-rag/"><span class="no">05</span>知识库答不准，问题通常不在模型</a>
+<a class="art" href="/zh/docs/05-ai-eng-doc-parsing/"><span class="no">06</span>80% 的 RAG 问题出在文档解析</a>
+<a class="art" href="/zh/docs/06-ai-eng-tool-calling/"><span class="no">07</span>工具描述是写给模型看的说明书</a>
+<a class="art" href="/zh/docs/06-ai-eng-tool-calling-principles/"><span class="no">08</span>大模型怎么使用工具</a>
+<a class="art" href="/zh/docs/07-ai-eng-python/"><span class="no">09</span>Python 入门指南：先搞定环境，再谈代码</a>
+<a class="art" href="/zh/docs/08-ai-eng-mcp/"><span class="no">10</span>把内部系统包成 MCP Server</a>
+<a class="art" href="/zh/docs/09-ai-eng-agent-1/"><span class="no">11</span>从零开始设计一个 Agent（上篇）</a>
+<a class="art" href="/zh/docs/09-ai-eng-agent-2/"><span class="no">12</span>从零开始设计一个 Agent（中篇）</a>
+<a class="art cur" href="/zh/docs/09-ai-eng-agent-3/"><span class="no">13</span>从零开始设计一个 Agent（下篇）</a>
+</div>
+<div class="toc-h">本页目录</div>
+<div class="toc-body">
+<a class="h2" href="#十二扩展插件MCPSkills">十二、扩展：插件、MCP、Skills</a>
+<a class="h2" href="#十三程序记账让它说完成了变成程序能证明">十三、程序记账：让“它说完成了”变成“程序能证明”</a>
+<a class="h2" href="#十四日志与记忆出事能查下次能记">十四、日志与记忆：出事能查，下次能记</a>
+<a class="h2" href="#十五验收标准与坑">十五、验收标准与坑</a>
+<a class="h2" href="#三篇回链">三篇回链：</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
+    <article>
+      <h1 class="doc-title">从零开始设计一个 Agent（下篇）</h1>
+      <p class="doc-sub">AI-FDE 转型之路 · AI 工程 09-Agent设计与实现</p>
+      <p class="doc-meta">2026-10-31</p>
+      <blockquote>
+<p>本文是「从零开始设计一个 Agent」三篇中的<strong>下篇</strong>。
+本篇路线：扩展 → 程序记账 → 日志与记忆 → 验收标准与坑 → 版本附录。
+上篇把闭环和文件四件套跑通，中篇把命令、上下文、控制和权限补上。下篇解决最后三件事：工具怎么扩展、怎么证明它真的干完了、出事之后怎么查。</p>
+</blockquote>
+<h2 id="十二扩展插件MCPSkills">十二、扩展：插件、MCP、Skills</h2>
+<p>工具不够用，但不该继续往主程序里堆。当前版本给了三种扩展方式，分别解决三种“谁来维护”的问题。</p>
+<p>插件：本机一个 .py</p>
+<p>扫&nbsp;<code>tools/</code>&nbsp;目录，每个&nbsp;<code>.py</code>&nbsp;只要提供&nbsp;<code>TOOL_DEF</code>&nbsp;和&nbsp;<code>run</code>，就自动挂成工具：</p>
+<pre><code class="language-python">def scan_and_load_plugins(verbose=True):
+    # 节选：省略 TOOL_DEF 类型、重名、run 可调用等检查
+    result = {}
+    if not os.path.isdir(PLUGINS_DIR):
+        return result
+    files = sorted(f for f in os.listdir(PLUGINS_DIR)
+                   if f.endswith(".py") and not f.startswith("_"))
+    for fn in files:
+        path = os.path.join(PLUGINS_DIR, fn)
+        try:
+            spec = importlib.util.spec_from_file_location(f"_plugin_{fn[:-3]}", path)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+        except Exception as e:
+            print(f"  [插件] 加载失败 {fn}: {e}")
+            continue
+        if not hasattr(mod, "TOOL_DEF") or not hasattr(mod, "run"):
+            continue
+        name = mod.TOOL_DEF.get("name")
+        if not name or name in BUILTIN_TOOL_MAP:
+            continue
+        result[name] = {"def": mod.TOOL_DEF, "run": mod.run, "file": fn}
+    return result
+</code></pre>
+<p>加载失败不崩，打印原因跳过——一个坏插件不该带走整个 Agent。</p>
+<p>MCP：另一个进程，按标准协议说话</p>
+<p>MCP 的后台线程专门跑 asyncio 事件循环，主线程通过&nbsp;<code>run_coroutine_threadsafe</code>&nbsp;投过去、等结果：</p>
+<pre><code class="language-python">MCP_LOOP = None
+MCP_THREAD = None
+
+def _start_mcp_loop():
+    global MCP_LOOP, MCP_THREAD
+    MCP_LOOP = asyncio.new_event_loop()
+
+    def run():
+        asyncio.set_event_loop(MCP_LOOP)
+        MCP_LOOP.run_forever()
+
+    MCP_THREAD = threading.Thread(target=run, daemon=True)
+    MCP_THREAD.start()
+
+def _mcp_call_tool_sync(server_name, tool_name, args):
+    session = MCP_SESSIONS[server_name]["session"]
+
+    async def _call():
+        return await session.call_tool(tool_name, args)
+
+    fut = asyncio.run_coroutine_threadsafe(_call(), MCP_LOOP)
+    return fut.result(timeout=60)
+</code></pre>
+<p>为什么不直接在主线程里&nbsp;<code>asyncio.run</code>？因为主线程自己有一套同步的对话循环，两边抢事件循环会死锁。</p>
+<p>真实日志里，一次 MCP 查询是这样：</p>
+<pre><code class="language-json">{"ts": 1793194714.657, "kind": "mcp_call", "server": "sqlite", "tool": "list_tables", "elapsed": 0.007, "result_preview": "users"}
+{"ts": 1793194715.738, "kind": "mcp_call", "server": "sqlite", "tool": "query", "elapsed": 0.018, "result_preview": "(2,)"}
+{"ts": 1793194717.515, "kind": "mcp_call", "server": "sqlite", "tool": "query", "elapsed": 0.004, "result_preview": "(1, 'Alice', 30)\n(2, 'Bob', 25)"}
+</code></pre>
+<p>三次调用、三步，日志里能直接看到 MCP 进程返回了什么：先列表，再数行数，最后拉全表验证。</p>
+<p>Skills：一份 SKILL.md，本质是提示词</p>
+<p>扫&nbsp;<code>skills/</code>&nbsp;下的&nbsp;<code>SKILL.md</code>，解析开头的&nbsp;<code>---</code>&nbsp;元信息，正文当提示词用：</p>
+<pre><code class="language-python">def _parse_frontmatter(text):
+    if not text.startswith("---"):
+        return {}, text
+    end = text.find("\n---", 3)
+    if end == -1:
+        return {}, text
+    fm_text = text[3:end].strip()
+    body = text[end + 4:].lstrip("\n")
+    meta = {}
+    for line in fm_text.split("\n"):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if ":" in line:
+            k, v = line.split(":", 1)
+            meta[k.strip()] = v.strip().strip('"').strip("'")
+    return meta, body
+</code></pre>
+<p><code>use_skill</code>&nbsp;把正文和附加文件清单返回给模型，让模型自己按步骤做。它不改代码，只改提示词。</p>
+<p>三者怎么选</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>是什么</th>
+<th>谁维护</th>
+<th>什么时候用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>插件</td>
+<td>本机一个&nbsp;<code>.py</code>，写&nbsp;<code>TOOL_DEF</code>&nbsp;和&nbsp;<code>run()</code></td>
+<td>你</td>
+<td>只有你用得上的工具</td>
+</tr>
+<tr>
+<td>MCP</td>
+<td>另一个进程，按标准协议说话</td>
+<td>别人</td>
+<td>已有系统要包出来给多个应用用</td>
+</tr>
+<tr>
+<td>Skills</td>
+<td>一份&nbsp;<code>SKILL.md</code>，本质是提示词</td>
+<td>运营 / 业务</td>
+<td>步骤多、但不改代码的流程</td>
+</tr>
+</tbody></table></div>
+<p>这个排序不是按先进程度，是按<strong>改动成本</strong>。插件改一次要重启，MCP 改一次要改对方，Skills 改一次改个文本。能用 Skills 解决的别写插件。</p>
+<h2 id="十三程序记账让它说完成了变成程序能证明">十三、程序记账：让“它说完成了”变成“程序能证明”</h2>
+<p>前面所有刹车都是“你不许”，这一节换方向：<strong>程序自己记账，答题前先检查。</strong></p>
+<pre><code class="language-python">def check_before_answer(facts):
+    warnings = []
+
+    # 检查 1：改了 .py 但没验证
+    if facts["modified_py"] and not facts["ran_test"]:
+        files = sorted(facts["modified_py"])[:3]
+        more = " 等" if len(facts["modified_py"]) &gt; 3 else ""
+        warnings.append(
+            f"你修改了 Python 文件 {files}{more}，但没有跑任何测试或导入验证。"
+            f"建议用 run_shell 跑 pytest 或 python -c 验证。"
+        )
+
+    # 检查 2：shell 失败被忽略
+    if facts["shell_failures"]:
+        fails = facts["shell_failures"][:2]
+        warnings.append(
+            f"以下命令执行失败但未被处理：{fails}。请处理错误或说明原因。"
+        )
+
+    return warnings
+</code></pre>
+<p><code>facts</code>&nbsp;里只有三个字段：改过哪些&nbsp;<code>.py</code>、有没有跑过测试、哪些命令退出码非 0。这些不是模型自己报的，是执行工具时顺手记下来的：</p>
+<pre><code class="language-python">def update_facts_from_tool(tool_name, tool_args_str, result, facts):
+    try:
+        args = json.loads(tool_args_str or "{}")
+    except json.JSONDecodeError:
+        args = {}
+
+    if tool_name in ("write_file", "edit_file"):
+        path = args.get("path", "")
+        if path.endswith(".py"):
+            facts["modified_py"].add(path)
+
+    if tool_name == "run_shell":
+        cmd = args.get("command", "")
+        cmd_lower = cmd.lower()
+        if ("pytest" in cmd_lower or
+            ("python" in cmd_lower and ".py" in cmd_lower) or
+            "python3 -c" in cmd_lower or "python -c" in cmd_lower):
+            facts["ran_test"] = True
+
+        r = str(result)
+        if "[退出码 " in r:
+            try:
+                tag = r.split("[退出码 ")[-1].split("]")[0].strip()
+                if int(tag) != 0:
+                    facts["shell_failures"].append(cmd[:60])
+            except Exception:
+                pass
+</code></pre>
+<p>为什么这条比前面所有拦截都重要？因为前面那些失败，多数还能靠上限和拦截挡住，只有一种挡不住——<strong>它干完了，还觉得自己干对了</strong>。改了五个文件、一次没跑、然后说“已完成”。这种交付到了客户手里才炸，而且炸的时候你说不清是哪一步错的。</p>
+<p>真实运行：检查真的会拦</p>
+<p>2026-10-28 复跑当前版本，让它把&nbsp;<code>sandbox/hello.py</code>&nbsp;里的&nbsp;<code>Hello Agent</code>&nbsp;改成&nbsp;<code>Hello Pi</code>，并明确说“不要跑任何命令”。</p>
+<p>它改完、读回确认，然后准备收尾时，客观检查把它拦住了。下面是节选：</p>
+<pre><code class="language-text">已完成：`sandbox/hello.py` 中的 `print("Hello Agent")` 已改成 `print("Hello Pi")`，仅修改了这一处，未执行任何命令。
+
+  [验证检查] 发现问题，让 Agent 继续修正 （第 1/2 次）:
+    - 你修改了 Python 文件 ['sandbox/hello.py']，但没有跑任何测试或导入验证。
+
+我的结论没有变化，这里需要你做一个决定。
+你明确说“不要跑任何命令”，所以我没有执行 run_shell...
+</code></pre>
+<p>这是一个很好的例子，说明两件事：</p>
+<ol>
+<li><p><strong>检查是按事实触发的，不是按模型的自述。</strong>&nbsp;模型说“已完成”没用，<code>facts</code>&nbsp;里&nbsp;<code>modified_py</code>&nbsp;非空、<code>ran_test</code>&nbsp;为假，就会触发。</p>
+</li>
+<li><p><strong>检查会和人的明确指令冲突。</strong>&nbsp;用户说“不要跑命令”，检查说“必须跑测试”。当前版本把这个冲突交给模型解释，没有程序层的“本次豁免”机制。这是债。</p>
+</li>
+</ol>
+<p>这个检查还很粗</p>
+<p><code>ran_test</code>&nbsp;是按命令字符串判断的，不是按结果。更糟的是：<strong>命令被用户拒绝，也会被记成“跑过”</strong>。</p>
+<p>在另一次四件套运行里，它想用&nbsp;<code>python sandbox/hello.py</code>&nbsp;验证，但确认环节被拒绝，<code>ran_test</code>&nbsp;仍然被置为真，检查就没有再拦。</p>
+<p>所以这个检查的价值是“有比没有强”，不是“它已经可靠”。下一步至少要补三件事：</p>
+<ul>
+<li><p>只把退出码为 0 的命令算作验证</p>
+</li>
+<li><p>区分“跑了测试”和“跑了一个脚本”</p>
+</li>
+<li><p>给用户一个显式的“本次跳过验证”开关</p>
+</li>
+</ul>
+<p>日志原文在&nbsp;<code>logs/samples/verify_rerun_20261028_224113.jsonl</code>。</p>
+<h2 id="十四日志与记忆出事能查下次能记">十四、日志与记忆：出事能查，下次能记</h2>
+<p>日志的最小单位是一次工具调用</p>
+<p>当前版本的日志是 jsonl，每发生一件事写一行：</p>
+<pre><code class="language-python">LOG_DIR = os.path.join(WORKSPACE, "logs")
+SESSION_ID = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+LOG_FILE = os.path.join(LOG_DIR, f"session_{SESSION_ID}.jsonl")
+_LOG_FH = None
+
+def log_event(kind, **fields):
+    if _LOG_FH is None:
+        return
+    rec = {"ts": round(time.time(), 3), "kind": kind, **fields}
+    try:
+        _LOG_FH.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+</code></pre>
+<p>事件类型不多：</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>kind</th>
+<th>什么时候写</th>
+<th>关键字段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>session_start</code></td>
+<td>会话开始</td>
+<td><code>model</code>、<code>base_url</code>、<code>workdir</code></td>
+</tr>
+<tr>
+<td><code>llm_call</code></td>
+<td>每次模型调用</td>
+<td><code>step</code>、<code>prompt_tokens</code>、<code>completion_tokens</code>、<code>elapsed</code></td>
+</tr>
+<tr>
+<td><code>tool_call</code></td>
+<td>每次工具执行</td>
+<td><code>name</code>、<code>args_preview</code>、<code>result_preview</code>、<code>elapsed</code></td>
+</tr>
+<tr>
+<td><code>mcp_call</code></td>
+<td>每次 MCP 调用</td>
+<td><code>server</code>、<code>tool</code>、<code>elapsed</code>、<code>result_preview</code></td>
+</tr>
+<tr>
+<td><code>sub_agent_start</code>&nbsp;/&nbsp;<code>sub_agent_end</code></td>
+<td>子 Agent 首尾</td>
+<td><code>profile</code>、<code>task</code>、<code>elapsed</code></td>
+</tr>
+<tr>
+<td><code>assistant_final</code></td>
+<td>最终回答</td>
+<td><code>text</code></td>
+</tr>
+<tr>
+<td><code>session_end</code></td>
+<td>会话结束</td>
+<td><code>llm_calls</code>、<code>tool_calls</code>、<code>mcp_calls</code>、Token 汇总</td>
+</tr>
+</tbody></table></div>
+<p><strong>日志的最小单位是一次工具调用，不是一次会话。</strong>&nbsp;这条如果不做，出事之后你只看到“最后是错的”，中间一片空白，那种日志等于没有。</p>
+<p>一份真实日志里，5 步统计任务还原成终端视图是这样：</p>
+<pre><code class="language-text">[step 1] run_shell → 3657
+ 27469 total
+[退出码 0]
+
+[step 2] run_shell → 3631 ./.venv
+...
+[step 3] run_shell → 12918
+[退出码 0]
+
+[step 4] run_shell → 12918 total
+  1766 ./Tiny-Agent-v8.0.py
+  1560 ./Tiny-Agent-v7.0.py
+  ...
+
+[step 5] 最终回答：26 个文件，共 12,918 行
+</code></pre>
+<p>这一场会话写了 19 行日志。没有日志时，你只能看到最后一行；有日志，5 步都在。</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>没有日志</th>
+<th>有日志</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>只看到最后一句“26 个文件，共 12,918 行”</td>
+<td>5 步、6 次工具调用、每步 Token 和耗时</td>
+</tr>
+<tr>
+<td>不知道它为什么查了&nbsp;<code>.venv</code></td>
+<td>能看到第 2 步先统计目录，第 3 步才排除</td>
+</tr>
+<tr>
+<td>出事后只能重跑</td>
+<td>直接翻到出错那一步</td>
+</tr>
+</tbody></table></div>
+<p>记忆：只记约定，不记结论</p>
+<p><code>remember</code>&nbsp;工具把内容写进&nbsp;<code>AGENT.md</code>，下次开新会话自动拼进 system 提示词：</p>
+<pre><code class="language-python">MEMORY_FILE = os.path.join(WORKSPACE, "AGENT.md")
+
+def load_memory():
+    if not os.path.isfile(MEMORY_FILE):
+        return ""
+    with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+        return f.read().strip()
+
+def append_memory(content):
+    try:
+        is_new = not os.path.isfile(MEMORY_FILE)
+        with open(MEMORY_FILE, "a", encoding="utf-8") as f:
+            if is_new:
+                f.write("# 项目记忆\n")
+            ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            f.write(f"\n## {ts}\n{content.strip()}\n")
+        return f"已记入 {os.path.basename(MEMORY_FILE)}"
+    except Exception as e:
+        return f"记忆写入失败: {e}"
+</code></pre>
+<p>启动时：</p>
+<pre><code class="language-python">memory = load_memory()
+if memory:
+    base += "\n\n## 项目记忆（来自 AGENT.md）\n" + memory
+</code></pre>
+<p>2026-10-28 复跑当前版本，让它记两条新约定：</p>
+<pre><code class="language-text">&gt; 记住：这个项目部署用 docker compose，日志用 loguru
+[step 1] 调用工具: ['remember', 'remember']
+[step 1] remember → 已记入 AGENT.md
+[step 1] remember → 已记入 AGENT.md
+AI: 已记住两条项目约定：1. 部署使用 docker compose 2. 日志使用 loguru
+</code></pre>
+<p>对应的两条&nbsp;<code>tool_call</code>&nbsp;原始行：</p>
+<pre><code class="language-json">{"ts": 1793194732.658, "kind": "tool_call", "name": "remember", "args_preview": "{\"content\": \"部署使用 docker compose\"}", "result_preview": "已记入 AGENT.md", "elapsed": 0.0}
+{"ts": 1793194732.658, "kind": "tool_call", "name": "remember", "args_preview": "{\"content\": \"日志使用 loguru\"}", "result_preview": "已记入 AGENT.md", "elapsed": 0.0}
+</code></pre>
+<p>另一次会话里，同样的约定已经在&nbsp;<code>AGENT.md</code>&nbsp;里，它先&nbsp;<code>read_file</code>&nbsp;确认，没有再写一遍——日志里能看到这一步。</p>
+<p>记忆只记两类东西：<strong>约定</strong>和<strong>偏好</strong>——这个项目用 pytest、代码风格用 black。不记结论。上一轮跑出来的数据、临时判断的答案，记进去就是给下一轮埋雷，它会拿三天前的结论回答今天的问题，而且理直气壮。</p>
+<p>日志原文在&nbsp;<code>logs/samples/logging_20260929_190304.jsonl</code>（5 步统计）和&nbsp;<code>logs/samples/memory_rerun_20261028_213850.jsonl</code>（remember）。</p>
+<h2 id="十五验收标准与坑">十五、验收标准与坑</h2>
+<p>三条标准，每条都能当场做：</p>
+<ol>
+<li><p><strong>说得出三个上限</strong>：步数、墙钟、花费各是多少。说不出来就是没有。</p>
+</li>
+<li><p><strong>演示一次“它停下来了”</strong>，不是跑成功的场景。会跑成功不算本事。</p>
+</li>
+<li><p><strong>能指出它上一次为什么停</strong>：翻得出日志里那一步。翻不出来，你就是在黑盒里养宠物。</p>
+</li>
+</ol>
+<p>当前版本的自查表</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>项</th>
+<th>现状</th>
+<th>风险</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>步数上限</td>
+<td><code>max_steps=8</code>，子 Agent 6</td>
+<td>有，但只挡死循环</td>
+</tr>
+<tr>
+<td>墙钟</td>
+<td>无整轮 deadline</td>
+<td>跑很久也停不下来</td>
+</tr>
+<tr>
+<td>花费</td>
+<td>无 Token / 金额预算</td>
+<td>一次会话可能烧穿</td>
+</tr>
+<tr>
+<td>重复检测</td>
+<td>无</td>
+<td>同工具同参数可以一直转</td>
+</tr>
+<tr>
+<td><code>read_file</code>&nbsp;截断</td>
+<td>无</td>
+<td>大文件吃上下文</td>
+</tr>
+<tr>
+<td><code>list_dir</code>&nbsp;过滤</td>
+<td>不跳&nbsp;<code>.venv</code>&nbsp;/&nbsp;<code>__pycache__</code></td>
+<td>目录一大就刷屏</td>
+</tr>
+<tr>
+<td>并行判据</td>
+<td>只排除&nbsp;<code>run_shell</code></td>
+<td><code>code</code>&nbsp;子 Agent 也能并行改文件</td>
+</tr>
+<tr>
+<td><code>ran_test</code></td>
+<td>按命令字符串判断</td>
+<td>命令被拒绝也会记成“跑过”</td>
+</tr>
+<tr>
+<td>平台</td>
+<td><code>termios</code>&nbsp;/&nbsp;<code>tty</code></td>
+<td>Windows 从 v4.2 起跑不了</td>
+</tr>
+<tr>
+<td>MCP</td>
+<td>依赖&nbsp;<code>python3</code>&nbsp;和&nbsp;<code>mcp</code>&nbsp;包</td>
+<td>没激活 venv 时连不上</td>
+</tr>
+</tbody></table></div>
+<p>这张表不是自我否定，是给下一步排优先级。<strong>能说清楚哪里没做到，比假装全都做到了强。</strong></p>
+<p>四个坑</p>
+<p><strong>坑一：只看演示，不看失败。</strong>&nbsp;厂商演示永远走最顺的路径。验收时问三条：任务说不清时它怎么办、工具挂了怎么办、答案是错的时候它有办法知道吗。第三条答不上来的，前面两条基本也是碰运气。</p>
+<p><strong>坑二：把“自由规划”当能力指标。</strong>&nbsp;在银行客户那儿，<strong>可预测比聪明值钱</strong>。客户能接受一个不灵活但每次行为一致的系统，接受不了偶尔天才、偶尔发疯的系统。</p>
+<p><strong>坑三：日志只留最终结果。</strong>&nbsp;出事之后你只看到“最后是错的”，中间一片空白。日志的最小单位是一次工具调用，不是一次会话。</p>
+<p><strong>坑四：以为装了步数上限就安全了。</strong>&nbsp;这一篇从头到尾就在说这件事。上限管的是“转多久”，管不了“往哪转”。</p>
+<p><strong>坑五：把规则写进函数名，没写进判据。</strong><code>profile_can_parallel</code>&nbsp;名字读起来像“只让只读角色并行”，实际判据只是“不含&nbsp;<code>run_shell</code>”，<code>code</code>&nbsp;子 Agent 照样能并行改文件。名字不是刹车，判据才是。</p>
+<p>附录：版本演进表</p>
+<p>正文不按版本讲，但版本链是证据。它回答的是“这段能力第一次出现在哪一版”，不是“读者要照着写二十遍”。</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>文件</th>
+<th>补了什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td><code>v1.0_loop.py</code></td>
+<td>两工具 + 循环 + 步数上限</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td><code>v1.1_no_loop.py</code></td>
+<td>拆掉循环做对照</td>
+</tr>
+<tr>
+<td>v2.0</td>
+<td><code>v2.0_loop_back.py</code></td>
+<td>循环装回，退出条件写进代码</td>
+</tr>
+<tr>
+<td>v2.1</td>
+<td><code>v2.1_multi_turn.py</code></td>
+<td>会话状态提到函数外</td>
+</tr>
+<tr>
+<td>v2.2</td>
+<td><code>v2.2_single_exec_stream.py</code></td>
+<td>一次执行一个工具 + 流式</td>
+</tr>
+<tr>
+<td>v2.3</td>
+<td><code>v2.3_step_mode.py</code></td>
+<td>单步暂停（旁支，未进主线）</td>
+</tr>
+<tr>
+<td>v3.0</td>
+<td><code>v3.0_file_tools.py</code></td>
+<td>文件四件套 + 工作区边界</td>
+</tr>
+<tr>
+<td>v3.1</td>
+<td><code>v3.1_shell_guard.py</code></td>
+<td>shell 白名单 / 审计 / 确认 / 超时</td>
+</tr>
+<tr>
+<td>v3.2</td>
+<td><code>v3.2_search.py</code></td>
+<td><code>grep</code>&nbsp;/&nbsp;<code>find_files</code></td>
+</tr>
+<tr>
+<td>v4.0</td>
+<td><code>v4.0_context_trim.py</code></td>
+<td>按轮裁剪历史</td>
+</tr>
+<tr>
+<td>v4.1</td>
+<td><code>v4.1_slash_commands.py</code></td>
+<td>斜杠命令，常量挪进 state</td>
+</tr>
+<tr>
+<td>v4.2</td>
+<td><code>v4.2_model_wizard.py</code></td>
+<td>模型选择向导；引入 termios</td>
+</tr>
+<tr>
+<td>v5.0</td>
+<td><code>v5.0_sub_agent.py</code></td>
+<td>子 Agent，profile 即权限</td>
+</tr>
+<tr>
+<td>v5.1</td>
+<td><code>v5.1_sub_agent_parallel.py</code></td>
+<td>只读任务并行（判据没写对）</td>
+</tr>
+<tr>
+<td>v6.0</td>
+<td><code>v6.0_plugins.py</code></td>
+<td>插件：<code>tools/</code>&nbsp;自动挂载</td>
+</tr>
+<tr>
+<td>v6.1</td>
+<td><code>v6.1_mcp.py</code></td>
+<td>MCP：后台事件循环 + 同步调用</td>
+</tr>
+<tr>
+<td>v6.2</td>
+<td><code>v6.2_skills.py</code></td>
+<td>Skills：<code>SKILL.md</code>&nbsp;当提示词</td>
+</tr>
+<tr>
+<td>v7.0</td>
+<td><code>v7.0_verify_facts.py</code></td>
+<td>程序记账 + 回答前检查</td>
+</tr>
+<tr>
+<td>v8.0</td>
+<td><code>v8.0_logging.py</code></td>
+<td>jsonl 日志 +&nbsp;<code>/stats``/log</code></td>
+</tr>
+<tr>
+<td>v9.0</td>
+<td><code>v9.0_memory.py</code></td>
+<td>长期记忆&nbsp;<code>AGENT.md</code></td>
+</tr>
+</tbody></table></div>
+<p>完整代码、九份真实日志、插件 / Skills / MCP 示例都在 Gitee仓库：</p>
+<pre><code class="language-text">https://gitee.com/key1088/tiny-agent
+</code></pre>
+<p>从零开始设计一个Agent的教程就到此为止了，内容还是比较多，本来想着简单了解Agent的原理，但是发展Agent太重要了，不知不觉就写多了。</p>
+<p>这些文章对于FDE工程师了解Agent是足够了。但是如果要做Agent开发，那就需要再进行深入的研究了，这块后续有机会可以再总结。</p>
+<hr>
+<h2 id="三篇回链">三篇回链：</h2>
+<p><strong>上篇：</strong><a href="/zh/docs/09-ai-eng-agent-1/"><strong>从零开始设计一个 Agent（上篇）</strong></a></p>
+<p><strong>中篇：</strong><a href="/zh/docs/09-ai-eng-agent-2/"><strong>从零开始设计一个 Agent（中篇）</strong></a></p>
+<hr>
+<p><strong>《AI-FDE 转型之路》</strong>：写给不写代码的 IT 实施 / 售前 / 运维，把已有的交付能力「AI 化」。全系列 55 篇，六大模块 53 项技能。</p>
+<p>想先看看自己缺什么：AI-FDE 技能自评地图，53 项打分，出一张雷达图。<a href="/zh/docs/00-intro/">AI-FDE 转型之路 · 开篇</a></p>
+<p><img src="/media/docs/09-ai-eng-agent-3/img-01.png" alt="" loading="lazy" decoding="async"></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/zh/docs/09-ai-eng-agent-2/"><span class="dir">← 上一篇</span><span class="ttl">从零开始设计一个 Agent（中篇）</span></a>
+<span class="spacer"></span>
+</div>
+    <div class="doc-foot">
+      <p>想先看看自己缺什么？用自评地图打个分  <a href="/zh/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>

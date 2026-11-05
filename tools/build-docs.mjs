@@ -115,8 +115,13 @@ function renderBody(md) {
     a.setAttribute('target', '_blank');
     a.setAttribute('rel', 'noopener noreferrer');
   });
-  // 自检：中文标点紧贴 ** 时 CommonMark 不认，会漏成字面星号
-  const literal = (c.textContent.match(/\*\*/g) || []).length + (c.textContent.match(/^##/gm) || []).length;
+  // 自检：中文标点紧贴 ** 时 CommonMark 不认，会漏成字面星号。
+  // 代码块里的 **（如 Python 的 dict 展开）不是 Markdown 残留，检查前先排除。
+  const textOnly = c.cloneNode(true);
+  textOnly.querySelectorAll('pre, code').forEach((el) => el.remove());
+  const literal =
+    (textOnly.textContent.match(/\*\*/g) || []).length +
+    (textOnly.textContent.match(/^##/gm) || []).length;
   if (literal) problems.push(`正文残留 Markdown 标记 ${literal} 处（检查中英标点旁的 ** 是否闭合）`);
   return { html: c.innerHTML, toc };
 }

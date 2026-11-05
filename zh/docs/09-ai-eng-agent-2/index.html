@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>从零开始设计一个 Agent（中篇） · AI-FDE 转型之路</title>
+<meta name="description" content="shell 四层拦截、检索与上下文裁剪、斜杠命令与子 Agent 权限：把 Agent 从能跑变成可控。">
+<link rel="canonical" href="https://ai-fde.dev/zh/docs/09-ai-eng-agent-2/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/09-ai-eng-agent-2/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/09-ai-eng-agent-2/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/09-ai-eng-agent-2/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零开始设计一个 Agent（中篇）">
+<meta property="og:description" content="shell 四层拦截、检索与上下文裁剪、斜杠命令与子 Agent 权限：把 Agent 从能跑变成可控。">
+<meta property="og:url" content="https://ai-fde.dev/zh/docs/09-ai-eng-agent-2/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/09-ai-eng-agent-2/img-01.png">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"从零开始设计一个 Agent（中篇）","description":"shell 四层拦截、检索与上下文裁剪、斜杠命令与子 Agent 权限：把 Agent 从能跑变成可控。","datePublished":"2026-10-30","inLanguage":"zh-CN","image":"https://ai-fde.dev/media/docs/09-ai-eng-agent-2/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/zh/docs/09-ai-eng-agent-2/","isPartOf":{"@type":"CreativeWorkSeries","name":"AI-FDE 转型之路"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/zh/docs/">AI-FDE <span>· 文档</span></a>
+  <nav>
+    <a href="/zh/">自评工具</a>
+    <a href="/zh/docs/" class="on">文档</a>
+    <a class="lang" href="/docs/09-ai-eng-agent-2/">EN</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">本系列</div>
+<div class="toc-body">
+<a class="art" href="/zh/docs/00-intro/"><span class="no">01</span>为什么最懂客户的人反而最焦虑</a>
+<a class="art" href="/zh/docs/01-ai-eng-llm/"><span class="no">02</span>先搞清楚模型一定会错在哪</a>
+<a class="art" href="/zh/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompt 不是玄学，是可以回归测试的代码</a>
+<a class="art" href="/zh/docs/03-ai-eng-context/"><span class="no">04</span>Context-Engineering：大模型到底看得见什么</a>
+<a class="art" href="/zh/docs/04-ai-eng-rag/"><span class="no">05</span>知识库答不准，问题通常不在模型</a>
+<a class="art" href="/zh/docs/05-ai-eng-doc-parsing/"><span class="no">06</span>80% 的 RAG 问题出在文档解析</a>
+<a class="art" href="/zh/docs/06-ai-eng-tool-calling/"><span class="no">07</span>工具描述是写给模型看的说明书</a>
+<a class="art" href="/zh/docs/06-ai-eng-tool-calling-principles/"><span class="no">08</span>大模型怎么使用工具</a>
+<a class="art" href="/zh/docs/07-ai-eng-python/"><span class="no">09</span>Python 入门指南：先搞定环境，再谈代码</a>
+<a class="art" href="/zh/docs/08-ai-eng-mcp/"><span class="no">10</span>把内部系统包成 MCP Server</a>
+<a class="art" href="/zh/docs/09-ai-eng-agent-1/"><span class="no">11</span>从零开始设计一个 Agent（上篇）</a>
+<a class="art cur" href="/zh/docs/09-ai-eng-agent-2/"><span class="no">12</span>从零开始设计一个 Agent（中篇）</a>
+<a class="art" href="/zh/docs/09-ai-eng-agent-3/"><span class="no">13</span>从零开始设计一个 Agent（下篇）</a>
+</div>
+<div class="toc-h">本页目录</div>
+<div class="toc-body">
+<a class="h2" href="#八shell把拦截装在工具那一层">八、shell：把拦截装在工具那一层</a>
+<a class="h2" href="#九检索与上下文先让它找得到再让它记得住">九、检索与上下文：先让它找得到，再让它记得住</a>
+<a class="h2" href="#十Agent交互时增加控制指令">十、Agent交互时增加控制指令</a>
+<a class="h2" href="#十一子-Agent多Agent调用">十一、子 Agent：多Agent调用</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/zh/docs/">文档</a> / AI-FDE 转型之路</div>
+    <article>
+      <h1 class="doc-title">从零开始设计一个 Agent（中篇）</h1>
+      <p class="doc-sub">AI-FDE 转型之路 · AI 工程 09-Agent设计与实现</p>
+      <p class="doc-meta">2026-10-30</p>
+      <blockquote>
+<p>本文是「从零开始设计一个 Agent」三篇中的<strong>中篇</strong>。
+本篇路线：shell 四层拦截 → 检索与上下文 → 控制权 → 子 Agent。</p>
+<p>上篇回顾：循环跑通了，停止线装了，文件四件套也给了边界。中篇开始碰更危险的东西：命令、上下文、运行时参数和权限。</p>
+</blockquote>
+<h2 id="八shell把拦截装在工具那一层">八、shell：把拦截装在工具那一层</h2>
+<p>文件工具解决“改文件”，shell 解决“跑命令”。后者的风险大一个量级：文件工具改的是工作区里的文件，shell 能碰整个系统。</p>
+<p>所以&nbsp;<code>run_shell</code>&nbsp;不是一个&nbsp;<code>subprocess.run</code>&nbsp;的包装，它是四层拦截：</p>
+<pre><code class="language-python">SAFE_CMDS = {"ls", "cat", "head", "tail", "wc", "find", "grep", "tree",
+             "pwd", "whoami", "date", "echo", "diff", "stat", "file"}
+CONFIRM_CMDS = {"python", "python3", "pip", "pip3", "pytest", "git", "make", "npm", "node"}
+ALLOWED = SAFE_CMDS | CONFIRM_CMDS
+DANGEROUS_PY = ["os.system", "os.popen", "subprocess", "shutil.rmtree", "shutil.move",
+                "eval(", "exec(", "__import__", "os.remove", "os.unlink", "os.rmdir",
+                "os.removedirs", "os.rename", "os.chmod", "os.chown", "pty.spawn", "socket."]
+
+def _audit(path):
+    try:
+        full = _safe_path(path)
+        if not os.path.isfile(full):
+            return ""
+        with open(full, "r", encoding="utf-8", errors="ignore") as f:
+            c = f.read()
+        for t in DANGEROUS_PY:
+            if t in c:
+                return f"脚本包含危险调用: {t}"
+        return ""
+    except Exception as e:
+        return f"审计失败: {e}"
+
+def run_shell(command, timeout=30):
+    cmd = command.strip()
+    if not cmd:
+        return "空命令"
+    parts = cmd.split()
+    base = os.path.basename(parts[0])
+    if base not in ALLOWED:
+        return f"命令 '{base}' 不在白名单中，已拒绝"
+    if base in {"python", "python3"}:
+        if "-c" in parts:
+            i = parts.index("-c")
+            code = parts[i + 1] if i + 1 &lt; len(parts) else ""
+            for t in DANGEROUS_PY:
+                if t in code:
+                    return f"拒绝执行: -c 代码包含 {t}"
+        for p in parts[1:]:
+            if not p.startswith("-") and os.path.isfile(_safe_path(p)):
+                d = _audit(p)
+                if d:
+                    return f"拒绝执行: {d}"
+    if base not in SAFE_CMDS:
+        print(f"\n⚠️  执行: {cmd}")
+        if input("允许？(y/n)").strip().lower() != "y":
+            return "用户拒绝执行"
+    try:
+        r = subprocess.run(cmd, shell=True, cwd=WORKSPACE,
+                           capture_output=True, text=True, timeout=timeout)
+        out = (r.stdout + r.stderr)[:3000]
+        rc_note = f"\n[退出码 {r.returncode}]"
+        return (out if out else "（无输出）") + rc_note
+    except subprocess.TimeoutExpired:
+        return f"超时（&gt;{timeout}s）\n[退出码 -1]"
+    except Exception as e:
+        return f"执行失败: {e}\n[退出码 -1]"
+</code></pre>
+<p>四层分别是：</p>
+<ol>
+<li><p><strong>白名单</strong>：<code>base</code>&nbsp;不在&nbsp;<code>ALLOWED</code>，直接拒。<code>rm</code>、<code>mv</code>、<code>dd</code>&nbsp;根本没有进入执行的机会。</p>
+</li>
+<li><p><strong>脚本审计</strong>：<code>python xxx.py</code>&nbsp;先读脚本内容，出现&nbsp;<code>os.remove</code>、<code>shutil.rmtree</code>、<code>subprocess</code>、<code>eval(</code>、<code>socket.</code>&nbsp;就拒。</p>
+</li>
+<li><p><strong>人工确认</strong>：只读命令免确认，<code>python</code>、<code>git</code>、<code>npm</code>&nbsp;这类要输入&nbsp;<code>y</code>。</p>
+</li>
+<li><p><strong>超时 + 截断</strong>：默认 30 秒，输出只留前 3000 字符。</p>
+</li>
+</ol>
+<p>为什么审计的理由是“留痕”，不是“安全”</p>
+<p>那个黑名单挡不住真正的攻击。<code>python</code>&nbsp;可以做任何事，一个没列进去的库调用就能绕过。</p>
+<p>它真正挡的是：<strong>模型自己写一段脚本，把痕迹擦掉</strong>。<code>os.remove</code>、<code>shutil.rmtree</code>、<code>subprocess</code>&nbsp;这些一旦进了脚本，你事后很难从日志里还原它到底干了什么。拦的理由是保留可查性，不是把它当成安全沙箱。</p>
+<p>真实日志：一次 ls</p>
+<p>2026-10-28 复跑 ，让它用&nbsp;<code>run_shell</code>&nbsp;执行&nbsp;<code>ls -1</code>：</p>
+<pre><code class="language-json">{
+  "ts":1793194692.762,
+"kind":"tool_call",
+"name":"run_shell",
+"args_preview":"{\"command\": \"ls -1\"}",
+"result_preview":"AGENT.md\ndemo.db\ndemo_project\nlogs\nmcp_servers.json\nmy_sqlite_server.py\nREADME.md\nrequirements.txt\nsandbox\nskills\ntools\nversions\nVERSIONS.md\n\n[退出码 0]",
+"elapsed":0.003
+}
+</code></pre>
+<p>这一行能回答四个问题：执行了什么、返回了什么、花了多久、退出码是多少。</p>
+<p>那次模型先说“12 个条目”，下一句又改成 13 个——工具明明返回了 13 行。日志不解决判断错误，但能让你看见它是在哪一步数错的。</p>
+<p><strong>工具层负责拦，日志层负责留痕，两件事不能互相替代。</strong></p>
+<p>日志原文在&nbsp;<code>logs/samples/shell_rerun_20261028_213810.jsonl</code>。</p>
+<h2 id="九检索与上下文先让它找得到再让它记得住">九、检索与上下文：先让它找得到，再让它记得住</h2>
+<p>先给检索，别让它一个目录一个目录翻</p>
+<p>模型不知道文件在哪。你让它“找一下哪里用了这个配置项”，它会一个目录一个目录地&nbsp;<code>list_dir</code>，再一个个&nbsp;<code>read_file</code>，读三个文件上下文就满了。</p>
+<p><code>grep</code>&nbsp;和&nbsp;<code>find_files</code>&nbsp;解决的就是这个：</p>
+<pre><code class="language-python">def grep(keyword, path=".", max_results=50):
+    try:
+        full = _safe_path(path)
+        matches = []
+        for root, dirs, files in os.walk(full):
+            dirs[:] = [d for d in dirs if not d.startswith(".") and d != "__pycache__"]
+            for fn in files:
+                if fn.endswith((".pyc", ".pyo", ".so", ".log")):
+                    continue
+                fp = os.path.join(root, fn)
+                try:
+                    with open(fp, "r", encoding="utf-8", errors="ignore") as f:
+                        for i, line in enumerate(f, 1):
+                            if keyword in line:
+                                rel = os.path.relpath(fp, WORKSPACE)
+                                matches.append(f"{rel}:{i}: {line.rstrip()[:200]}")
+                                if len(matches) &gt;= max_results:
+                                    return "\n".join(matches) + f"\n...(超过 {max_results} 条，已截断)"
+                except Exception:
+                    continue
+        return "\n".join(matches) if matches else f"未找到 '{keyword}'"
+    except Exception as e:
+        return f"搜索失败: {e}"
+</code></pre>
+<p>几个细节是踩出来的：跳过所有以&nbsp;<code>.</code>&nbsp;开头的目录、跳过&nbsp;<code>__pycache__</code>、跳过&nbsp;<code>.pyc/.pyo/.so/.log</code>、最多返回 50 条、到上限就明说“已截断”。</p>
+<p>不是洁癖。工作区里有个&nbsp;<code>.venv</code>，里面躺着三千多个三方库文件。没有这几条跳过，一次 grep 的结果足够把上下文撑爆。</p>
+<p><strong>模型摸索的每一步都在花钱和占上下文。</strong>&nbsp;与其教它“别乱翻”，不如给它一个能直接翻到的东西。</p>
+<p>再管上下文：历史只能按轮裁</p>
+<p>多轮对话接起来之后，历史会一直长。当前版本用&nbsp;<code>trim_messages</code>&nbsp;按轮裁：</p>
+<pre><code class="language-python">def trim_messages(messages, keep_turns):
+    if not messages:
+        return messages
+    sys_msg = None
+    start = 0
+    if messages[0].get("role") == "system":
+        sys_msg = messages[0]
+        start = 1
+    user_idx = [i for i in range(start, len(messages)) if messages[i].get("role") == "user"]
+    if len(user_idx) &lt;= keep_turns:
+        return messages
+    return ([sys_msg] if sys_msg else []) + messages[user_idx[-keep_turns]:]
+</code></pre>
+<p>原因很硬：一条&nbsp;<code>tool</code>&nbsp;消息必须跟在带&nbsp;<code>tool_calls</code>&nbsp;的&nbsp;<code>assistant</code>&nbsp;消息后面，接口认这个配对。按条裁，很容易把前面那条 assistant 裁掉、把 tool 留下，下一次请求直接 400。</p>
+<p><strong>一圈对话是一个整体，裁只能整轮裁。</strong></p>
+<p>上下文不是被答案撑大的，是被过程撑大的</p>
+<p>拿一份真实日志看：一句“统计一下我本地 py 代码有多少行”，它走了 5 步，输入 Token 从 1537 涨到 3152。</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>步</th>
+<th>输入 Token</th>
+<th>这一步干了什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1537</td>
+<td>`find . -name "*.py"</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1695</td>
+<td>按目录分布，发现&nbsp;<code>.venv</code>&nbsp;里有 3631 个</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2318</td>
+<td>排除&nbsp;<code>.venv</code>&nbsp;后，代码 12918 行</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2694</td>
+<td>按文件排序，列出主要版本</td>
+</tr>
+<tr>
+<td>5</td>
+<td>3152</td>
+<td>给出结论</td>
+</tr>
+</tbody></table></div>
+<p>5 步里，真正推进结论的是后两步；前两步都在为同一个坑付学费。</p>
+<p>同一份日志里，<code>llm_call</code>&nbsp;的原始行是这样（字段有删减）：</p>
+<pre><code class="language-json">{"kind": "llm_call", "step": 1, "prompt_tokens": 1537, "completion_tokens": 132, "elapsed": 0.723, "has_tool_calls": true}
+{"kind": "llm_call", "step": 5, "prompt_tokens": 3152, "completion_tokens": 274, "elapsed": 1.344, "has_tool_calls": false}
+</code></pre>
+<p>从 1537 到 3152，涨的不是模型的“思考”，是前面四步的工具输出和 assistant 消息。</p>
+<h2 id="十Agent交互时增加控制指令">十、Agent交互时增加控制指令</h2>
+<p>Agent 跑起来之后，下一步是“人能不能当场调它”。</p>
+<p>当前版本把常用操作都做成了斜杠命令：</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/help</code></td>
+<td>命令清单</td>
+</tr>
+<tr>
+<td><code>/model</code></td>
+<td>换模型、Base URL、API Key</td>
+</tr>
+<tr>
+<td>`/verify on</td>
+<td>off`</td>
+</tr>
+<tr>
+<td><code>/stats</code></td>
+<td>本次会话的 Token、耗时、工具调用次数</td>
+</tr>
+<tr>
+<td><code>/log [N]</code></td>
+<td>最近 N 条日志</td>
+</tr>
+<tr>
+<td>`/memory [add</td>
+<td>clear]`</td>
+</tr>
+<tr>
+<td><code>/clear</code></td>
+<td>清空对话历史，保留 system</td>
+</tr>
+<tr>
+<td><code>/turns N</code></td>
+<td>保留最近 N 轮</td>
+</tr>
+<tr>
+<td><code>/tools</code></td>
+<td>列出工具和子 Agent profile</td>
+</tr>
+<tr>
+<td><code>/plugins</code>&nbsp;<code>/skills</code>&nbsp;&nbsp;<code>/mcp</code></td>
+<td>看扩展加载情况</td>
+</tr>
+<tr>
+<td><code>/reload</code></td>
+<td>重新扫描插件和技能</td>
+</tr>
+<tr>
+<td><code>/save</code>&nbsp;<code>/load</code></td>
+<td>存读会话</td>
+</tr>
+<tr>
+<td><code>/exit</code></td>
+<td>退出</td>
+</tr>
+</tbody></table></div>
+<p>这些命令的意义不只是“方便”。它们把原本写死在代码里的常量搬进了&nbsp;<code>state</code>：</p>
+<pre><code class="language-python">def handle_slash(user_input, messages, state):
+    parts = user_input.strip().split(maxsplit=1)
+    cmd = parts[0].lower()
+
+    if cmd == "/turns":
+        if len(parts) == 1:
+            print(f"当前保留轮数: {state['max_turns']}")
+        else:
+            try:
+                n = int(parts[1])
+                if n &gt;= 1:
+                    state["max_turns"] = n
+                    print(f"[保留轮数已设为 {n}]")
+                else:
+                    print("轮数必须 &gt;= 1")
+            except ValueError:
+                print(f"无效数字: {parts[1]}")
+
+    elif cmd == "/memory":
+        if len(parts) == 1:
+            m = load_memory()
+            print(f"\n=== 项目记忆 ===\n{m}\n" if m else "（记忆为空）")
+        else:
+            sub = parts[1].split(maxsplit=1)
+            if sub[0].lower() == "add" and len(sub) &gt; 1:
+                print(append_memory(sub[1]))
+                _rebuild_system_prompt(messages, state)
+            elif sub[0].lower() == "clear":
+                if os.path.isfile(MEMORY_FILE):
+                    os.remove(MEMORY_FILE)
+                _rebuild_system_prompt(messages, state)
+                print("[已清空项目记忆]")
+
+    return True, messages, state
+</code></pre>
+<p><strong>把常量变成参数，这个动作看着小，它是“能用”和“好用”的分界。</strong><code>max_turns</code>&nbsp;原来写死在代码里，改一次要重启；现在&nbsp;<code>/turns 3</code>&nbsp;当场生效。</p>
+<p>代价：一个交互改进，锁死一个平台</p>
+<p>换模型向导要读上下键，当前实现用了&nbsp;<code>termios</code>、<code>tty</code>、<code>select</code>：</p>
+<pre><code class="language-python">import termios
+import tty
+import select
+
+def read_key():
+    fd = sys.stdin.fileno()
+    old = termios.tcgetattr(fd)
+    try:
+        tty.setraw(fd)
+        ch = os.read(fd, 1)
+        if ch == b"\x1b":
+            buf = b""
+            for _ in range(4):
+                r, _, _ = select.select([fd], [], [], 0.3)
+                if not r:
+                    break
+                b = os.read(fd, 1)
+                if not b:
+                    break
+                buf += b
+                if len(buf) &gt;= 2:
+                    break
+            return {b"[A": "up", b"[B": "down", b"[C": "right", b"[D": "left",
+                    b"OA": "up", b"OB": "down", b"OC": "right", b"OD": "left"}.get(buf, "esc")
+        if ch in (b"\r", b"\n"):
+            return "enter"
+        if ch == b"\x03":
+            return "ctrl-c"
+        if ch == b"\x04":
+            return "ctrl-d"
+        try:
+            return ch.decode("utf-8")
+        except Exception:
+            return ""
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)
+</code></pre>
+<p>这三个模块是 Unix 专有的。从 v4.2 起，这套代码在 Windows 上第一行就&nbsp;<code>ImportError</code>。</p>
+<p>一个交互体验上的小改进，把整套东西锁死在一个平台上。<strong>这类代价不会在当天的测试里出现，只会在别人拿去用的时候出现。</strong></p>
+<h2 id="十一子-Agent多Agent调用">十一、子 Agent：多Agent调用</h2>
+<p>一件事太重，一个循环里塞不下，上下文也扛不住。当前版本给主 Agent 加了一个工具：<code>call_sub_agent</code>。</p>
+<p>子 Agent 有四种角色，每种能用的工具是写死的：</p>
+<pre><code class="language-python">SUB_AGENT_PROFILES = {
+    "search": {
+        "desc": "只读搜索分析",
+        "tools": ["grep", "find_files", "read_file", "list_dir"],
+        "system": "你是搜索子 Agent。只查找和分析，不改文件。最后用一段话给结论。",
+    },
+    "code": {
+        "desc": "读写修改代码",
+        "tools": ["grep", "find_files", "read_file", "write_file", "edit_file", "list_dir"],
+        "system": "你是编码子 Agent。负责读写和修改代码。改前先 read_file 确认。最后简要说明做了什么。",
+    },
+    "shell": {
+        "desc": "执行命令",
+        "tools": ["run_shell", "read_file", "list_dir"],
+        "system": "你是执行子 Agent。运行命令并报告结果。最后总结结论。",
+    },
+    "general": {
+        "desc": "通用全部工具（含插件、MCP、技能）",
+        "tools": "ALL",
+        "system": "你是通用子 Agent。可以用所有工具完成任务。最后给出简洁结论。",
+    },
+}
+</code></pre>
+<p><strong>profile 不是性格设定，是权限。</strong>&nbsp;一个 search 子 Agent 想写文件，它根本没有那个工具可用——不是靠提示词劝它别写。</p>
+<p>子 Agent 的工具执行处还专门挡了一行：</p>
+<pre><code class="language-text">if func is None or name == "call_sub_agent":
+    result = f"子 Agent 不允许调用: {name}"
+</code></pre>
+<p>没有这一行，子 Agent 会一层层叫下去，费用是成倍往上翻的。</p>
+<p>真实运行：让 search 子 Agent 找 requests</p>
+<p>2026-10-28 复跑当前版本，让它把“找 requests 用法”派给 search 子 Agent：</p>
+<pre><code class="language-text">[step 1] 调用工具: ['call_sub_agent']
+┌─ 子Agent(search) 启动
+│  任务: 在 demo_project 目录下递归搜索所有使用 requests 的位置...
+│  [1] list_dir
+│  [1] grep
+│  [2] read_file ×3 / list_dir ×2
+│  [3] read_file ×2 / grep ×2
+└─ 子Agent(search) 完成（4 步）
+[step 1] 子Agent 返回 → 搜索完成，未修改任何文件...
+</code></pre>
+<p>它 4 步找到 6 处&nbsp;<code>requests</code>&nbsp;用法，没有碰任何写工具。日志原文在&nbsp;<code>logs/samples/subagent_rerun_20261028_224140.jsonl</code>。</p>
+<p>并行：一个没有写对的判据</p>
+<p>同一版后来加了并行：用线程池同时跑多个子 Agent。</p>
+<pre><code class="language-python">def profile_can_parallel(profile_name):
+    tools = SUB_AGENT_PROFILES.get(profile_name, {}).get("tools", [])
+    if tools == "ALL":
+        return False
+    return "run_shell" not in tools
+</code></pre>
+<p>这里有一个当时没看清的坑：判据是“<strong>不含&nbsp;<code>run_shell</code></strong>”，不是“只读”。所以&nbsp;<code>search</code>&nbsp;能并行，<code>code</code>&nbsp;也能并行——两个 code 子 Agent 同时改同一个文件，照样放行。</p>
+<p>我当时的本意是“只有只读角色允许并行”，但代码里没这么写。事后你查不出来是谁改的、哪一个版本是对的。</p>
+<p><strong>规则写在函数名里，不等于写进了判据。</strong>&nbsp;这是当前版本还没修的债。</p>
+<hr>
+<p><strong>中篇到这里。</strong>&nbsp;下篇从扩展开始：插件 / MCP / Skills、程序记账、日志与记忆。</p>
+<p><strong>上篇回顾：</strong><a href="/zh/docs/09-ai-eng-agent-1/">从零开始设计一个 Agent（上篇）</a></p>
+<hr>
+<p><strong>《AI-FDE 转型之路》</strong>：写给不写代码的 IT 实施 / 售前 / 运维，把已有的交付能力「AI 化」。全系列 55 篇，六大模块 53 项技能。</p>
+<p>想先看看自己缺什么：AI-FDE 技能自评地图，53 项打分，出一张雷达图。<a href="/zh/docs/00-intro/">AI-FDE 转型之路 · 开篇</a></p>
+<p><img src="/media/docs/09-ai-eng-agent-2/img-01.png" alt="" loading="lazy" decoding="async"></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/zh/docs/09-ai-eng-agent-1/"><span class="dir">← 上一篇</span><span class="ttl">从零开始设计一个 Agent（上篇）</span></a>
+<a class="next" href="/zh/docs/09-ai-eng-agent-3/"><span class="dir">下一篇 →</span><span class="ttl">从零开始设计一个 Agent（下篇）</span></a>
+</div>
+    <div class="doc-foot">
+      <p>想先看看自己缺什么？用自评地图打个分  <a href="/zh/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>

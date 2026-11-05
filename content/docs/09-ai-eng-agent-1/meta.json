@@ -1,0 +1,31 @@
+{
+  "slug": "09-ai-eng-agent-1",
+  "series": "ai-fde-roadmap",
+  "order": 9,
+  "source": "https://mp.weixin.qq.com/s/1AETItgxBG5E2VkEyx86Mw",
+  "date": "2026-10-28",
+  "images": [
+    {
+      "name": "img-01.png",
+      "originalName": "img-01.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR83UIfXF8lhfpYP4icfHKc9cWZkTa0QTyONR4lO4ta14icXZfAEicbPYTBkXWCRUZeoQNbYnJKkRMkP6paxPicuATd7Ch2hNZXJp9ic0/640?wx_fmt=png&from=appmsg"
+    }
+  ],
+  "title": {
+    "zh": "从零开始设计一个 Agent（上篇）",
+    "en": "Designing an Agent from Scratch (Part 1)"
+  },
+  "subtitle": {
+    "zh": "AI-FDE 转型之路 · AI 工程 09-Agent设计与实现",
+    "en": "The AI-FDE Transition Path · AI Engineering 09 — Agent Design and Implementation"
+  },
+  "summary": {
+    "zh": "Agent 不是更聪明的模型，而是让模型能动手的一段程序：一个循环、三层刹车、最小闭环、停止线、观察能力与文件四件套。",
+    "en": "An agent is not a smarter model but a program that lets the model act: one loop, three layers of brakes, a minimal loop, stop lines, observability, and four file tools."
+  },
+  "tags": [
+    "AI工程",
+    "Agent",
+    "系统设计"
+  ]
+}

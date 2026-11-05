@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Designing an Agent from Scratch (Part 1) · The AI-FDE Transition Path</title>
+<meta name="description" content="An agent is not a smarter model but a program that lets the model act: one loop, three layers of brakes, a minimal loop, stop lines, observability, and four file tools.">
+<link rel="canonical" href="https://ai-fde.dev/docs/09-ai-eng-agent-1/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/09-ai-eng-agent-1/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/09-ai-eng-agent-1/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/09-ai-eng-agent-1/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Designing an Agent from Scratch (Part 1)">
+<meta property="og:description" content="An agent is not a smarter model but a program that lets the model act: one loop, three layers of brakes, a minimal loop, stop lines, observability, and four file tools.">
+<meta property="og:url" content="https://ai-fde.dev/docs/09-ai-eng-agent-1/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/09-ai-eng-agent-1/img-01.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Designing an Agent from Scratch (Part 1)","description":"An agent is not a smarter model but a program that lets the model act: one loop, three layers of brakes, a minimal loop, stop lines, observability, and four file tools.","datePublished":"2026-10-28","inLanguage":"en","image":"https://ai-fde.dev/media/docs/09-ai-eng-agent-1/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/docs/09-ai-eng-agent-1/","isPartOf":{"@type":"CreativeWorkSeries","name":"The AI-FDE Transition Path"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/docs/">AI-FDE <span>· Docs</span></a>
+  <nav>
+    <a href="/">Self-Assessment</a>
+    <a href="/docs/" class="on">Docs</a>
+    <a class="lang" href="/zh/docs/09-ai-eng-agent-1/">中文</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">In this series</div>
+<div class="toc-body">
+<a class="art" href="/docs/00-intro/"><span class="no">01</span>Why Those Who Know the Customer Best Are the Most Anxious</a>
+<a class="art" href="/docs/01-ai-eng-llm/"><span class="no">02</span>First, Understand Exactly Where the Model Will Always Fail</a>
+<a class="art" href="/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompts Aren't Magic — They're Code You Can Regression-Test</a>
+<a class="art" href="/docs/03-ai-eng-context/"><span class="no">04</span>Context Engineering: What the Model Can Actually See</a>
+<a class="art" href="/docs/04-ai-eng-rag/"><span class="no">05</span>When the Knowledge Base Is Wrong, the Model Usually Isn't</a>
+<a class="art" href="/docs/05-ai-eng-doc-parsing/"><span class="no">06</span>80% of RAG Problems Start in Document Parsing</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling/"><span class="no">07</span>Tool Descriptions Are Manuals Written for the Model</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling-principles/"><span class="no">08</span>How a Model Actually Uses a Tool</a>
+<a class="art" href="/docs/07-ai-eng-python/"><span class="no">09</span>A Python Primer: Get the Environment Right First</a>
+<a class="art" href="/docs/08-ai-eng-mcp/"><span class="no">10</span>Turning an Internal System into an MCP Server</a>
+<a class="art cur" href="/docs/09-ai-eng-agent-1/"><span class="no">11</span>Designing an Agent from Scratch (Part 1)</a>
+<a class="art" href="/docs/09-ai-eng-agent-2/"><span class="no">12</span>Designing an Agent from Scratch (Part 2)</a>
+<a class="art" href="/docs/09-ai-eng-agent-3/"><span class="no">13</span>Designing an Agent from Scratch (Part 3)</a>
+</div>
+<div class="toc-h">On this page</div>
+<div class="toc-body">
+<a class="h2" href="#1-An-Agent-is-a-piece-of-software-that-lets-the-model-act">1. An Agent is a piece of software that lets the model act</a>
+<a class="h2" href="#2-The-difference-between-an-Agent-and-an-agent-application">2. The difference between an Agent and an agent application</a>
+<a class="h2" href="#3-The-big-picture-first-one-loop-three-layers-of-brakes">3. The big picture first: one loop, three layers of brakes</a>
+<a class="h2" href="#4-The-minimal-loop-one-run_agent_turn">4. The minimal loop: one run_agent_turn</a>
+<a class="h2" href="#5-Stop-lines-dont-install-only-a-step-limit">5. Stop lines: don't install only a step limit</a>
+<a class="h2" href="#6-Observability-make-sure-you-can-see-it-first">6. Observability: make sure you can see it first</a>
+<a class="h2" href="#7-The-four-file-tools-read_file-write_file-edit_file-list_dir">7. The four file tools: read_file / write_file / edit_file / list_dir</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/docs/">Docs</a> / The AI-FDE Transition Path</div>
+    <article>
+      <h1 class="doc-title">Designing an Agent from Scratch (Part 1)</h1>
+      <p class="doc-sub">The AI-FDE Transition Path · AI Engineering 09 — Agent Design and Implementation</p>
+      <p class="doc-meta">2026-10-28</p>
+      <blockquote>
+<p>This is <strong>Part 1</strong> of the three-part series "Designing an Agent from Scratch", covering the first seven sections of the design.
+The route: what an Agent is → the big picture → the minimal loop → stop lines → observability → the four file tools.
+Part 2 starts with shell; Part 3 covers extensions, bookkeeping and acceptance.</p>
+</blockquote>
+<h2 id="1-An-Agent-is-a-piece-of-software-that-lets-the-model-act">1. An Agent is a piece of software that lets the model act</h2>
+<p>There is exactly one thing the model can do by itself: <strong>give it some text, and it continues with more text.</strong></p>
+<p>It cannot see files on your server, press buttons in your system, or query your database. If you ask "is this credit application's material complete?", it can only guess from what you pasted into the prompt — and it can guess very convincingly.</p>
+<p>An Agent is a layer of software around the model that gives it three things:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>What it gives</th>
+<th>What it is</th>
+<th>What happens without it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hands</td>
+<td>A set of tools: read files, call APIs, run commands</td>
+<td>It can talk but not act</td>
+</tr>
+<tr>
+<td>Back-and-forth</td>
+<td>A loop: do one step, inspect the result, decide the next step</td>
+<td>It can take one step, and if that step is wrong, it stays wrong</td>
+</tr>
+<tr>
+<td>A way to stop</td>
+<td>Exit conditions: when the task is done, and when it must stop</td>
+<td>It cannot stop</td>
+</tr>
+</tbody></table></div>
+<p><strong>One sentence: an Agent is the piece of code that turns the model from "talking" into "doing".</strong></p>
+<p>What can it do? Concretely:</p>
+<ul>
+<li><p>A relationship manager asks "what is still missing from this credit application?" It calls three APIs and lists the missing items. The need exists only as APIs; there is no ready-made screen.</p>
+</li>
+<li><p>A batch of policy documents must be re-filed under a new directory structure. It reads them, decides where each belongs, moves them, and writes a change record.</p>
+</li>
+<li><p>After a code change, it runs the tests itself. If they fail, it reads the logs and tries again until they pass, or until it hits a limit and stops.</p>
+</li>
+</ul>
+<p>It is just as important to say what it cannot do. These three points matter more than the capabilities:</p>
+<ol>
+<li><p><strong>It does not understand the business better than you do.</strong> Business rules live in your policy documents, API contracts and approval standards, not in the model. The Agent applies the rules; it does not invent them for you.</p>
+</li>
+<li><p><strong>It does not guarantee correctness; it guarantees traceability.</strong> The certainty it provides is "every step left a trace", not "the conclusion is right".</p>
+</li>
+<li><p><strong>It should not touch actions that require one hundred percent certainty.</strong> Transfers, deductions, bulk deletes — write those as fixed code branches. Do not let it decide on the spot.</p>
+</li>
+</ol>
+<h2 id="2-The-difference-between-an-Agent-and-an-agent-application">2. The difference between an Agent and an agent application</h2>
+<p>When most people say "agent" today, they mean an <strong>agent application</strong>: on platforms such as Coze, Dify or Bailian, you pick a model, attach a knowledge base, wire a few flows, add a chat box, and hit publish. A business user can build one after two days of training.</p>
+<p>The Agent in this article is not that. It lives one layer below.</p>
+<p>An analogy: <strong>an agent application is the whole car; an Agent is the engine.</strong></p>
+<p>Low-code platforms sell the whole car — it drives, and it comes with a speed limiter. For most business needs, the whole car is enough. But you will eventually hit three cases: you need to connect an intranet system the platform cannot reach; you need to add your own interlock before a dangerous action; or you need to explain to the customer exactly what it did at every step. The whole car does not let you change those three things.</p>
+<p>Compare them side by side:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Agent application</th>
+<th>The Agent designed in this article</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>What it is</td>
+<td>A product you open and use</td>
+<td>A runtime that another program can call</td>
+</tr>
+<tr>
+<td>Who uses it</td>
+<td>End users, humans</td>
+<td>Another program, or a larger system</td>
+</tr>
+<tr>
+<td>Who sets the boundary</td>
+<td>The platform sets it; you arrange things inside the box</td>
+<td>You set it; wherever you write it is where it applies</td>
+</tr>
+<tr>
+<td>What it looks like</td>
+<td>A UI, an entry point, a publish button</td>
+<td>A function <code>run_agent_turn(messages)</code></td>
+</tr>
+<tr>
+<td>Main risks</td>
+<td>Wrong answers, broken flows, poor experience</td>
+<td>Changing the wrong thing, failing to stop, inability to investigate afterwards</td>
+</tr>
+<tr>
+<td>How to investigate an incident</td>
+<td>Read the conversation history</td>
+<td>Read the tool-call log of every step</td>
+</tr>
+<tr>
+<td>Who builds it</td>
+<td>Business users can build one</td>
+<td>Someone who can read code</td>
+</tr>
+</tbody></table></div>
+<p>So what exactly are we designing? Concretely:</p>
+<p><strong>We are designing the loop, plus three layers of brakes around it.</strong> The loop can be described in one sentence: call the model; the model says it wants to call a tool; execute the tool; put the result back into history; call the model again; stop when it no longer asks for a tool, or when it hits a limit.</p>
+<p>The loop itself is a few dozen lines. The hard part is making it survive in production. The next dozen sections are all about patching the holes in this loop.</p>
+<h2 id="3-The-big-picture-first-one-loop-three-layers-of-brakes">3. The big picture first: one loop, three layers of brakes</h2>
+<p>Before we take the code apart, look at the overall structure of the current version.</p>
+<p>It is not a "very smart Agent". It is <strong>a loop that has been fenced in</strong>. From the outside in, there are six layers:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Problem it solves</th>
+<th>Current implementation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Loop layer</td>
+<td>How one turn runs and when it stops</td>
+<td><code>run_agent_turn</code>, <code>max_steps=8</code></td>
+</tr>
+<tr>
+<td>Tool layer</td>
+<td>What it can and cannot do</td>
+<td>Four file tools, <code>run_shell</code>, <code>grep</code>, <code>find_files</code>, plugins, MCP, Skills</td>
+</tr>
+<tr>
+<td>Boundary layer</td>
+<td>What happens if it breaks something</td>
+<td><code>_safe_path</code>, <code>SAFE_CMDS</code>, human confirmation, timeouts, sub-agent profiles</td>
+</tr>
+<tr>
+<td>Context layer</td>
+<td>What happens when history gets too long</td>
+<td><code>trim_messages</code>, <code>[:3000]</code>, <code>max_results</code></td>
+</tr>
+<tr>
+<td>State layer</td>
+<td>How the runtime is adjusted</td>
+<td><code>messages</code>, <code>state</code>, slash commands, model configuration</td>
+</tr>
+<tr>
+<td>Acceptance layer</td>
+<td>How you know it actually finished</td>
+<td><code>facts</code> / <code>check_before_answer</code>, jsonl logs, <code>AGENT.md</code></td>
+</tr>
+</tbody></table></div>
+<p>Of the six layers, three are the brakes that actually stop accidents:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Brake</th>
+<th>Where it is installed</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Tool-layer brake</td>
+<td>Where the model cannot see</td>
+<td>Path boundary, command allowlist, script audit, human confirmation, timeout</td>
+</tr>
+<tr>
+<td>State-layer brake</td>
+<td>In the loop and context</td>
+<td>Step limit, per-turn trimming, single-output truncation, sub-agent permissions</td>
+</tr>
+<tr>
+<td>Acceptance-layer brake</td>
+<td>Before the final answer</td>
+<td>Program bookkeeping, objective checks, per-call logs, long-term memory</td>
+</tr>
+</tbody></table></div>
+<p><strong>"Do not delete files" written in the system prompt is a request, not a brake.</strong> The model can ignore it, and it often does — not because it is malicious, but because it reinterprets that sentence every time. Something that actually stops it must live where the model cannot see or change it.</p>
+<h2 id="4-The-minimal-loop-one-run_agent_turn">4. The minimal loop: one <code>run_agent_turn</code></h2>
+<p>First make the loop run. The core function in the current version is <code>run_agent_turn</code>. With logging, bookkeeping and sub-agent branches removed, the skeleton looks like this:</p>
+<pre><code class="language-python">def run_agent_turn(client, model, messages, state, max_steps=8, verbose=True):
+    for step in range(1, max_steps + 1):
+        stream = client.chat.completions.create(
+            model=model, messages=messages, tools=TOOLS,
+            tool_choice="auto", stream=True,
+        )
+
+        content = ""
+        acc = {}
+        for chunk in stream:
+            if not chunk.choices:
+                continue
+            delta = chunk.choices[0].delta
+            if delta.content:
+                print(delta.content, end="", flush=True)
+                content += delta.content
+            for tc in delta.tool_calls or []:
+                i = tc.index
+                acc.setdefault(i, {"id": "", "name": "", "arguments": ""})
+                if tc.id:
+                    acc[i]["id"] = tc.id
+                if tc.function:
+                    if tc.function.name:
+                        acc[i]["name"] = tc.function.name
+                    if tc.function.arguments:
+                        acc[i]["arguments"] += tc.function.arguments
+
+        # No tool calls → it thinks it is done
+        if not acc:
+            messages.append({"role": "assistant", "content": content})
+            return content
+
+        tcs = [acc[i] for i in sorted(acc)]
+        messages.append({
+            "role": "assistant", "content": content or None,
+            "tool_calls": [
+                {"id": t["id"], "type": "function",
+                 "function": {"name": t["name"], "arguments": t["arguments"]}}
+                for t in tcs
+            ],
+        })
+
+        for t in tcs:
+            result = execute_tool_call(t)
+            messages.append({
+                "role": "tool", "tool_call_id": t["id"], "content": str(result),
+            })
+
+    return "(reached max steps, task not completed)"
+</code></pre>
+<p>Four things in this code cannot be omitted:</p>
+<p><strong>First, the assistant's <code>tool_calls</code> must be written back to history exactly as received.</strong> Do not write only <code>content</code>. The next turn needs it to know what it just asked to call.</p>
+<p><strong>Second, every <code>tool_call</code> must have a corresponding <code>tool</code> message.</strong> The <code>tool_call_id</code> must match. One missing message or one wrong id and the API returns 400. This constraint will bite again when we trim history later.</p>
+<p><strong>Third, the exit condition is "no longer asks for tools".</strong> When the model stops returning <code>tool_calls</code>, we consider it done. The rule is simple, but it hands the "when to stop" decision to the model — which is why there must be a <code>max_steps</code> outside.</p>
+<p><strong>Fourth, <code>max_steps</code> is a fuse, not a brake.</strong> It guarantees that the circuit breaks after it burns, not that it will not burn. Eight steps stops an infinite loop; it does not stop "methodically doing the wrong thing eight times".</p>
+<p>Why a loop is necessary</p>
+<p>If you only call the model twice: the first call decides which tool to use, you execute it, and the second call asks for the answer directly — the second request has no <code>tools</code>, so it cannot ask for another tool based on the first result.</p>
+<p>Any task that depends on the previous step's result breaks there. The loop is not repetition; it is <strong>another chance to decide</strong>.</p>
+<h2 id="5-Stop-lines-dont-install-only-a-step-limit">5. Stop lines: don't install only a step limit</h2>
+<p>"Knowing when to stop" is harder than "knowing how to do".</p>
+<p>The current version has several brakes, but not all of them. Here is the honest state:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Brake</th>
+<th>Current implementation</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Steps</td>
+<td><code>max_steps=8</code>; sub-agent <code>SUB_AGENT_MAX_STEPS=6</code></td>
+<td>Present</td>
+</tr>
+<tr>
+<td>Tool timeout</td>
+<td><code>run_shell</code> defaults to 30s; MCP calls 60s</td>
+<td>Present</td>
+</tr>
+<tr>
+<td>Wall clock</td>
+<td>No per-turn deadline</td>
+<td>Debt</td>
+</tr>
+<tr>
+<td>Cost</td>
+<td>No token or money budget</td>
+<td>Debt</td>
+</tr>
+<tr>
+<td>Repetition</td>
+<td>No detection of the same tool with the same arguments</td>
+<td>Debt</td>
+</tr>
+</tbody></table></div>
+<p>The step limit is the only hard condition that says "no matter what the model thinks, stop when you reach the limit". It matters, but it only solves "how long it runs", not "which direction it runs in".</p>
+<p>An eight-step loop can methodically do eight wrong things. The more common incident in the field is not an infinite loop; it is <strong>going in the wrong direction very smoothly</strong>.</p>
+<p>A complete stop-line setup needs at least four brakes:</p>
+<ul>
+<li><p><strong>Steps:</strong> how many steps per turn; set a separate limit for sub-agents.</p>
+</li>
+<li><p><strong>Wall clock:</strong> how many seconds per turn. Return when exceeded, regardless of whether the model wants to continue.</p>
+</li>
+<li><p><strong>Cost:</strong> how many tokens or how much money per turn. Stop when exceeded.</p>
+</li>
+<li><p><strong>Repetition:</strong> the same tool with the same arguments appears N times in a row; declare it dead.</p>
+</li>
+</ul>
+<p>The current version has only the first and tool-level timeouts. The other three are explicit debt. Just because an article describes them does not mean they exist.</p>
+<p>The smallest wall-clock patch does not require changing the model:</p>
+<pre><code class="language-python">deadline = time.time() + 120
+for step in range(1, max_steps + 1):
+    if time.time() &gt; deadline:
+        return "(turn deadline exceeded; stopped)"
+    ...
+</code></pre>
+<p>Repetition detection is similar: keep a table of <code>(name, arguments)</code> before executing a tool. Reject on the second consecutive hit; end the turn on the third.</p>
+<h2 id="6-Observability-make-sure-you-can-see-it-first">6. Observability: make sure you can see it first</h2>
+<p>When an Agent misbehaves, eighty percent of the time is spent on "I don't know what it just did".</p>
+<p>The current version has three layers of observability:</p>
+<p><strong>The first layer is streaming.</strong> With <code>stream=True</code>, every character the model emits is printed. It is not there to look like a typewriter; it distinguishes three very different situations: "the network is slow", "the model is thinking", and "the tool is stuck".</p>
+<p><strong>The second layer is <code>verbose</code>.</strong> Every tool call prints a line:</p>
+<pre><code class="language-text">[step 1] calling tools: ['list_dir', 'read_file']
+[step 1] list_dir → [FILE] add.py  (67 bytes) ...
+[step 1] read_file → print("Hello China")
+[step 2] calling tools: ['edit_file', 'write_file']
+[step 2] edit_file → modified sandbox/hello.py
+[step 2] write_file → wrote sandbox/note.md (5 chars)
+</code></pre>
+<p>These four lines are far more useful than the words "done". They tell you: it first looked at the directory, then read the file, then modified one file and wrote a new one.</p>
+<p><strong>The third layer is <code>/log</code> and <code>/stats</code>.</strong> <code>/log</code> lists the jsonl log in reverse chronological order. <code>/stats</code> shows the token count, elapsed time and tool-call count for the current session. The logging section expands on this.</p>
+<p>Single-step: a debugging switch that never made it into the main line</p>
+<p>Early on I built a single-step mode: after each step, it waits for the user to press Enter, and the user can continue, abort or turn single-step off.</p>
+<p>It was useful, but it never entered the main line. The reason is that it only affects debugging, not capability; and putting it into sub-agents, parallelism and logging makes the main flow much more complicated.</p>
+<p>The current version uses <code>verbose</code> + <code>/log</code> instead. If you really need to inspect step by step, you can port <code>_step_pause</code> from the v2.3 side branch. It is not complex: one <code>input()</code> call, plus handling to fill in the missing <code>tool</code> message when the user aborts.</p>
+<h2 id="7-The-four-file-tools-read_file-write_file-edit_file-list_dir">7. The four file tools: <code>read_file</code> / <code>write_file</code> / <code>edit_file</code> / <code>list_dir</code></h2>
+<p>Once an Agent can touch files, the risk shifts from "saying the wrong thing" to "breaking something".</p>
+<p>So the first thing in this section is not adding tools; it is <strong>drawing a fence around the Tang Monk first</strong>:</p>
+<pre><code class="language-python">WORKSPACE = os.path.abspath(os.getcwd())
+
+def _safe_path(path: str) -&gt; str:
+    """Join a relative path to the workspace and prevent escapes."""
+    full = os.path.abspath(os.path.join(WORKSPACE, path))
+    if not full.startswith(WORKSPACE + os.sep) and full != WORKSPACE:
+        raise ValueError(f"Path escapes the workspace; only {WORKSPACE} is allowed: {path}")
+    return full
+</code></pre>
+<p><code>../../</code> cannot get out. <code>/etc/passwd</code> cannot get out. All four file tools pass through this check first.</p>
+<p><strong>Draw the boundary before giving the tool. The order cannot be reversed.</strong> Give the tool first and add limits later, and the window in between is the accident window.</p>
+<p>Four tools, one job each</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Arguments</th>
+<th>Purpose</th>
+<th>When to use it</th>
+<th>Main risk</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>read_file</code></td>
+<td><code>path</code></td>
+<td>Read a full UTF-8 file</td>
+<td>You know the path and want to see the content</td>
+<td>A large file blows up the context</td>
+</tr>
+<tr>
+<td><code>write_file</code></td>
+<td><code>path</code>, <code>content</code></td>
+<td>Create or overwrite the whole file</td>
+<td>New file, full rewrite</td>
+<td>Silently overwrites the original</td>
+</tr>
+<tr>
+<td><code>edit_file</code></td>
+<td><code>path</code>, <code>old_text</code>, <code>new_text</code></td>
+<td>Replace exactly one occurrence</td>
+<td>Change a small part of an existing file</td>
+<td>Whitespace mismatch; multiple matches</td>
+</tr>
+<tr>
+<td><code>list_dir</code></td>
+<td><code>path="."</code></td>
+<td>List a directory with types and sizes</td>
+<td>Inspect the directory structure first</td>
+<td>Directories such as <code>.venv</code> flood the output</td>
+</tr>
+</tbody></table></div>
+<p>None of the four implementations is long, but each hides a design decision:</p>
+<pre><code class="language-python">def read_file(path):
+    try:
+        with open(_safe_path(path), "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception as e:
+        return f"read failed: {e}"
+
+def write_file(path, content):
+    try:
+        full = _safe_path(path)
+        parent = os.path.dirname(full)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+        with open(full, "w", encoding="utf-8") as f:
+            f.write(content)
+        return f"wrote {path} ({len(content)} chars)"
+    except Exception as e:
+        return f"write failed: {e}"
+
+def edit_file(path, old_text, new_text):
+    try:
+        full = _safe_path(path)
+        with open(full, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        if old_text not in content:
+            return f"text to replace not found: {old_text[:50]}..."
+
+        if content.count(old_text) &gt; 1:
+            return f"found {content.count(old_text)} matches; provide a more precise old_text"
+
+        with open(full, "w", encoding="utf-8") as f:
+            f.write(content.replace(old_text, new_text))
+        return f"modified {path}"
+    except Exception as e:
+        return f"edit failed: {e}"
+
+def list_dir(path="."):
+    try:
+        full = _safe_path(path)
+        if not os.path.isdir(full):
+            return f"not a directory: {path}"
+        lines = []
+        for item in sorted(os.listdir(full)):
+            fp = os.path.join(full, item)
+            if os.path.isdir(fp):
+                lines.append(f"[DIR]  {item}/")
+            else:
+                lines.append(f"[FILE] {item}  ({os.path.getsize(fp)} bytes)")
+        return "\n".join(lines) if lines else "(empty directory)"
+    except Exception as e:
+        return f"list failed: {e}"
+</code></pre>
+<p>The key point of each tool</p>
+<p><strong><code>read_file</code> only reads; it does not decide whether reading is appropriate.</strong> It returns the entire file as-is. That is fine for small files; a large file eats the context directly. The current version has no truncation. That is debt. In production, add <code>max_bytes</code> or line-based truncation, and state clearly in the return value that it was truncated.</p>
+<p><strong><code>write_file</code> overwrites, it does not append.</strong> It replaces the whole file and should only be used for "new file" or "full rewrite". To change a small part of an existing file, use <code>edit_file</code>. This distinction is not fussiness: once the model uses <code>write_file</code> to "change one line", it may write the entire file from memory and the original content is gone.</p>
+<p><strong>The core of <code>edit_file</code> is "unique match".</strong> If <code>old_text</code> is not found, reject. If it is found multiple times, reject. It would rather make the model retry than guess "which one you meant". This is the most important brake among the four tools.</p>
+<p><strong><code>list_dir</code> gives structure, not content.</strong> It returns <code>[DIR]</code> / <code>[FILE]</code> and file sizes, so the model first learns "what exists" and then decides "what to read". The current version does not skip <code>.venv</code> or <code>__pycache__</code>; a large directory floods the output. That is the next hole to fix.</p>
+<p>When to use which</p>
+<ul>
+<li><p>You don't know where the file is: use <code>grep</code> or <code>find_files</code> first.</p>
+</li>
+<li><p>You know the path and want to see the content: <code>read_file</code>.</p>
+</li>
+<li><p>Create a file or rewrite the whole thing: <code>write_file</code>.</p>
+</li>
+<li><p>Change a small part of an existing file: <code>edit_file</code>.</p>
+</li>
+<li><p>Inspect the directory structure first: <code>list_dir</code>.</p>
+</li>
+</ul>
+<p>These five actions cover "find, read, create, change, list", which is exactly the minimal loop of file operations. More tools are not better. First make the boundaries of these five clear.</p>
+<p>A real run: going through all four tools once</p>
+<p>On 2026-10-28 I reran the current version and asked it to do four things in order: list the directory, read a file, change one line, create a new file.</p>
+<pre><code class="language-json">{"ts": 1793198120.316, "kind": "tool_call", "name": "list_dir", "args_preview": "{\"path\": \"sandbox\"}", "result_preview": "[FILE] add.py  (67 bytes)\n[FILE] hello.log  (12 bytes)\n[FILE] hello.py  (126 bytes)", "elapsed": 0.0}
+{"ts": 1793198120.316, "kind": "tool_call", "name": "read_file", "args_preview": "{\"path\": \"sandbox/hello.py\"}", "result_preview": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\n\ndef main():\n    print(\"Hello China\")\n\n\nif __name__ == \"__main__\":\n    main()\n", "elapsed": 0.0}
+{"ts": 1793198121.78, "kind": "tool_call", "name": "edit_file", "args_preview": "{\"path\": \"sandbox/hello.py\", \"old_text\": \"    print(\\\"Hello China\\\")\", \"new_text\": \"    print(\\\"Hello Agent\\\")\"}", "result_preview": "modified sandbox/hello.py", "elapsed": 0.0}
+{"ts": 1793198121.781, "kind": "tool_call", "name": "write_file", "args_preview": "{\"path\": \"sandbox/note.md\", \"content\": \"done\\n\"}", "result_preview": "wrote sandbox/note.md (5 chars)", "elapsed": 0.0}
+</code></pre>
+<p>Restored as a terminal view:</p>
+<pre><code class="language-text">&gt; First list_dir sandbox, then read_file sandbox/hello.py, then edit_file to change Hello China to Hello Agent, and finally write_file to create sandbox/note.md
+
+[step 1] list_dir → [FILE] add.py (67 bytes) / hello.log (12 bytes) / hello.py (126 bytes)
+[step 1] read_file → print("Hello China")
+[step 2] edit_file → modified sandbox/hello.py
+[step 2] write_file → wrote sandbox/note.md (5 chars)
+[step 3] read_file → print("Hello Agent")
+[step 4] read_file → done
+</code></pre>
+<p>Four actions, four tool calls, every step traceable in the log. After editing, it read the file back to confirm. That was not prompted; the <code>read_file</code> tool makes confirmation cheap.</p>
+<p>The original log is at <code>logs/samples/files_rerun_20261028_223517.jsonl</code>.</p>
+<p>Debt left by this section</p>
+<ul>
+<li><p><code>read_file</code> has no size limit; a large file eats the context.</p>
+</li>
+<li><p><code>list_dir</code> does not skip <code>.venv</code> / <code>__pycache__</code>; a large directory floods the output.</p>
+</li>
+<li><p><code>write_file</code>'s overwrite risk is constrained only by prompts; there is no program-level "back up before change".</p>
+</li>
+<li><p><code>edit_file</code> is sensitive to whitespace; when the model changes indentation, matching often fails.</p>
+</li>
+</ul>
+<p>None of these four can be solved by "adding another tool". They require adding parameters and boundaries in the implementation.</p>
+<hr>
+<p><strong>That is Part 1.</strong> Part 2 starts with shell: allowlists, script audits, human confirmation, timeouts; then retrieval and context, runtime controls, and sub-agent permissions.</p>
+<hr>
+<p><strong>The AI-FDE Transition Path</strong>: for IT implementation, pre-sales and operations people who don't write code, turning existing delivery skills into AI skills. The full series has 55 articles across six modules and 53 skills.</p>
+<p>Want to see what you're missing first? The AI-FDE skill self-assessment map scores 53 items and produces a radar chart. <a href="/docs/00-intro/">The AI-FDE Transition Path · Introduction</a></p>
+<p><img src="/media/docs/09-ai-eng-agent-1/img-01.png" alt="" loading="lazy" decoding="async"></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/docs/08-ai-eng-mcp/"><span class="dir">← Previous</span><span class="ttl">Turning an Internal System into an MCP Server</span></a>
+<a class="next" href="/docs/09-ai-eng-agent-2/"><span class="dir">Next →</span><span class="ttl">Designing an Agent from Scratch (Part 2)</span></a>
+</div>
+    <div class="doc-foot">
+      <p>Want to see where you stand? Score yourself on the map  <a href="/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>

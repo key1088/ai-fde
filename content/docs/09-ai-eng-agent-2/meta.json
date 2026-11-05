@@ -1,0 +1,31 @@
+{
+  "slug": "09-ai-eng-agent-2",
+  "series": "ai-fde-roadmap",
+  "order": 9.1,
+  "source": "https://mp.weixin.qq.com/s/8RAwXbH6sH1RbziLxdddhQ",
+  "date": "2026-10-30",
+  "images": [
+    {
+      "name": "img-01.png",
+      "originalName": "img-01.png",
+      "src": "https://mmbiz.qpic.cn/sz_mmbiz_png/B5MbN9tHR83UIfXF8lhfpYP4icfHKc9cWZkTa0QTyONR4lO4ta14icXZfAEicbPYTBkXWCRUZeoQNbYnJKkRMkP6paxPicuATd7Ch2hNZXJp9ic0/640?wx_fmt=png&from=appmsg"
+    }
+  ],
+  "title": {
+    "zh": "从零开始设计一个 Agent（中篇）",
+    "en": "Designing an Agent from Scratch (Part 2)"
+  },
+  "subtitle": {
+    "zh": "AI-FDE 转型之路 · AI 工程 09-Agent设计与实现",
+    "en": "The AI-FDE Transition Path · AI Engineering 09 — Agent Design and Implementation"
+  },
+  "summary": {
+    "zh": "shell 四层拦截、检索与上下文裁剪、斜杠命令与子 Agent 权限：把 Agent 从能跑变成可控。",
+    "en": "Four layers of shell interception, retrieval and context trimming, slash commands, and sub-agent permissions: making an agent controllable, not just runnable."
+  },
+  "tags": [
+    "AI工程",
+    "Agent",
+    "权限控制"
+  ]
+}

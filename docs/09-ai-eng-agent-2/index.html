@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Designing an Agent from Scratch (Part 2) · The AI-FDE Transition Path</title>
+<meta name="description" content="Four layers of shell interception, retrieval and context trimming, slash commands, and sub-agent permissions: making an agent controllable, not just runnable.">
+<link rel="canonical" href="https://ai-fde.dev/docs/09-ai-eng-agent-2/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/09-ai-eng-agent-2/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/09-ai-eng-agent-2/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/09-ai-eng-agent-2/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Designing an Agent from Scratch (Part 2)">
+<meta property="og:description" content="Four layers of shell interception, retrieval and context trimming, slash commands, and sub-agent permissions: making an agent controllable, not just runnable.">
+<meta property="og:url" content="https://ai-fde.dev/docs/09-ai-eng-agent-2/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/09-ai-eng-agent-2/img-01.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Designing an Agent from Scratch (Part 2)","description":"Four layers of shell interception, retrieval and context trimming, slash commands, and sub-agent permissions: making an agent controllable, not just runnable.","datePublished":"2026-10-30","inLanguage":"en","image":"https://ai-fde.dev/media/docs/09-ai-eng-agent-2/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/docs/09-ai-eng-agent-2/","isPartOf":{"@type":"CreativeWorkSeries","name":"The AI-FDE Transition Path"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/docs/">AI-FDE <span>· Docs</span></a>
+  <nav>
+    <a href="/">Self-Assessment</a>
+    <a href="/docs/" class="on">Docs</a>
+    <a class="lang" href="/zh/docs/09-ai-eng-agent-2/">中文</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">In this series</div>
+<div class="toc-body">
+<a class="art" href="/docs/00-intro/"><span class="no">01</span>Why Those Who Know the Customer Best Are the Most Anxious</a>
+<a class="art" href="/docs/01-ai-eng-llm/"><span class="no">02</span>First, Understand Exactly Where the Model Will Always Fail</a>
+<a class="art" href="/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompts Aren't Magic — They're Code You Can Regression-Test</a>
+<a class="art" href="/docs/03-ai-eng-context/"><span class="no">04</span>Context Engineering: What the Model Can Actually See</a>
+<a class="art" href="/docs/04-ai-eng-rag/"><span class="no">05</span>When the Knowledge Base Is Wrong, the Model Usually Isn't</a>
+<a class="art" href="/docs/05-ai-eng-doc-parsing/"><span class="no">06</span>80% of RAG Problems Start in Document Parsing</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling/"><span class="no">07</span>Tool Descriptions Are Manuals Written for the Model</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling-principles/"><span class="no">08</span>How a Model Actually Uses a Tool</a>
+<a class="art" href="/docs/07-ai-eng-python/"><span class="no">09</span>A Python Primer: Get the Environment Right First</a>
+<a class="art" href="/docs/08-ai-eng-mcp/"><span class="no">10</span>Turning an Internal System into an MCP Server</a>
+<a class="art" href="/docs/09-ai-eng-agent-1/"><span class="no">11</span>Designing an Agent from Scratch (Part 1)</a>
+<a class="art cur" href="/docs/09-ai-eng-agent-2/"><span class="no">12</span>Designing an Agent from Scratch (Part 2)</a>
+<a class="art" href="/docs/09-ai-eng-agent-3/"><span class="no">13</span>Designing an Agent from Scratch (Part 3)</a>
+</div>
+<div class="toc-h">On this page</div>
+<div class="toc-body">
+<a class="h2" href="#8-Shell-put-the-interception-in-the-tool-layer">8. Shell: put the interception in the tool layer</a>
+<a class="h2" href="#9-Retrieval-and-context-first-let-it-find-things-then-let-it-remember">9. Retrieval and context: first let it find things, then let it remember</a>
+<a class="h2" href="#10-Adding-control-commands-to-the-Agent-interaction">10. Adding control commands to the Agent interaction</a>
+<a class="h2" href="#11-Sub-agents-multi-agent-calls">11. Sub-agents: multi-agent calls</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/docs/">Docs</a> / The AI-FDE Transition Path</div>
+    <article>
+      <h1 class="doc-title">Designing an Agent from Scratch (Part 2)</h1>
+      <p class="doc-sub">The AI-FDE Transition Path · AI Engineering 09 — Agent Design and Implementation</p>
+      <p class="doc-meta">2026-10-30</p>
+      <blockquote>
+<p>This is <strong>Part 2</strong> of the three-part series "Designing an Agent from Scratch".
+The route: four layers of shell interception → retrieval and context → control commands → sub-agents.</p>
+<p>Part 1 recap: the loop runs, stop lines are installed, and the four file tools have boundaries. Part 2 starts touching more dangerous things: commands, context, runtime parameters and permissions.</p>
+</blockquote>
+<h2 id="8-Shell-put-the-interception-in-the-tool-layer">8. Shell: put the interception in the tool layer</h2>
+<p>File tools handle "changing files". Shell handles "running commands". The latter is an order of magnitude riskier: file tools change files inside the workspace, while shell can touch the whole system.</p>
+<p>So <code>run_shell</code> is not a wrapper around <code>subprocess.run</code>. It is four layers of interception:</p>
+<pre><code class="language-python">SAFE_CMDS = {"ls", "cat", "head", "tail", "wc", "find", "grep", "tree",
+             "pwd", "whoami", "date", "echo", "diff", "stat", "file"}
+CONFIRM_CMDS = {"python", "python3", "pip", "pip3", "pytest", "git", "make", "npm", "node"}
+ALLOWED = SAFE_CMDS | CONFIRM_CMDS
+DANGEROUS_PY = ["os.system", "os.popen", "subprocess", "shutil.rmtree", "shutil.move",
+                "eval(", "exec(", "__import__", "os.remove", "os.unlink", "os.rmdir",
+                "os.removedirs", "os.rename", "os.chmod", "os.chown", "pty.spawn", "socket."]
+
+def _audit(path):
+    try:
+        full = _safe_path(path)
+        if not os.path.isfile(full):
+            return ""
+        with open(full, "r", encoding="utf-8", errors="ignore") as f:
+            c = f.read()
+        for t in DANGEROUS_PY:
+            if t in c:
+                return f"script contains a dangerous call: {t}"
+        return ""
+    except Exception as e:
+        return f"audit failed: {e}"
+
+def run_shell(command, timeout=30):
+    cmd = command.strip()
+    if not cmd:
+        return "empty command"
+    parts = cmd.split()
+    base = os.path.basename(parts[0])
+    if base not in ALLOWED:
+        return f"command '{base}' is not on the allowlist; rejected"
+    if base in {"python", "python3"}:
+        if "-c" in parts:
+            i = parts.index("-c")
+            code = parts[i + 1] if i + 1 &lt; len(parts) else ""
+            for t in DANGEROUS_PY:
+                if t in code:
+                    return f"rejected: -c code contains {t}"
+        for p in parts[1:]:
+            if not p.startswith("-") and os.path.isfile(_safe_path(p)):
+                d = _audit(p)
+                if d:
+                    return f"rejected: {d}"
+    if base not in SAFE_CMDS:
+        print(f"\n⚠️  execute: {cmd}")
+        if input("Allow? (y/n)").strip().lower() != "y":
+            return "user denied execution"
+    try:
+        r = subprocess.run(cmd, shell=True, cwd=WORKSPACE,
+                           capture_output=True, text=True, timeout=timeout)
+        out = (r.stdout + r.stderr)[:3000]
+        rc_note = f"\n[exit code {r.returncode}]"
+        return (out if out else "(no output)") + rc_note
+    except subprocess.TimeoutExpired:
+        return f"timeout (&gt;{timeout}s)\n[exit code -1]"
+    except Exception as e:
+        return f"execution failed: {e}\n[exit code -1]"
+</code></pre>
+<p>The four layers are:</p>
+<ol>
+<li><p><strong>Allowlist:</strong> if <code>base</code> is not in <code>ALLOWED</code>, reject immediately. <code>rm</code>, <code>mv</code> and <code>dd</code> never get a chance to run.</p>
+</li>
+<li><p><strong>Script audit:</strong> for <code>python xxx.py</code>, read the script first. If it contains <code>os.remove</code>, <code>shutil.rmtree</code>, <code>subprocess</code>, <code>eval(</code> or <code>socket.</code>, reject.</p>
+</li>
+<li><p><strong>Human confirmation:</strong> read-only commands need no confirmation. <code>python</code>, <code>git</code>, <code>npm</code> and similar require typing <code>y</code>.</p>
+</li>
+<li><p><strong>Timeout + truncation:</strong> 30 seconds by default; keep only the first 3000 characters of output.</p>
+</li>
+</ol>
+<p>Why the audit's purpose is "leaving a trace", not "security"</p>
+<p>That blacklist cannot stop a real attacker. <code>python</code> can do anything; one library call that is not on the list bypasses it.</p>
+<p>What it really stops is: <strong>the model writing a script to erase its own traces</strong>. Once <code>os.remove</code>, <code>shutil.rmtree</code> or <code>subprocess</code> enters a script, it becomes very hard to reconstruct what happened from the logs afterwards. The reason to block them is preserving auditability, not treating this as a security sandbox.</p>
+<p>A real log: one <code>ls</code></p>
+<p>On 2026-10-28 I reran the current version and asked it to execute <code>ls -1</code> through <code>run_shell</code>:</p>
+<pre><code class="language-json">{
+  "ts":1793194692.762,
+"kind":"tool_call",
+"name":"run_shell",
+"args_preview":"{\"command\": \"ls -1\"}",
+"result_preview":"AGENT.md\ndemo.db\ndemo_project\nlogs\nmcp_servers.json\nmy_sqlite_server.py\nREADME.md\nrequirements.txt\nsandbox\nskills\ntools\nversions\nVERSIONS.md\n\n[exit code 0]",
+"elapsed":0.003
+}
+</code></pre>
+<p>This single line answers four questions: what ran, what came back, how long it took, and what the exit code was.</p>
+<p>That time the model first said "12 entries", then corrected itself to 13 — even though the tool had returned 13 lines. Logs do not fix judgment errors, but they let you see at which step it miscounted.</p>
+<p><strong>The tool layer is responsible for blocking; the log layer is responsible for leaving a trace. Neither replaces the other.</strong></p>
+<p>The original log is at <code>logs/samples/shell_rerun_20261028_213810.jsonl</code>.</p>
+<h2 id="9-Retrieval-and-context-first-let-it-find-things-then-let-it-remember">9. Retrieval and context: first let it find things, then let it remember</h2>
+<p>Give it retrieval first; don't make it walk directories one by one</p>
+<p>The model does not know where files are. Ask it to "find where this configuration item is used" and it will <code>list_dir</code> one directory at a time, then <code>read_file</code> one file at a time. Three files later, the context is full.</p>
+<p><code>grep</code> and <code>find_files</code> solve this:</p>
+<pre><code class="language-python">def grep(keyword, path=".", max_results=50):
+    try:
+        full = _safe_path(path)
+        matches = []
+        for root, dirs, files in os.walk(full):
+            dirs[:] = [d for d in dirs if not d.startswith(".") and d != "__pycache__"]
+            for fn in files:
+                if fn.endswith((".pyc", ".pyo", ".so", ".log")):
+                    continue
+                fp = os.path.join(root, fn)
+                try:
+                    with open(fp, "r", encoding="utf-8", errors="ignore") as f:
+                        for i, line in enumerate(f, 1):
+                            if keyword in line:
+                                rel = os.path.relpath(fp, WORKSPACE)
+                                matches.append(f"{rel}:{i}: {line.rstrip()[:200]}")
+                                if len(matches) &gt;= max_results:
+                                    return "\n".join(matches) + f"\n...(more than {max_results} matches; truncated)"
+                except Exception:
+                    continue
+        return "\n".join(matches) if matches else f"no matches for '{keyword}'"
+    except Exception as e:
+        return f"search failed: {e}"
+</code></pre>
+<p>Several details were learned the hard way: skip every directory starting with <code>.</code>, skip <code>__pycache__</code>, skip <code>.pyc/.pyo/.so/.log</code>, return at most 50 matches, and explicitly say "truncated" when the limit is reached.</p>
+<p>This is not fussiness. The workspace has a <code>.venv</code> containing more than three thousand third-party library files. Without these skips, one <code>grep</code> is enough to blow up the context.</p>
+<p><strong>Every step the model gropes around costs money and context.</strong> Rather than teaching it "don't rummage", give it something that finds the answer directly.</p>
+<p>Then manage context: history can only be trimmed by turn</p>
+<p>After multiple turns, history keeps growing. The current version uses <code>trim_messages</code> to trim by turn:</p>
+<pre><code class="language-python">def trim_messages(messages, keep_turns):
+    if not messages:
+        return messages
+    sys_msg = None
+    start = 0
+    if messages[0].get("role") == "system":
+        sys_msg = messages[0]
+        start = 1
+    user_idx = [i for i in range(start, len(messages)) if messages[i].get("role") == "user"]
+    if len(user_idx) &lt;= keep_turns:
+        return messages
+    return ([sys_msg] if sys_msg else []) + messages[user_idx[-keep_turns]:]
+</code></pre>
+<p>The reason is hard: a <code>tool</code> message must follow an <code>assistant</code> message that carries <code>tool_calls</code>. The API enforces this pairing. Trimming message by message easily removes the preceding assistant message while leaving the tool message behind, and the next request returns 400.</p>
+<p><strong>A conversation round is a whole; you can only trim whole rounds.</strong></p>
+<p>Context is not inflated by answers; it is inflated by process</p>
+<p>Look at a real log: for the single request "count how many lines of Python code I have locally", it took five steps, and input tokens grew from 1537 to 3152.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Input tokens</th>
+<th>What it did</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1537</td>
+<td>`find . -name "*.py"</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1695</td>
+<td>Grouped by directory; found 3631 in <code>.venv</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>2318</td>
+<td>Excluded <code>.venv</code>; 12,918 lines of code</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2694</td>
+<td>Sorted by file; listed the main versions</td>
+</tr>
+<tr>
+<td>5</td>
+<td>3152</td>
+<td>Produced the conclusion</td>
+</tr>
+</tbody></table></div>
+<p>Of the five steps, only the last two advanced the conclusion. The first two were tuition paid for the same pit.</p>
+<p>In the same log, the raw <code>llm_call</code> lines look like this (fields trimmed):</p>
+<pre><code class="language-json">{"kind": "llm_call", "step": 1, "prompt_tokens": 1537, "completion_tokens": 132, "elapsed": 0.723, "has_tool_calls": true}
+{"kind": "llm_call", "step": 5, "prompt_tokens": 3152, "completion_tokens": 274, "elapsed": 1.344, "has_tool_calls": false}
+</code></pre>
+<p>From 1537 to 3152, what grew was not the model's "thinking"; it was the tool output and assistant messages from the previous four steps.</p>
+<h2 id="10-Adding-control-commands-to-the-Agent-interaction">10. Adding control commands to the Agent interaction</h2>
+<p>Once the Agent runs, the next step is "can a human adjust it on the spot?"</p>
+<p>The current version turns common operations into slash commands:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/help</code></td>
+<td>List commands</td>
+</tr>
+<tr>
+<td><code>/model</code></td>
+<td>Switch model, base URL, API key</td>
+</tr>
+<tr>
+<td><code>/verify on|off</code></td>
+<td>Turn objective checks on or off</td>
+</tr>
+<tr>
+<td><code>/stats</code></td>
+<td>Token count, elapsed time, tool calls for this session</td>
+</tr>
+<tr>
+<td><code>/log [N]</code></td>
+<td>The last N log entries</td>
+</tr>
+<tr>
+<td><code>/memory [add|clear]</code></td>
+<td>View, append to, or clear long-term memory</td>
+</tr>
+<tr>
+<td><code>/clear</code></td>
+<td>Clear conversation history, keep the system message</td>
+</tr>
+<tr>
+<td><code>/turns N</code></td>
+<td>Keep the last N turns</td>
+</tr>
+<tr>
+<td><code>/tools</code></td>
+<td>List tools and sub-agent profiles</td>
+</tr>
+<tr>
+<td><code>/plugins</code> <code>/skills</code> <code>/mcp</code></td>
+<td>Inspect extension loading</td>
+</tr>
+<tr>
+<td><code>/reload</code></td>
+<td>Rescan plugins and skills</td>
+</tr>
+<tr>
+<td><code>/save</code> <code>/load</code></td>
+<td>Save or load a session</td>
+</tr>
+<tr>
+<td><code>/exit</code></td>
+<td>Exit</td>
+</tr>
+</tbody></table></div>
+<p>These commands are not just "convenient". They move constants that were hard-coded into <code>state</code>:</p>
+<pre><code class="language-python">def handle_slash(user_input, messages, state):
+    parts = user_input.strip().split(maxsplit=1)
+    cmd = parts[0].lower()
+
+    if cmd == "/turns":
+        if len(parts) == 1:
+            print(f"current turns kept: {state['max_turns']}")
+        else:
+            try:
+                n = int(parts[1])
+                if n &gt;= 1:
+                    state["max_turns"] = n
+                    print(f"[turns kept set to {n}]")
+                else:
+                    print("turns must be &gt;= 1")
+            except ValueError:
+                print(f"invalid number: {parts[1]}")
+
+    elif cmd == "/memory":
+        if len(parts) == 1:
+            m = load_memory()
+            print(f"\n=== project memory ===\n{m}\n" if m else "(memory is empty)")
+        else:
+            sub = parts[1].split(maxsplit=1)
+            if sub[0].lower() == "add" and len(sub) &gt; 1:
+                print(append_memory(sub[1]))
+                _rebuild_system_prompt(messages, state)
+            elif sub[0].lower() == "clear":
+                if os.path.isfile(MEMORY_FILE):
+                    os.remove(MEMORY_FILE)
+                _rebuild_system_prompt(messages, state)
+                print("[project memory cleared]")
+
+    return True, messages, state
+</code></pre>
+<p><strong>Turning a constant into a parameter looks small, but it is the dividing line between "usable" and "nice to use".</strong> <code>max_turns</code> used to be hard-coded; changing it required a restart. Now <code>/turns 3</code> takes effect immediately.</p>
+<p>The cost: one interaction improvement locks the whole platform</p>
+<p>The model-switching wizard needs arrow keys. The current implementation uses <code>termios</code>, <code>tty</code> and <code>select</code>:</p>
+<pre><code class="language-python">import termios
+import tty
+import select
+
+def read_key():
+    fd = sys.stdin.fileno()
+    old = termios.tcgetattr(fd)
+    try:
+        tty.setraw(fd)
+        ch = os.read(fd, 1)
+        if ch == b"\x1b":
+            buf = b""
+            for _ in range(4):
+                r, _, _ = select.select([fd], [], [], 0.3)
+                if not r:
+                    break
+                b = os.read(fd, 1)
+                if not b:
+                    break
+                buf += b
+                if len(buf) &gt;= 2:
+                    break
+            return {b"[A": "up", b"[B": "down", b"[C": "right", b"[D": "left",
+                    b"OA": "up", b"OB": "down", b"OC": "right", b"OD": "left"}.get(buf, "esc")
+        if ch in (b"\r", b"\n"):
+            return "enter"
+        if ch == b"\x03":
+            return "ctrl-c"
+        if ch == b"\x04":
+            return "ctrl-d"
+        try:
+            return ch.decode("utf-8")
+        except Exception:
+            return ""
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)
+</code></pre>
+<p>These three modules are Unix-specific. Starting with v4.2, this code fails with <code>ImportError</code> on the first line on Windows.</p>
+<p>A small improvement to the interaction experience locked the whole thing to one platform. <strong>This kind of cost does not appear in the same day's testing. It only appears when someone else tries to use it.</strong></p>
+<h2 id="11-Sub-agents-multi-agent-calls">11. Sub-agents: multi-agent calls</h2>
+<p>When a job is too heavy to fit in one loop, the context cannot carry it either. The current version adds a tool to the main Agent: <code>call_sub_agent</code>.</p>
+<p>A sub-agent has four roles, and the tools available to each are hard-coded:</p>
+<pre><code class="language-python">SUB_AGENT_PROFILES = {
+    "search": {
+        "desc": "read-only search and analysis",
+        "tools": ["grep", "find_files", "read_file", "list_dir"],
+        "system": "You are the search sub-agent. Only find and analyze; do not change files. End with a one-paragraph conclusion.",
+    },
+    "code": {
+        "desc": "read, write and modify code",
+        "tools": ["grep", "find_files", "read_file", "write_file", "edit_file", "list_dir"],
+        "system": "You are the coding sub-agent. Read, write and modify code. Confirm with read_file before changing anything. End with a brief description of what you did.",
+    },
+    "shell": {
+        "desc": "execute commands",
+        "tools": ["run_shell", "read_file", "list_dir"],
+        "system": "You are the execution sub-agent. Run commands and report results. End with a conclusion.",
+    },
+    "general": {
+        "desc": "all tools (including plugins, MCP and skills)",
+        "tools": "ALL",
+        "system": "You are the general sub-agent. You may use all tools. End with a concise conclusion.",
+    },
+}
+</code></pre>
+<p><strong>A profile is not a personality setting; it is a permission set.</strong> If a search sub-agent wants to write a file, it simply does not have that tool. It is not a prompt persuading it not to write.</p>
+<p>The sub-agent tool executor also has a dedicated guard:</p>
+<pre><code class="language-python">if func is None or name == "call_sub_agent":
+    result = f"sub-agents may not call: {name}"
+</code></pre>
+<p>Without this line, sub-agents call sub-agents layer after layer, and the cost multiplies.</p>
+<p>A real run: ask the search sub-agent to find <code>requests</code></p>
+<p>On 2026-10-28 I reran the current version and delegated "find how <code>requests</code> is used" to the search sub-agent:</p>
+<pre><code class="language-text">[step 1] calling tools: ['call_sub_agent']
+┌─ sub-agent(search) started
+│  task: recursively search all uses of requests under demo_project...
+│  [1] list_dir
+│  [1] grep
+│  [2] read_file ×3 / list_dir ×2
+│  [3] read_file ×2 / grep ×2
+└─ sub-agent(search) done (4 steps)
+[step 1] sub-agent returned → search complete; no files modified...
+</code></pre>
+<p>It found six uses of <code>requests</code> in four steps and never touched a write tool. The original log is at <code>logs/samples/subagent_rerun_20261028_224140.jsonl</code>.</p>
+<p>Parallelism: a criterion that was not written correctly</p>
+<p>A later version added parallelism: run multiple sub-agents concurrently with a thread pool.</p>
+<pre><code class="language-python">def profile_can_parallel(profile_name):
+    tools = SUB_AGENT_PROFILES.get(profile_name, {}).get("tools", [])
+    if tools == "ALL":
+        return False
+    return "run_shell" not in tools
+</code></pre>
+<p>There is a pitfall I did not see clearly at the time: the criterion is "<strong>does not contain <code>run_shell</code></strong>", not "read-only". So <code>search</code> can run in parallel, and so can <code>code</code> — two code sub-agents modifying the same file are still allowed.</p>
+<p>My intent was "only read-only roles may run in parallel", but the code does not say that. Afterwards you cannot tell who changed it or which version is correct.</p>
+<p><strong>A rule written in a function name is not the same as a rule written into the criterion.</strong> This is debt the current version has not paid.</p>
+<hr>
+<p><strong>That is Part 2.</strong> Part 3 starts with extensions: plugins / MCP / Skills, program bookkeeping, logs and memory.</p>
+<p><strong>Part 1 recap:</strong> <a href="/docs/09-ai-eng-agent-1/">Designing an Agent from Scratch (Part 1)</a></p>
+<hr>
+<p><strong>The AI-FDE Transition Path</strong>: for IT implementation, pre-sales and operations people who don't write code, turning existing delivery skills into AI skills. The full series has 55 articles across six modules and 53 skills.</p>
+<p>Want to see what you're missing first? The AI-FDE skill self-assessment map scores 53 items and produces a radar chart. <a href="/docs/00-intro/">The AI-FDE Transition Path · Introduction</a></p>
+<p><img src="/media/docs/09-ai-eng-agent-2/img-01.png" alt="" loading="lazy" decoding="async"></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/docs/09-ai-eng-agent-1/"><span class="dir">← Previous</span><span class="ttl">Designing an Agent from Scratch (Part 1)</span></a>
+<a class="next" href="/docs/09-ai-eng-agent-3/"><span class="dir">Next →</span><span class="ttl">Designing an Agent from Scratch (Part 3)</span></a>
+</div>
+    <div class="doc-foot">
+      <p>Want to see where you stand? Score yourself on the map  <a href="/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>

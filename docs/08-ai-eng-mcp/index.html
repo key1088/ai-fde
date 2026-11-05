@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turning an Internal System into an MCP Server · The AI-FDE Transition Path</title>
+<meta name="description" content="From roles and the boundary between tool calling and MCP, to whether wrapping is worth it, four acceptance gates, and twenty-odd lines of working code.">
+<link rel="canonical" href="https://ai-fde.dev/docs/08-ai-eng-mcp/">
+<link rel="alternate" hreflang="en" href="https://ai-fde.dev/docs/08-ai-eng-mcp/">
+<link rel="alternate" hreflang="zh-CN" href="https://ai-fde.dev/zh/docs/08-ai-eng-mcp/">
+<link rel="alternate" hreflang="x-default" href="https://ai-fde.dev/docs/08-ai-eng-mcp/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Turning an Internal System into an MCP Server">
+<meta property="og:description" content="From roles and the boundary between tool calling and MCP, to whether wrapping is worth it, four acceptance gates, and twenty-odd lines of working code.">
+<meta property="og:url" content="https://ai-fde.dev/docs/08-ai-eng-mcp/">
+<meta property="og:image" content="https://ai-fde.dev/media/docs/08-ai-eng-mcp/img-01.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/doc.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2824514878105238" crossorigin="anonymous"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Turning an Internal System into an MCP Server","description":"From roles and the boundary between tool calling and MCP, to whether wrapping is worth it, four acceptance gates, and twenty-odd lines of working code.","datePublished":"2026-10-27","inLanguage":"en","image":"https://ai-fde.dev/media/docs/08-ai-eng-mcp/img-01.png","author":{"@type":"Organization","name":"杀他个回马枪"},"publisher":{"@type":"Organization","name":"AI-FDE"},"mainEntityOfPage":"https://ai-fde.dev/docs/08-ai-eng-mcp/","isPartOf":{"@type":"CreativeWorkSeries","name":"The AI-FDE Transition Path"}}</script>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/docs/">AI-FDE <span>· Docs</span></a>
+  <nav>
+    <a href="/">Self-Assessment</a>
+    <a href="/docs/" class="on">Docs</a>
+    <a class="lang" href="/zh/docs/08-ai-eng-mcp/">中文</a>
+  </nav>
+</header>
+<div class="wrap">
+  <nav class="toc">
+<div class="toc-h">In this series</div>
+<div class="toc-body">
+<a class="art" href="/docs/00-intro/"><span class="no">01</span>Why Those Who Know the Customer Best Are the Most Anxious</a>
+<a class="art" href="/docs/01-ai-eng-llm/"><span class="no">02</span>First, Understand Exactly Where the Model Will Always Fail</a>
+<a class="art" href="/docs/02-ai-eng-prompt/"><span class="no">03</span>Prompts Aren't Magic — They're Code You Can Regression-Test</a>
+<a class="art" href="/docs/03-ai-eng-context/"><span class="no">04</span>Context Engineering: What the Model Can Actually See</a>
+<a class="art" href="/docs/04-ai-eng-rag/"><span class="no">05</span>When the Knowledge Base Is Wrong, the Model Usually Isn't</a>
+<a class="art" href="/docs/05-ai-eng-doc-parsing/"><span class="no">06</span>80% of RAG Problems Start in Document Parsing</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling/"><span class="no">07</span>Tool Descriptions Are Manuals Written for the Model</a>
+<a class="art" href="/docs/06-ai-eng-tool-calling-principles/"><span class="no">08</span>How a Model Actually Uses a Tool</a>
+<a class="art" href="/docs/07-ai-eng-python/"><span class="no">09</span>A Python Primer: Get the Environment Right First</a>
+<a class="art cur" href="/docs/08-ai-eng-mcp/"><span class="no">10</span>Turning an Internal System into an MCP Server</a>
+<a class="art" href="/docs/09-ai-eng-agent-1/"><span class="no">11</span>Designing an Agent from Scratch (Part 1)</a>
+<a class="art" href="/docs/09-ai-eng-agent-2/"><span class="no">12</span>Designing an Agent from Scratch (Part 2)</a>
+<a class="art" href="/docs/09-ai-eng-agent-3/"><span class="no">13</span>Designing an Agent from Scratch (Part 3)</a>
+</div>
+<div class="toc-h">On this page</div>
+<div class="toc-body">
+<a class="h2" href="#1-MCP-isnt-a-new-trick-the-model-learned-its-a-USB-port">1. MCP isn't a new trick the model learned; it's a USB port</a>
+<a class="h2" href="#2-MCP-has-three-roles-and-three-kinds-of-things">2. MCP has three roles and three kinds of things</a>
+<a class="h2" href="#3-MCP-and-tool-calling-are-not-the-same-thing-and-neither-replaces-the-other">3. MCP and tool calling are not the same thing, and neither replaces the other</a>
+<a class="h2" href="#4-Whether-to-wrap-comes-down-to-three-questions">4. Whether to wrap comes down to three questions</a>
+<a class="h2" href="#5-Wrapping-is-not-delivery-four-gates-you-must-pass">5. Wrapping is not delivery: four gates you must pass</a>
+<a class="h2" href="#6-The-real-thing-is-twenty-odd-lines-you-need-to-understand-four-things">6. The real thing is twenty-odd lines; you need to understand four things</a>
+<a class="h2" href="#7-Pitfalls">7. Pitfalls</a>
+</div>
+  </nav>
+  <main>
+    <div class="crumb"><a href="/docs/">Docs</a> / The AI-FDE Transition Path</div>
+    <article>
+      <h1 class="doc-title">Turning an Internal System into an MCP Server</h1>
+      <p class="doc-sub">The AI-FDE Transition Path · AI Engineering 08 — MCP Development</p>
+      <p class="doc-meta">2026-10-27</p>
+      <h2 id="1-MCP-isnt-a-new-trick-the-model-learned-its-a-USB-port">1. MCP isn't a new trick the model learned; it's a USB port</h2>
+<p><strong>MCP does not make the model smarter. Its entire value is one sentence: it connects internal systems through a USB-style port.</strong></p>
+<p>A little history. MCP is an open specification published and open-sourced by Anthropic in November 2024. In December 2025 it was donated to the <strong>Agentic AI Foundation</strong> under the Linux Foundation (founded by Anthropic, Block and OpenAI, with support from Google, Microsoft, AWS, Cloudflare and Bloomberg); MCP was one of its founding projects. The official numbers: more than <strong>10,000</strong> publicly available MCP servers, <strong>97 million</strong> monthly SDK downloads, and support from ChatGPT, Claude, Cursor, Gemini, Microsoft Copilot and VS Code.</p>
+<p>The foundation matters to both customers and vendors: the standard is no longer owned by one company. It has to work as a general standard.</p>
+<p>Here is the plain-language definition: <strong>it defines a standard way for an AI application to discover "what capabilities exist here", call them, and get results back.</strong> Technically it runs on JSON-RPC 2.0. You don't need to remember that detail. Just know that it is <strong>a message format plus a set of conventions</strong>, not a product and not a feature of a particular model.</p>
+<p>The problem it solves is a multiplication problem. An organization has M internal systems and N AI applications. Connecting every pair directly means M×N links. With one common interface, it becomes M+N.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>What you look at</th>
+<th>Without a common standard</th>
+<th>With a common standard</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Links to maintain</td>
+<td>M × N</td>
+<td>M + N</td>
+</tr>
+<tr>
+<td>A new AI application arrives</td>
+<td>Change every system</td>
+<td>Integrate once on the new application side</td>
+</tr>
+<tr>
+<td>A new internal system arrives</td>
+<td>Change every AI application</td>
+<td>Wrap once on that system's side</td>
+</tr>
+<tr>
+<td>Responsibility boundary</td>
+<td>Everyone touched it; nobody owns the failure</td>
+<td>Each side has a clear deliverable</td>
+</tr>
+</tbody></table></div>
+<p><img src="/media/docs/08-ai-eng-mcp/img-01.png" alt="" loading="lazy" decoding="async"></p>
+<p>Engineer Li once asked me something I still remember: "You need me to cooperate on this Q&amp;A integration. When the next AI application comes, do we do it all over again? How many times a year?" The answer to that question is what this article is about.</p>
+<h2 id="2-MCP-has-three-roles-and-three-kinds-of-things">2. MCP has three roles and three kinds of things</h2>
+<p>First the roles. The specification calls them Host / Client / Server. Here is how I map them onto a bank project:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Name in the specification</th>
+<th>What it is in a project</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Host</strong></td>
+<td>The AI application that initiates the connection</td>
+<td>The Q&amp;A interface or assistant used by employees</td>
+</tr>
+<tr>
+<td><strong>Client</strong></td>
+<td>The component inside the host that manages the connection</td>
+<td>The connection inside that interface that says "connect to the credit system"</td>
+</tr>
+<tr>
+<td><strong>Server</strong></td>
+<td>The service that provides context and capabilities</td>
+<td>The layer we wrap, with the credit system behind it</td>
+</tr>
+</tbody></table></div>
+<p>There is a mental block many people hit here: <strong>the Server is not your bank's legacy system.</strong> The Server is a coat worn over the legacy system. The legacy system does not change a single line; the Server speaks on its behalf. So "wrap it as an MCP Server" is never a legacy-system rewrite. It is adding a translator.</p>
+<p>Next, what a Server can provide. The specification has exactly three things, no more:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>The three things</th>
+<th>What they are</th>
+<th>Who decides whether to use them</th>
+<th>Example at Hengxin Bank</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Tools</strong></td>
+<td>Functions that can be called and that return results or cause actions</td>
+<td>The model decides (which is why you must write good descriptions)</td>
+<td>Check a credit approval status; calculate an available credit line</td>
+</tr>
+<tr>
+<td><strong>Resources</strong></td>
+<td>Data that can be read, such as files and records</td>
+<td>The application or the user chooses; the model does not read them on its own</td>
+<td>Policy documents, product catalog, customer files</td>
+</tr>
+<tr>
+<td><strong>Prompts</strong></td>
+<td>Predefined message templates and workflows</td>
+<td>The user picks one</td>
+<td>"Produce a checklist using the credit-material pre-review standard"</td>
+</tr>
+</tbody></table></div>
+<p>Remember the division: <strong>Tools act; Resources provide reading material.</strong> The most common beginner mistake is to turn everything into a Tool — even policy documents become a "read policy" tool, so the model has to "decide whether to read" every time. It is slower and it reads the wrong things. <strong>Reference material should be a Resource. Only actions deserve to be Tools.</strong></p>
+<p>One more capability is worth knowing: a Server can ask for more information (the specification calls it elicitation — for example, "which customer do you want to check?"), and the Client asks the user and brings the answer back. This is useful in banking: "if the material is incomplete, ask instead of guessing" can become a protocol-level action, rather than a prompt begging the model not to hallucinate.</p>
+<p><img src="/media/docs/08-ai-eng-mcp/img-02.png" alt="" loading="lazy" decoding="async"></p>
+<h2 id="3-MCP-and-tool-calling-are-not-the-same-thing-and-neither-replaces-the-other">3. MCP and tool calling are not the same thing, and neither replaces the other</h2>
+<p>This is probably the most important distinction in the article, because the two terms are mixed up every day. Once they are mixed up, you get questions like "if we adopt MCP, will the model get better at calling tools?"</p>
+<p><strong>Tool calling (also called function calling) solves "how does the model express that it wants to call a function?"</strong> The model emits structured arguments, the host executes the call, and the result is fed back (we took the mechanism apart in article 06). This is a <strong>model-side capability</strong>. Change vendors or models and the mechanism is broadly the same.</p>
+<p><strong>MCP solves "where do these tools come from, what exists, how are they discovered, and how are they called?"</strong> It manages <strong>supply and connection</strong>: a Server declares its Tools / Resources / Prompts, the Client lists them, and the host turns them into a set of tools the model can choose from.</p>
+<p>So the real chain is layered:</p>
+<p>Business problem → Agent or application → get the capability list from the MCP Server → hand the list to the model in tool-calling format → the model picks one and supplies arguments → the host executes it (very likely against the MCP Server) → the result goes back → repeat.</p>
+<p><strong>The one-sentence summary: MCP does not decide for the model; it standardizes what can be called.</strong></p>
+<p>An analogy. Tool calling is <strong>how you order a dish</strong> — you have to say "one beef noodle soup, no cilantro" before the kitchen can make it right. MCP is <strong>the common specification that lets every restaurant in a mall connect to a delivery platform</strong> — anyone can join, the menu format is the same, and the platform does not rewrite an integration for each restaurant. How to order is one thing; the specification is another. You need both, but neither substitutes for the other.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>What you look at</th>
+<th>Tool calling</th>
+<th>MCP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Problem solved</td>
+<td>How the model expresses "call what, with which arguments"</td>
+<td>Where tools come from, what exists, how they are called</td>
+</tr>
+<tr>
+<td>Layer</td>
+<td>Model / inference side</td>
+<td>Integration / connection side</td>
+</tr>
+<tr>
+<td>Who defines it</td>
+<td>Each model vendor's API</td>
+<td>An open specification, now hosted by a foundation</td>
+</tr>
+<tr>
+<td>Does it make the model smarter?</td>
+<td>No. It just lets it act</td>
+<td>No. It just makes integration cheaper</td>
+</tr>
+<tr>
+<td>Can you skip it?</td>
+<td>No. The model can only chat</td>
+<td>Yes, but every application and system integrates separately</td>
+</tr>
+<tr>
+<td>Where in this series</td>
+<td>Article 06</td>
+<td>This article</td>
+</tr>
+</tbody></table></div>
+<p>Let's put the Agent into the same picture and settle all three at once: <strong>an Agent is the loop that decides what to do next, tool calling is how it speaks, and MCP is where its tools come from.</strong> You can omit one: you can build an Agent without MCP by hard-coding tools. But a model without tool calling cannot be an Agent.</p>
+<h2 id="4-Whether-to-wrap-comes-down-to-three-questions">4. Whether to wrap comes down to three questions</h2>
+<p>My judgment: <strong>the hard part of MCP is not "can you wrap it" but "is it worth wrapping".</strong> Most internal projects fail on the second question — they add a layer because it looks technically elegant, and then inherit something they must maintain forever.</p>
+<p>Ask three questions in order:</p>
+<ol>
+<li><p><strong>Is there a second caller, or will there be one next year?</strong> If there is only one AI application and it calls one endpoint, call it directly. Wrapping it in MCP is just an extra layer. If Q&amp;A, contract review and agent-assist all need to query the same system, the layer pays for itself immediately.</p>
+</li>
+<li><p><strong>Will this system be integrated repeatedly?</strong> If every integration has to redo authentication, parameter mapping and response trimming, it is worth wrapping. If the interface is simple and gets integrated once every few years, it is not.</p>
+</li>
+<li><p><strong>Will other people use it?</strong> If the Server will be used by other teams or even external vendors' AI systems, the standardization pays off immediately. If only your own team will ever use it, discount the benefit.</p>
+</li>
+</ol>
+<p>There is a counter-question too: <strong>be very careful with write operations.</strong> Wrapping read-only queries is manageable. "Submit a ticket", "initiate a payment" or "adjust a credit limit" put an action-capable interface in the hands of a model that makes mistakes. You can still do it, but none of the four gates in the next section can be skipped.</p>
+<p>I was taught this lesson early. I once thought "wrap everything in MCP; it's cleaner." So I wrapped a tiny endpoint that queried one table. After launch, every investigation required checking the gateway, then the MCP service, then the legacy system — three hops. <strong>One more layer means one more place that can fail and one more place to watch.</strong> Whether the layer should exist is answered by the three questions above, not by technical taste.</p>
+<h2 id="5-Wrapping-is-not-delivery-four-gates-you-must-pass">5. Wrapping is not delivery: four gates you must pass</h2>
+<p>This article does not expect you to write a service from scratch; that is not this role's job. But standards have to land on something concrete, so the next section gives you twenty-odd lines that actually run. First, <strong>four acceptance criteria</strong> (a sample checklist; calibrate it to your project):</p>
+<ol>
+<li><p><strong>Does it reuse the existing system or create a new one?</strong> Does authentication plug into the bank's existing system? If the answer is "we created a new account system", that will not pass review at a bank customer. The specification already defines a full set of authorization approaches; you don't need to invent one, but you must ask the engineer which one they chose.</p>
+</li>
+<li><p><strong>Does changing one system require changing the others?</strong> When you add a capability, do you add it only to this Server, or must every AI application change? Only the former is a middle layer. The latter merely moves the coupling somewhere else.</p>
+</li>
+<li><p><strong>Does every call leave a trace?</strong> Who, when, what was called, with which arguments, and what was the result? The trace must land in the customer's existing audit system, not only in application logs. We will hit the "single audit entry point" again in article 14, when we discuss the AI Gateway.</p>
+</li>
+<li><p><strong>Can you turn it off with one switch?</strong> When something goes wrong, is there a switch that immediately stops its calls to internal systems without affecting other business? At a financial customer this is mandatory. It can save you during an incident.</p>
+</li>
+</ol>
+<p>One more point for anyone who will talk to engineers: <strong>a Server saying it is "read-only" does not mean it is actually read-only.</strong> The specification does have fields for annotating tool behavior, but the server fills them in itself. The specification explicitly warns that tool descriptions and similar information should be <strong>treated as untrusted when the source is untrusted</strong>. Likewise, the specification states as a principle that "the user must explicitly consent before a tool is invoked", but it also admits that these safety principles <strong>cannot be enforced at the protocol level</strong>; they depend on the implementer. In customer language: <strong>do not trust declarations; look at the implementation and the audit trail.</strong> That is why gate three is harder to fake than gate one.</p>
+<p><strong>Hands-on task:</strong> pick the internal system you integrate most often and draw a diagram of "how AI calls it today", marking where authentication, transformation and logging happen. Then answer two questions. If you add one more AI application, how many lines must be redrawn? If you wrap it as an MCP Server, which of the four gates will block you first?</p>
+<h2 id="6-The-real-thing-is-twenty-odd-lines-you-need-to-understand-four-things">6. The real thing is twenty-odd lines; you need to understand four things</h2>
+<p>One pitfall first: <strong>the official Python SDK is already at v2</strong>, and the class is <code>MCPServer</code>. A lot of tutorials online still show the v1 <code>FastMCP</code> style. Copy them and the errors start on line one. <strong>This proves the pitfall in section 7: versions must be written down, not left to "everyone online says".</strong> Pay attention to the MCP server and client versions; keep them aligned if possible. Sometimes they depend on specific versions of other packages. After the rapid-growth phase, this should settle down.</p>
+<p>Here is a complete, working example:</p>
+<pre><code class="language-python">from mcp.server import MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
+
+mcp = MCPServer("credit-query", instructions="Read-only queries. Do not modify any data.")
+
+_DB = {                                            # 1. Where the data comes from
+    "C001": {"name": "Hengxin Machinery Manufacturing", "limit": 800.0, "used": 620.0},
+    "C002": {"name": "Hengxin Building Materials", "limit": 300.0, "used": 285.0},
+}
+
+@mcp.tool()                                        # 2. Declaration: this is a tool
+def query_credit(customer_id: str) -&gt; dict:
+    """Return the total and used credit line for a customer ID. Read-only; no data is modified.
+
+    customer_id: customer ID, for example C001.
+    """
+    row = _DB.get(customer_id)
+    if row is None:                                # 3. How to report failure
+        raise ToolError(f"Customer ID {customer_id} does not exist")
+    return {"customer_id": customer_id, **row,
+            "available": row["limit"] - row["used"]}
+
+if __name__ == "__main__":
+    mcp.run()                                      # 4. How to run: stdio by default
+</code></pre>
+<p>Four things you must understand and be able to ask about:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Location</th>
+<th>What the code does</th>
+<th>What you should ask the engineer</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1. Where the data comes from</td>
+<td>Fake data now; in a real project, replace it with a call to the legacy system</td>
+<td>Which account does it use? What is the timeout? How are missing fields returned?</td>
+</tr>
+<tr>
+<td>2. Declaration</td>
+<td><code>@mcp.tool()</code> plus a function</td>
+<td><strong>Is the tool description clear?</strong> The <code>"""</code> block is the "manual" from article 06, passed to the model verbatim</td>
+</tr>
+<tr>
+<td>3. How to report failure</td>
+<td><code>raise ToolError(...)</code>, not <code>return "query failed"</code></td>
+<td>Is failure raised, or swallowed by a <code>try</code> and disguised as success? This determines whether audit can find the problem</td>
+</tr>
+<tr>
+<td>4. How to run</td>
+<td><code>mcp.run()</code> defaults to stdio</td>
+<td>Multiple users on the intranet need Streamable HTTP; who approves the port, certificate and gateway?</td>
+</tr>
+</tbody></table></div>
+<p>Point 2 deserves more detail because it is where this article bites into article 06. <strong>The function description you write is everything the model sees.</strong> In a real test, the server listed the tool like this:</p>
+<pre><code class="language-text">Tool name: query_credit
+Description: Return the total and used credit line for a customer ID. Read-only; no data is modified.
+Parameters: {"properties": {"customer_id": {"type": "string"}}, "required": ["customer_id"]}
+</code></pre>
+<p>The parameter list is not written by hand. It is generated from the <code>customer_id: str</code> annotation. So whether the tool is called correctly depends partly on whether the description is accurate. <strong>Vague description, random calls. Clear "read-only", and it will not use it to change data.</strong> Conversely, if the description lies (it writes to the database but claims read-only), you land directly on section 5's "do not trust declarations".</p>
+<p>Installation is one line: <code>pip install "mcp[cli]"</code>. For an intranet machine, go back to the offline packaging approach in article 07. Bring the wheels with you; don't discover at the customer's data center that you cannot install anything.</p>
+<p>There are two ways to run it, depending on site conditions:</p>
+<ul>
+<li><p><strong>Node available:</strong> <code>mcp dev server.py</code> starts a web-based Inspector. You can see the tool list, fill in parameters and inspect results. This is the most intuitive acceptance method, and it looks professional in a customer demo.</p>
+</li>
+<li><p><strong>No Node on the intranet:</strong> write a dozen lines of client code as the caller (<code>from mcp import Client, StdioServerParameters</code>, then <code>list_tools()</code> and <code>call_tool()</code> inside <code>async with Client(...)</code>). I have used this to verify two things: a normal call returns structured data; and <strong>deliberately passing a nonexistent customer ID returns <code>is_error=True</code> with an error message instead of crashing the client</strong>. Tool errors must not take down the host. Test this explicitly.</p>
+</li>
+</ul>
+<h2 id="7-Pitfalls">7. Pitfalls</h2>
+<p><strong>Treating stdio as "deployed on a server".</strong> This is the most common accident in the field. A stdio Server is a child process launched by the host on the same machine; it lives and dies with that computer. Someone installs it on an application server as a shared service and the next day the whole bank cannot connect — because no "local machine" is running it. For shared use, use Streamable HTTP (a single HTTP endpoint) and plan the port, certificate and gateway together. <strong>Choosing the wrong transport is the most common rework in this area.</strong> One related discipline: <strong>with stdio, stdout is the wire.</strong> The v2 SDK redirects stdout emitted during the service to stderr, but output <strong>before the service starts</strong>, and <code>print()</code> calls that are buffered until the process exits, still land on the wire. The host sees "failed to parse message; service not responding". So log with <code>logging</code>, never <code>print</code>.</p>
+<p><strong>Starting before the versions are aligned.</strong> By July 2026 MCP had five versions: 2024-11-05 → 2025-03-26 → 2025-06-18 → 2025-11-25 → 2026-07-28. And the changes are not small. For example, <strong>the 2026-07-28 version removed the <code>initialize</code> handshake entirely</strong>, replacing it with per-request version and capability information. The old HTTP+SSE transport and the Roots, Sampling and Logging features were all put on the deprecation list (with a <strong>minimum 12-month</strong> deprecation window). So a contract or proposal must state "which version we implement". If each side implements half of a different version, they will not recognize each other during integration, and this kind of error often does not show up in the test environment.</p>
+<p><strong>Running the Server with a super account.</strong> Using a high-privilege account for convenience bypasses the bank's entire permission system. The logs are all under that account, and you cannot tell who did what. The correct approach is to pass the caller's identity through and let the legacy system apply its own rules again. <strong>That is what "reuse authentication" means.</strong></p>
+<p><strong>Wrapping dozens of capabilities at once.</strong> I prefer to wrap one first: the most representative and most frequently called one or two. Get them working, then expand. If you lay out too much at once, testing, permission review and documentation will crush you. Also, the more tools there are, the higher the chance the model picks the wrong one (the "no more than ten in one decision layer" rule from article 06 still applies).</p>
+<p>Back to Engineer Li's question: when the next AI application arrives, do we integrate again? With this layer, the answer is "the system does not reconnect; it connects to this layer instead." But that answer only holds if you can answer four things: whose permissions it reuses, how large the blast radius is, which calls stop when you turn it off, and which version it implements. If you can explain those four, you can accept the delivery — instead of merely signing the acceptance form.</p>
+<hr>
+<p><strong>The AI-FDE Transition Path</strong>: for IT implementation, pre-sales and operations people who don't write code, turning existing delivery skills into AI skills. The full series has 55 articles across six modules and 53 skills.</p>
+<p>Want to see what you're missing first? The AI-FDE skill self-assessment map scores 53 items and produces a radar chart. <a href="/docs/00-intro/">The AI-FDE Transition Path · Introduction</a></p>
+<p><img src="/media/docs/08-ai-eng-mcp/img-03.png" alt="" loading="lazy" decoding="async"></p>
+
+    </article>
+<div class="pager">
+<a class="prev" href="/docs/07-ai-eng-python/"><span class="dir">← Previous</span><span class="ttl">A Python Primer: Get the Environment Right First</span></a>
+<a class="next" href="/docs/09-ai-eng-agent-1/"><span class="dir">Next →</span><span class="ttl">Designing an Agent from Scratch (Part 1)</span></a>
+</div>
+    <div class="doc-foot">
+      <p>Want to see where you stand? Score yourself on the map  <a href="/">→</a></p>
+    </div>
+  </main>
+</div>
+<button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
+<script>
+(function(){
+  var toc=document.querySelector('nav.toc');
+  var h=toc&&toc.querySelector('.toc-h');
+  if(h){h.addEventListener('click',function(){if(window.innerWidth<=960)toc.classList.toggle('open');});}
+  var links=[].slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
+  var btn=document.getElementById('top');
+  function onScroll(){
+    var y=window.scrollY+90,cur=0;
+    for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
+    links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    btn.style.display=window.scrollY>500?'flex':'none';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);onScroll();
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+</body>
+</html>
