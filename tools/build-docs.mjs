@@ -182,8 +182,8 @@ function docPage({ lang, art, series, articles, body, toc }) {
   // 本页目录独立成一列（≥1240px）；窄屏由右下角按钮弹成浮层
   const pageToc = toc.length
     ? [
-        `<div class="pt-h">${esc(t.onThisPage)}</div>`,
-        `<div class="pt-body">`,
+        `<button type="button" class="pt-h" id="pt-head" aria-controls="page-toc-body" aria-expanded="false"><span class="pt-label">${esc(t.onThisPage)}</span><span class="pt-cur"></span><span class="caret">▾</span></button>`,
+        `<div class="pt-body" id="page-toc-body">`,
         ...toc.map((h) => `<a class="h${h.level}" href="#${h.id}">${esc(h.text)}</a>`),
         `</div>`,
       ].join('\n')
@@ -245,7 +245,7 @@ ${pager}
       <p>${esc(t.cta.replace('→', ''))} <a href="${L.tool}">→</a></p>
     </div>
   </main>
-${pageToc ? `  <nav class="page-toc" id="page-toc">\n${pageToc}\n  </nav>\n` : ''}</div>
+${pageToc ? `  <nav class="page-toc collapsed" id="page-toc">\n${pageToc}\n  </nav>\n` : ''}</div>
 ${pageToc ? `<button id="pagetoc-btn" type="button" aria-controls="page-toc" aria-expanded="false">${esc(t.tocBtn)}</button>` : ''}
 <button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
 <script>
@@ -278,8 +278,9 @@ ${pageToc ? `<button id="pagetoc-btn" type="button" aria-controls="page-toc" ari
   var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');
-  // 本页目录：宽屏右侧一栏，窄屏浮层
+  // 本页目录：宽屏默认折叠（只留一行标题 + 当前小节名），窄屏浮层
   var pt=document.getElementById('page-toc'),ptb=document.getElementById('pagetoc-btn');
+  var ptHead=document.getElementById('pt-head'),ptCur=pt&&pt.querySelector('.pt-cur');
   if(pt&&ptb){
     ptb.addEventListener('click',function(){
       var open=pt.classList.toggle('open');
@@ -289,10 +290,26 @@ ${pageToc ? `<button id="pagetoc-btn" type="button" aria-controls="page-toc" ari
       if(e.target.closest('a')){pt.classList.remove('open');ptb.setAttribute('aria-expanded','false');}
     });
   }
+  if(pt&&ptHead){
+    var PTK='aifde-pagetoc-collapsed',savedPt=null;
+    try{savedPt=localStorage.getItem(PTK);}catch(e){}
+    function ptPaint(closed){
+      pt.classList.toggle('collapsed',closed);
+      ptHead.setAttribute('aria-expanded',closed?'false':'true');
+    }
+    ptPaint(savedPt==='0'?false:true);   // 首次访问：默认收起（SSR 也是 collapsed，避闪烁）
+    ptHead.addEventListener('click',function(){
+      if(!window.matchMedia('(min-width:1240px)').matches)return;  // 窄屏浮层里标题不可折
+      var closed=!pt.classList.contains('collapsed');
+      ptPaint(closed);
+      try{localStorage.setItem(PTK,closed?'1':'0');}catch(e){}
+    });
+  }
   function onScroll(){
     var y=window.scrollY+90,cur=0;
     for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
     links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    if(ptCur&&links[cur]) ptCur.textContent=links[cur].textContent;
     btn.style.display=window.scrollY>500?'flex':'none';
   }
   window.addEventListener('scroll',onScroll,{passive:true});

@@ -207,9 +207,9 @@
       <p>Want to see where you stand? Score yourself on the map  <a href="/">→</a></p>
     </div>
   </main>
-  <nav class="page-toc" id="page-toc">
-<div class="pt-h">On this page</div>
-<div class="pt-body">
+  <nav class="page-toc collapsed" id="page-toc">
+<button type="button" class="pt-h" id="pt-head" aria-controls="page-toc-body" aria-expanded="false"><span class="pt-label">On this page</span><span class="pt-cur"></span><span class="caret">▾</span></button>
+<div class="pt-body" id="page-toc-body">
 <a class="h2" href="#1-Lets-Start-with-the-Conclusion">1. Let's Start with the Conclusion</a>
 <a class="h2" href="#2-What-Is-an-FDE">2. What Is an FDE</a>
 <a class="h2" href="#3-What-Skills-Does-an-AI-FDE-Need">3. What Skills Does an AI-FDE Need</a>
@@ -252,8 +252,9 @@
   var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');
-  // 本页目录：宽屏右侧一栏，窄屏浮层
+  // 本页目录：宽屏默认折叠（只留一行标题 + 当前小节名），窄屏浮层
   var pt=document.getElementById('page-toc'),ptb=document.getElementById('pagetoc-btn');
+  var ptHead=document.getElementById('pt-head'),ptCur=pt&&pt.querySelector('.pt-cur');
   if(pt&&ptb){
     ptb.addEventListener('click',function(){
       var open=pt.classList.toggle('open');
@@ -263,10 +264,26 @@
       if(e.target.closest('a')){pt.classList.remove('open');ptb.setAttribute('aria-expanded','false');}
     });
   }
+  if(pt&&ptHead){
+    var PTK='aifde-pagetoc-collapsed',savedPt=null;
+    try{savedPt=localStorage.getItem(PTK);}catch(e){}
+    function ptPaint(closed){
+      pt.classList.toggle('collapsed',closed);
+      ptHead.setAttribute('aria-expanded',closed?'false':'true');
+    }
+    ptPaint(savedPt==='0'?false:true);   // 首次访问：默认收起（SSR 也是 collapsed，避闪烁）
+    ptHead.addEventListener('click',function(){
+      if(!window.matchMedia('(min-width:1240px)').matches)return;  // 窄屏浮层里标题不可折
+      var closed=!pt.classList.contains('collapsed');
+      ptPaint(closed);
+      try{localStorage.setItem(PTK,closed?'1':'0');}catch(e){}
+    });
+  }
   function onScroll(){
     var y=window.scrollY+90,cur=0;
     for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
     links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
+    if(ptCur&&links[cur]) ptCur.textContent=links[cur].textContent;
     btn.style.display=window.scrollY>500?'flex':'none';
   }
   window.addEventListener('scroll',onScroll,{passive:true});
