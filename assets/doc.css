@@ -81,44 +81,53 @@ nav.toc .toc-grp-body.collapsed { display: none; }
 nav.toc .toc-grp:first-child { margin-top: 4px; border-top: none; }
 nav.toc a.h3 { padding-left: 22px; font-size: 12.5px; }
 
-/* 本页目录（右侧一栏） */
+/* 本页目录：右侧滑出面板，默认完全隐藏（横向），点贴边标签才出现 */
 nav.page-toc {
-  position: sticky; top: 62px; align-self: flex-start;
-  width: 200px; flex: 0 0 200px; max-height: calc(100vh - 62px); overflow-y: auto;
-  padding: 30px 18px 60px 4px; font-size: 12.5px;
+  position: fixed; top: 62px; right: 0; bottom: 0; z-index: 72;
+  width: 288px; max-width: 86vw; overflow-y: auto;
+  padding: 18px 18px 48px; background: #fff; border-left: 1px solid var(--line);
+  box-shadow: -10px 0 30px rgba(15,37,64,.10);
+  transform: translateX(102%); visibility: hidden;
+  transition: transform .22s ease, visibility .22s;
 }
-nav.page-toc .pt-h {
-  display: flex; align-items: center; gap: 6px; width: 100%;
-  padding: 0 0 6px 2px; margin: 0 0 8px; border: 0; border-bottom: 1px solid transparent;
-  background: none; font-family: inherit; text-align: left; cursor: pointer;
+nav.page-toc.open { transform: translateX(0); visibility: visible; }
+nav.page-toc .pt-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 0 0 10px; margin: 0 0 10px; border-bottom: 1px solid var(--line-soft);
   font-size: 11.5px; font-weight: 700; letter-spacing: 1.2px; color: #9aa4b2;
 }
-nav.page-toc .pt-h:hover { color: var(--navy); }
-nav.page-toc .pt-h .caret { font-size: 10px; opacity: .7; transition: transform .18s; }
-nav.page-toc .pt-cur {
-  display: none; flex: 1 1 auto; min-width: 0;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  font-weight: 400; letter-spacing: 0; color: #a8b2bf;
+nav.page-toc .pt-close {
+  border: 0; background: none; font-family: inherit; font-size: 13px; line-height: 1;
+  color: #9aa4b2; cursor: pointer; padding: 4px 5px; border-radius: 4px;
 }
-/* 宽屏折叠：只留一行「本页目录 · 当前小节」 */
-@media (min-width: 1240px) {
-  nav.page-toc.collapsed .pt-h .caret { transform: rotate(-90deg); }
-  nav.page-toc.collapsed .pt-cur { display: block; }
-  nav.page-toc.collapsed .pt-body { display: none; }
-}
+nav.page-toc .pt-close:hover { background: var(--panel); color: var(--navy); }
 nav.page-toc .pt-body { border-left: 2px solid var(--line-soft); }
 nav.page-toc a {
-  display: block; text-decoration: none; color: var(--ink-soft);
-  padding: 4px 4px 4px 11px; margin-left: -2px; border-left: 2px solid transparent;
+  display: block; text-decoration: none; color: var(--ink-soft); font-size: 13px;
+  padding: 5px 4px 5px 11px; margin-left: -2px; border-left: 2px solid transparent;
   line-height: 1.55;
 }
 nav.page-toc a:hover { color: var(--navy); }
 nav.page-toc a.on { color: var(--navy); border-left-color: var(--navy); font-weight: 600; }
-nav.page-toc a.h3 { padding-left: 22px; font-size: 12px; color: #8a94a2; }
+nav.page-toc a.h3 { padding-left: 22px; font-size: 12.5px; color: #8a94a2; }
 
-#pagetoc-btn { display: none; }
+/* 触发标签：宽屏竖排贴右边缘，窄屏右下角胶囊 */
+#pagetoc-btn {
+  position: fixed; right: 0; top: 50%; transform: translateY(-50%); z-index: 73;
+  writing-mode: vertical-rl; padding: 14px 8px;
+  border: 1px solid var(--line); border-right: 0; border-radius: 8px 0 0 8px;
+  background: #fff; color: var(--navy); font-family: inherit; font-size: 12px; letter-spacing: 2px;
+  cursor: pointer; box-shadow: -3px 2px 12px rgba(15,37,64,.10);
+}
+#pagetoc-btn:hover { background: #f2f6fa; }
+#pagetoc-btn[aria-expanded="true"] { background: var(--navy); color: #fff; border-color: var(--navy); }
+/* 宽屏：展开时标签跟到面板外沿，像抽屉拉手 */
+@media (min-width: 961px) {
+  #pagetoc-btn { transition: right .22s ease, background .15s, color .15s; }
+  #pagetoc-btn[aria-expanded="true"] { right: 288px; }
+}
 
-main { flex: 1 1 auto; min-width: 0; padding: 30px 40px 90px; }
+main { flex: 1 1 auto; min-width: 0; max-width: 980px; padding: 30px 40px 90px; }
 
 /* 面包屑 */
 .crumb { font-size: 13px; color: var(--ink-soft); margin-bottom: 14px; }
@@ -197,29 +206,6 @@ article tbody tr:hover { background: #f2f6fa; }
 .card p { margin: 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.7; }
 .card .tags { margin-top: 12px; font-size: 12px; color: #8a94a2; }
 
-/* 窄屏：本页目录改为右下角浮层 */
-@media (max-width: 1239px) {
-  nav.page-toc {
-    position: fixed; right: 16px; bottom: 84px; top: auto; z-index: 70;
-    width: 264px; max-height: 58vh; overflow-y: auto; padding: 14px 14px 16px;
-    background: #fff; border: 1px solid var(--line); border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(15,37,64,.16); display: none;
-  }
-  nav.page-toc.open { display: block; }
-  nav.page-toc .pt-h { cursor: default; }
-  nav.page-toc .pt-h .caret { display: none; }
-  nav.page-toc .pt-body { border-left: none; }
-  nav.page-toc a { padding-left: 6px; margin-left: 0; border-left: 2px solid transparent; }
-  nav.page-toc a.h3 { padding-left: 18px; }
-  #pagetoc-btn {
-    display: block; position: fixed; right: 22px; bottom: 78px; z-index: 71;
-    padding: 8px 13px; border-radius: 999px; border: 1px solid var(--line);
-    background: #fff; color: var(--navy); font-size: 12.5px; font-weight: 600;
-    font-family: inherit; cursor: pointer; box-shadow: 0 2px 10px rgba(15,37,64,.14);
-  }
-  #pagetoc-btn[aria-expanded="true"] { background: var(--navy); color: #fff; border-color: var(--navy); }
-}
-
 /* 移动端 */
 @media (max-width: 960px) {
   header.site { padding: 10px 16px; }
@@ -242,8 +228,13 @@ article tbody tr:hover { background: #f2f6fa; }
   article table { min-width: 460px; }
   .pager { flex-direction: column; }
   .pager .next { text-align: left; }
-  #pagetoc-btn { bottom: 74px; right: 16px; }
-  nav.page-toc { right: 12px; left: 12px; width: auto; bottom: 118px; }
+  #pagetoc-btn {
+    writing-mode: horizontal-tb; letter-spacing: 0; transform: none;
+    top: auto; bottom: 74px; right: 16px; padding: 8px 13px;
+    border-radius: 999px; border-right: 1px solid var(--line);
+    font-size: 12.5px; font-weight: 600; box-shadow: 0 2px 10px rgba(15,37,64,.14);
+  }
+  nav.page-toc { top: 58px; width: 300px; }
 }
 @media print {
   header.site, nav.toc, nav.page-toc, .pager, #pagetoc-btn, #top { display: none; }

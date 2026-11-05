@@ -195,8 +195,8 @@
       <p>Want to see where you stand? Score yourself on the map  <a href="/">→</a></p>
     </div>
   </main>
-  <nav class="page-toc collapsed" id="page-toc">
-<button type="button" class="pt-h" id="pt-head" aria-controls="page-toc-body" aria-expanded="false"><span class="pt-label">On this page</span><span class="pt-cur"></span><span class="caret">▾</span></button>
+  <nav class="page-toc" id="page-toc" aria-hidden="true">
+<div class="pt-head"><span>On this page</span><button type="button" class="pt-close" id="pt-close" aria-label="Close">✕</button></div>
 <div class="pt-body" id="page-toc-body">
 <a class="h2" href="#1-The-First-Thing-Is-Not-Learning-to-Tune-the-Model">1. The First Thing Is Not Learning to Tune the Model</a>
 <a class="h2" href="#2-What-AI-Actually-Is">2. What AI Actually Is</a>
@@ -209,7 +209,7 @@
 </div>
   </nav>
 </div>
-<button id="pagetoc-btn" type="button" aria-controls="page-toc" aria-expanded="false">≡ On this page</button>
+<button id="pagetoc-btn" type="button" aria-controls="page-toc" aria-expanded="false">On this page</button>
 <button id="top" title="Top" aria-label="Top" style="position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:#1c3a5e;color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.22)">↑</button>
 <script>
 (function(){
@@ -241,38 +241,27 @@
   var links=[].slice.call(document.querySelectorAll('nav.page-toc a[href^="#"]'));
   var heads=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});
   var btn=document.getElementById('top');
-  // 本页目录：宽屏默认折叠（只留一行标题 + 当前小节名），窄屏浮层
-  var pt=document.getElementById('page-toc'),ptb=document.getElementById('pagetoc-btn');
-  var ptHead=document.getElementById('pt-head'),ptCur=pt&&pt.querySelector('.pt-cur');
+  // 本页目录：默认隐藏（向右滑出屏外），点贴边标签才显示
+  var pt=document.getElementById('page-toc'),ptb=document.getElementById('pagetoc-btn'),ptc=document.getElementById('pt-close');
   if(pt&&ptb){
-    ptb.addEventListener('click',function(){
-      var open=pt.classList.toggle('open');
+    var setPt=function(open){
+      pt.classList.toggle('open',open);
+      pt.setAttribute('aria-hidden',open?'false':'true');
       ptb.setAttribute('aria-expanded',open?'true':'false');
+      if(open){var on=pt.querySelector('a.on');if(on&&on.scrollIntoView)on.scrollIntoView({block:'center'});}
+    };
+    ptb.addEventListener('click',function(e){e.stopPropagation();setPt(!pt.classList.contains('open'));});
+    if(ptc)ptc.addEventListener('click',function(){setPt(false);});
+    pt.addEventListener('click',function(e){if(e.target.closest('a'))setPt(false);});
+    document.addEventListener('click',function(e){
+      if(pt.classList.contains('open')&&!pt.contains(e.target)&&!ptb.contains(e.target))setPt(false);
     });
-    pt.addEventListener('click',function(e){
-      if(e.target.closest('a')){pt.classList.remove('open');ptb.setAttribute('aria-expanded','false');}
-    });
-  }
-  if(pt&&ptHead){
-    var PTK='aifde-pagetoc-collapsed',savedPt=null;
-    try{savedPt=localStorage.getItem(PTK);}catch(e){}
-    function ptPaint(closed){
-      pt.classList.toggle('collapsed',closed);
-      ptHead.setAttribute('aria-expanded',closed?'false':'true');
-    }
-    ptPaint(savedPt==='0'?false:true);   // 首次访问：默认收起（SSR 也是 collapsed，避闪烁）
-    ptHead.addEventListener('click',function(){
-      if(!window.matchMedia('(min-width:1240px)').matches)return;  // 窄屏浮层里标题不可折
-      var closed=!pt.classList.contains('collapsed');
-      ptPaint(closed);
-      try{localStorage.setItem(PTK,closed?'1':'0');}catch(e){}
-    });
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')setPt(false);});
   }
   function onScroll(){
     var y=window.scrollY+90,cur=0;
     for(var i=0;i<heads.length;i++){if(heads[i]&&heads[i].offsetTop<=y)cur=i;}
     links.forEach(function(a,i){a.classList.toggle('on',i===cur);});
-    if(ptCur&&links[cur]) ptCur.textContent=links[cur].textContent;
     btn.style.display=window.scrollY>500?'flex':'none';
   }
   window.addEventListener('scroll',onScroll,{passive:true});
