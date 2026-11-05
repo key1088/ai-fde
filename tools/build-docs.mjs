@@ -173,10 +173,13 @@ function docPage({ lang, art, series, articles, body, toc }) {
   const tocHtml = [
     `<div class="toc-h">${esc(t.series)}</div>`,
     `<div class="toc-body">`,
-    ...articles.map((a, i) => {
-      const at = a.meta.title[lang] || a.meta.title.zh;
-      return `<a class="art${a.slug === art.slug ? ' cur' : ''}" href="/${L.dir}/${a.slug}/"><span class="no">${String(i + 1).padStart(2, '0')}</span>${esc(at)}</a>`;
-    }),
+    ...grouped.flatMap((g) => [
+      g.key ? `<div class="toc-grp">${esc(groupLabel(g.key, lang))}</div>` : '',
+      ...g.items.map(
+        (a, i) =>
+          `<a class="art${a.slug === art.slug ? ' cur' : ''}" href="/${L.dir}/${a.slug}/"><span class="no">${String(i + 1).padStart(2, '0')}</span>${esc(a.meta.title[lang] || a.meta.title.zh)}</a>`
+      ),
+    ]),
     `</div>`,
     `<div class="toc-h">${esc(t.onThisPage)}</div>`,
     `<div class="toc-body">`,
@@ -274,16 +277,24 @@ function indexPage({ lang, series, articles }) {
   const canon = `${SITE}${L.urlBase}/`;
   const title = t.indexTitle;
   const desc = t.indexDesc;
-  const cards = articles
-    .map((a, i) => {
-      const at = a.meta.title[lang] || a.meta.title.zh;
-      const sum = a.meta.summary[lang] || a.meta.summary.zh || '';
-      return `<a class="card" href="/${L.dir}/${a.slug}/">
+  const cards = grouped
+    .map(
+      (g) => `<div class="series">
+${g.key ? `      <h2>${esc(groupLabel(g.key, lang))}</h2>\n` : ''}      <div class="cards">
+${g.items
+  .map((a, i) => {
+    const at = a.meta.title[lang] || a.meta.title.zh;
+    const sum = a.meta.summary[lang] || a.meta.summary.zh || '';
+    return `<a class="card" href="/${L.dir}/${a.slug}/">
   <div class="no">${String(i + 1).padStart(2, '0')}${a.meta.date ? ` · ${esc(a.meta.date)}` : ''}</div>
   <h3>${esc(at)}</h3>
   ${sum ? `<p>${esc(sum)}</p>` : ''}
 </a>`;
-    })
+  })
+  .join('\n')}
+      </div>
+    </div>`
+    )
     .join('\n');
 
   return `<!DOCTYPE html>
@@ -335,6 +346,12 @@ ${ADSENSE}
     <div class="toc-h">${esc(t.series)}</div>
     <div class="toc-body">
       <a class="art cur" href="/${L.dir}/">${esc(series.title[lang] || series.title.zh)}</a>
+${grouped
+  .flatMap((g) => [
+    g.key ? `      <div class="toc-grp">${esc(groupLabel(g.key, lang))}</div>` : '',
+    ...g.items.map((a) => `      <a class="art" href="/${L.dir}/${a.slug}/">${esc(a.meta.title[lang] || a.meta.title.zh)}</a>`),
+  ])
+  .join('\n')}
     </div>
   </nav>
   <main>
@@ -343,11 +360,7 @@ ${ADSENSE}
       <p>${esc(series.description[lang] || series.description.zh)}</p>
       <p style="margin-top:10px;font-size:13.5px;color:#8a94a2">${articles.length} ${esc(t.articles)}</p>
     </div>
-    <div class="series">
-      <div class="cards">
 ${cards}
-      </div>
-    </div>
     <div class="doc-foot">
       <p><a href="${L.tool}">${esc(t.cta.replace('→', ''))} →</a></p>
     </div>
@@ -362,6 +375,24 @@ ${cards}
 const seriesMap = sources.series;
 const articles = loadArticles();
 const series = seriesMap[articles[0]?.series] || Object.values(seriesMap)[0];
+
+// 分组（卷）：series.groups 定义顺序与中英标题，文章用 group 字段归属；没配分组的文章归到 "" 组。
+// 页面上的组标题 = 系列标题 + " · " + 分组标题，所以新增分组只需在 sources.json 加一条。
+const groupDefs = series.groups || {};
+const grouped = (() => {
+  const keys = [...new Set(articles.map((a) => a.group || ''))];
+  keys.sort((x, y) => (groupDefs[x]?.order ?? 99) - (groupDefs[y]?.order ?? 99));
+  return keys.map((key) => ({ key, items: articles.filter((a) => (a.group || '') === key) }));
+})();
+function groupLabel(key, lang) {
+  const base = series.title[lang] || series.title.zh;
+  const g = groupDefs[key];
+  if (!g) return base;
+  return `${base} · ${g.title[lang] || g.title.zh}`;
+}
+for (const a of articles) {
+  if (a.group && !groupDefs[a.group]) problems.push(`${a.slug} 的 group「${a.group}」未在 series.groups 里定义`);
+}
 
 let wrote = 0;
 for (const lang of ['zh', 'en']) {

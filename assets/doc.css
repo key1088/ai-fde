@@ -67,6 +67,11 @@ nav.toc a.on { background: #eaf0f6; border-left-color: var(--navy); color: var(-
 nav.toc a.art { padding-left: 8px; }
 nav.toc a.art.cur { color: var(--navy); font-weight: 700; background: #eef3f8; }
 nav.toc a.art .no { display: inline-block; min-width: 20px; color: #9aa4b2; font-variant-numeric: tabular-nums; }
+nav.toc .toc-grp {
+  font-size: 11.5px; font-weight: 700; color: #7a8697; letter-spacing: .3px;
+  margin: 14px 0 4px; padding-left: 8px; border-top: 1px dashed var(--line); padding-top: 10px;
+}
+nav.toc .toc-grp:first-child { margin-top: 4px; border-top: none; }
 nav.toc a.h3 { padding-left: 22px; font-size: 12.5px; }
 
 main { flex: 1 1 auto; min-width: 0; padding: 30px 40px 90px; }
@@ -135,6 +140,7 @@ article tbody tr:hover { background: #f2f6fa; }
 .hero p { color: var(--ink-soft); max-width: 720px; margin: 0; }
 .series { margin: 34px 0; }
 .series h2 { font-size: 20px; color: var(--navy); border-left: 5px solid var(--navy); padding-left: 12px; }
+.series h2:first-child { margin-top: 0; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 18px 0; }
 .card {
   display: block; text-decoration: none; color: var(--ink);

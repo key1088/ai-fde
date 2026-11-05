@@ -1,10 +1,20 @@
 {
-  "_comment": "公众号文章 → 站点文档 的导入清单。新增一篇文章：在 articles 里加一条（slug 唯一、order 决定排序），然后 node tools/import-wechat.mjs <slug>。",
+  "_comment": "公众号文章 → 站点文档 的导入清单。新增一篇文章：在 articles 里加一条（slug 唯一、order 决定排序、group 决定归属分组），然后 node tools/import-wechat.mjs <slug>。新增分组：在 series.<series>.groups 里加一条，再 build。",
   "series": {
     "ai-fde-roadmap": {
       "title": {
         "zh": "AI-FDE 转型之路",
         "en": "The AI-FDE Transition Path"
+      },
+      "groups": {
+        "intro": {
+          "order": 0,
+          "title": { "zh": "开篇", "en": "Introduction" }
+        },
+        "ai-eng": {
+          "order": 1,
+          "title": { "zh": "AI 工程", "en": "AI Engineering" }
+        }
       },
       "description": {
         "zh": "从客户现场走向 AI 交付：一套写给实施、售前、交付、运维背景同学的 AI-FDE 转型学习路径。",
@@ -16,78 +26,91 @@
     {
       "slug": "00-intro",
       "series": "ai-fde-roadmap",
+      "group": "intro",
       "order": 0,
       "url": "https://mp.weixin.qq.com/s/qRW8fBZiS-kBpb3QaXNC8Q"
     },
     {
       "slug": "01-ai-eng-llm",
       "series": "ai-fde-roadmap",
+      "group": "ai-eng",
       "order": 1,
       "url": "https://mp.weixin.qq.com/s/YGG_6ZE287PQUV1PmWP06g"
     },
     {
       "slug": "02-ai-eng-prompt",
       "series": "ai-fde-roadmap",
+      "group": "ai-eng",
       "order": 2,
       "url": "https://mp.weixin.qq.com/s/UFA25CeOSOA0CYmzDD5TYw"
     },
     {
       "slug": "03-ai-eng-context",
       "series": "ai-fde-roadmap",
+      "group": "ai-eng",
       "order": 3,
       "url": "https://mp.weixin.qq.com/s/6ZUkfI-f8eEAsyDoLntXHg"
     },
     {
       "slug": "04-ai-eng-rag",
       "series": "ai-fde-roadmap",
+      "group": "ai-eng",
       "order": 4,
       "url": "https://mp.weixin.qq.com/s/X7-wH5yZtShcJ1O37AlC9w"
     },
     {
       "slug": "05-ai-eng-doc-parsing",
       "series": "ai-fde-roadmap",
+      "group": "ai-eng",
       "order": 5,
       "url": "https://mp.weixin.qq.com/s/3vX-T02DlBy0lkZhLxnP6w"
     },
     {
       "slug": "06-ai-eng-tool-calling",
       "series": "ai-fde-roadmap",
+      "group": "ai-eng",
       "order": 6,
       "url": "https://mp.weixin.qq.com/s/is6llQD2CbJG3zYdU2c_lg"
     },
     {
       "slug": "06-ai-eng-tool-calling-principles",
       "series": "ai-fde-roadmap",
+      "group": "ai-eng",
       "order": 6.5,
       "url": "https://mp.weixin.qq.com/s/ptZApIsKXzyInfPbIPqF7g"
     },
     {
       "slug": "07-ai-eng-python",
       "series": "ai-fde-roadmap",
+      "group": "ai-eng",
       "order": 7,
       "url": "https://mp.weixin.qq.com/s/kOyauld3xlLSpLb_KEQRIA"
     },
     {
       "slug": "08-ai-eng-mcp",
       "series": "ai-fde-roadmap",
+      "group": "ai-eng",
       "order": 8,
       "url": "https://mp.weixin.qq.com/s/JgZB1sm88PUQWTdSjIUzcw"
     },
     {
       "slug": "09-ai-eng-agent-1",
       "series": "ai-fde-roadmap",
+      "group": "ai-eng",
       "order": 9,
       "url": "https://mp.weixin.qq.com/s/1AETItgxBG5E2VkEyx86Mw"
     },
     {
       "slug": "09-ai-eng-agent-2",
       "series": "ai-fde-roadmap",
+      "group": "ai-eng",
       "order": 9.1,
       "url": "https://mp.weixin.qq.com/s/8RAwXbH6sH1RbziLxdddhQ"
     },
     {
       "slug": "09-ai-eng-agent-3",
       "series": "ai-fde-roadmap",
+      "group": "ai-eng",
       "order": 9.2,
       "url": "https://mp.weixin.qq.com/s/m9-QlATFyb5rIlaUVvb6OQ"
     }
